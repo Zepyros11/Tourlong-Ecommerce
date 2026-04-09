@@ -100,6 +100,12 @@ function renderBlockLibrary() {
       html += '<span class="block-library-name">' + block.name + '</span>';
       html += '<span class="block-library-desc">' + block.desc + '</span>';
       html += '</div>';
+      if (block.tip) {
+        html += '<div class="block-library-tip" title="' + escapeHtml(block.tip) + '">';
+        html += '<i data-lucide="info" style="width:12px;height:12px;"></i>';
+        html += '<div class="block-library-tip-popup">' + escapeHtml(block.tip) + '</div>';
+        html += '</div>';
+      }
       html += '</div>';
     });
     html += '</div>';
@@ -572,6 +578,63 @@ function generateSettingsFields(block) {
       ]);
       break;
 
+    case "cards":
+      html += settingsSection("Layout", [
+        settingsSelectField("Columns", "setting-columns", String(data.columns || 3), ["2", "3", "4"]),
+      ]);
+      var cards = data.cards || [];
+      for (var ci = 0; ci < cards.length; ci++) {
+        html += settingsSection("Card " + (ci + 1), [
+          settingsField("Title", "text", "setting-card-title-" + ci, cards[ci].title || ""),
+          settingsField("Description", "textarea", "setting-card-desc-" + ci, cards[ci].desc || ""),
+          settingsField("Image URL", "text", "setting-card-image-" + ci, cards[ci].image || ""),
+          settingsPageLinkField("Link", "setting-card-link-" + ci, cards[ci].link || "#"),
+        ]);
+      }
+      html += '<div class="settings-section"><button class="btn-outline btn-sm" style="width:100%;justify-content:center;" onclick="addCardItem()"><i data-lucide="plus" style="width:10px;height:10px;"></i> เพิ่มการ์ด</button></div>';
+      break;
+
+    case "carousel":
+      html += settingsSection("Settings", [
+        settingsSelectField("Auto Play", "setting-autoPlay", data.autoPlay ? "true" : "false", ["true", "false"]),
+        settingsField("Interval (วินาที)", "text", "setting-interval", String(data.interval || 3)),
+      ]);
+      var slides = data.slides || [];
+      for (var si = 0; si < slides.length; si++) {
+        html += settingsSection("Slide " + (si + 1), [
+          settingsField("Image URL", "text", "setting-slide-image-" + si, slides[si].image || ""),
+          settingsField("Caption", "text", "setting-slide-caption-" + si, slides[si].caption || ""),
+        ]);
+      }
+      html += '<div class="settings-section"><button class="btn-outline btn-sm" style="width:100%;justify-content:center;" onclick="addSlideItem()"><i data-lucide="plus" style="width:10px;height:10px;"></i> เพิ่ม Slide</button></div>';
+      break;
+
+    case "twocol":
+      html += settingsSection("Layout", [
+        settingsSelectField("Ratio", "setting-ratio", data.ratio || "50-50", ["50-50", "60-40", "40-60", "70-30", "30-70"]),
+      ]);
+      html += settingsSection("Left Column", [
+        settingsField("Title", "text", "setting-leftTitle", data.leftTitle || ""),
+        settingsField("Content", "textarea", "setting-leftContent", data.leftContent || ""),
+      ]);
+      html += settingsSection("Right Column", [
+        settingsField("Title", "text", "setting-rightTitle", data.rightTitle || ""),
+        settingsField("Content", "textarea", "setting-rightContent", data.rightContent || ""),
+      ]);
+      break;
+
+    case "testimonial":
+      var reviews = data.reviews || [];
+      for (var ri = 0; ri < reviews.length; ri++) {
+        html += settingsSection("Review " + (ri + 1), [
+          settingsField("Name", "text", "setting-review-name-" + ri, reviews[ri].name || ""),
+          settingsField("Review", "textarea", "setting-review-text-" + ri, reviews[ri].text || ""),
+          settingsSelectField("Rating", "setting-review-rating-" + ri, String(reviews[ri].rating || 5), ["1", "2", "3", "4", "5"]),
+        ]);
+      }
+      html += '<div class="settings-section"><button class="btn-outline btn-sm" style="width:100%;justify-content:center;" onclick="addReviewItem()"><i data-lucide="plus" style="width:10px;height:10px;"></i> เพิ่มรีวิว</button></div>';
+      break;
+
     case "video":
       html += settingsSection("Content", [
         settingsField("Video URL", "text", "setting-url", data.url || ""),
@@ -798,6 +861,34 @@ function handleImageUpload(file, fieldId, block) {
   });
 }
 
+// Add item functions for dynamic lists
+function addCardItem() {
+  var block = getCurrentPage().blocks.find(function (b) { return b.id === selectedBlockId; });
+  if (!block || block.type !== "cards") return;
+  block.data.cards = block.data.cards || [];
+  block.data.cards.push({ title: "New Card", desc: "Description", image: "", link: "#" });
+  renderBlockSettings();
+  renderCanvasBlocks();
+}
+
+function addSlideItem() {
+  var block = getCurrentPage().blocks.find(function (b) { return b.id === selectedBlockId; });
+  if (!block || block.type !== "carousel") return;
+  block.data.slides = block.data.slides || [];
+  block.data.slides.push({ image: "", caption: "New Slide" });
+  renderBlockSettings();
+  renderCanvasBlocks();
+}
+
+function addReviewItem() {
+  var block = getCurrentPage().blocks.find(function (b) { return b.id === selectedBlockId; });
+  if (!block || block.type !== "testimonial") return;
+  block.data.reviews = block.data.reviews || [];
+  block.data.reviews.push({ name: "Customer", text: "Great product!", rating: 5 });
+  renderBlockSettings();
+  renderCanvasBlocks();
+}
+
 function clearImageField(fieldId) {
   var hidden = document.getElementById(fieldId);
   if (hidden) hidden.value = "";
@@ -881,6 +972,49 @@ function updateBlockData(block) {
     case "gallery":
       data.title = getVal("setting-title");
       data.columns = parseInt(getVal("setting-columns")) || data.columns;
+      break;
+    case "cards":
+      data.columns = parseInt(getVal("setting-columns")) || data.columns;
+      var cardCount = (data.cards || []).length;
+      data.cards = [];
+      for (var ci = 0; ci < cardCount; ci++) {
+        data.cards.push({
+          title: getVal("setting-card-title-" + ci),
+          desc: getVal("setting-card-desc-" + ci),
+          image: getVal("setting-card-image-" + ci),
+          link: getVal("setting-card-link-" + ci) || "#",
+        });
+      }
+      break;
+    case "carousel":
+      data.autoPlay = getVal("setting-autoPlay") === "true";
+      data.interval = parseInt(getVal("setting-interval")) || 3;
+      var slideCount = (data.slides || []).length;
+      data.slides = [];
+      for (var si = 0; si < slideCount; si++) {
+        data.slides.push({
+          image: getVal("setting-slide-image-" + si),
+          caption: getVal("setting-slide-caption-" + si),
+        });
+      }
+      break;
+    case "twocol":
+      data.ratio = getVal("setting-ratio") || "50-50";
+      data.leftTitle = getVal("setting-leftTitle");
+      data.leftContent = getVal("setting-leftContent");
+      data.rightTitle = getVal("setting-rightTitle");
+      data.rightContent = getVal("setting-rightContent");
+      break;
+    case "testimonial":
+      var revCount = (data.reviews || []).length;
+      data.reviews = [];
+      for (var ri = 0; ri < revCount; ri++) {
+        data.reviews.push({
+          name: getVal("setting-review-name-" + ri),
+          text: getVal("setting-review-text-" + ri),
+          rating: parseInt(getVal("setting-review-rating-" + ri)) || 5,
+        });
+      }
       break;
     case "video":
       data.url = getVal("setting-url");
@@ -1013,6 +1147,68 @@ function generateBlockPreview(block) {
     case "video":
       return '<div class="block-preview-video">' +
         '<div class="video-placeholder"><i data-lucide="play-circle"></i></div>' +
+        '</div>';
+
+    case "cards":
+      var cCols = d.columns || 3;
+      var cardItems = (d.cards || []).map(function (card) {
+        var imgHtml = card.image
+          ? '<img src="' + escapeHtml(card.image) + '" style="width:100%;height:60px;object-fit:cover;border-radius:6px;margin-bottom:6px;" />'
+          : '<div style="width:100%;height:60px;background:#e2e8f0;border-radius:6px;margin-bottom:6px;"></div>';
+        return '<div style="background:#f8fafc;border-radius:10px;padding:12px;text-align:center;">' +
+          imgHtml +
+          '<div style="font-size:10px;font-weight:700;color:#1e293b;">' + escapeHtml(card.title || "") + '</div>' +
+          '<div style="font-size:8px;color:#64748b;margin-top:2px;">' + escapeHtml(card.desc || "") + '</div>' +
+          '</div>';
+      }).join("");
+      return '<div style="padding:16px;">' +
+        '<div style="display:grid;grid-template-columns:repeat(' + cCols + ',1fr);gap:10px;">' + cardItems + '</div>' +
+        '</div>';
+
+    case "carousel":
+      var firstSlide = (d.slides && d.slides[0]) || {};
+      var slideImg = firstSlide.image
+        ? '<img src="' + escapeHtml(firstSlide.image) + '" style="width:100%;height:160px;object-fit:cover;border-radius:10px;" />'
+        : '<div style="width:100%;height:160px;background:linear-gradient(135deg,#6366f1,#4338ca);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;">Slide 1</div>';
+      var dotCount = (d.slides || []).length;
+      var dotsHtml = '';
+      for (var di = 0; di < dotCount; di++) {
+        dotsHtml += '<div style="width:6px;height:6px;border-radius:50%;background:' + (di === 0 ? '#6366f1' : '#cbd5e1') + ';"></div>';
+      }
+      return '<div style="padding:16px;position:relative;">' +
+        slideImg +
+        '<div style="display:flex;justify-content:center;gap:4px;margin-top:8px;">' + dotsHtml + '</div>' +
+        '<div style="position:absolute;top:50%;left:24px;transform:translateY(-50%);width:20px;height:20px;background:rgba(0,0,0,0.3);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;">&#10094;</div>' +
+        '<div style="position:absolute;top:50%;right:24px;transform:translateY(-50%);width:20px;height:20px;background:rgba(0,0,0,0.3);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;">&#10095;</div>' +
+        '</div>';
+
+    case "twocol":
+      var ratioMap = { "50-50": ["1fr","1fr"], "60-40": ["3fr","2fr"], "40-60": ["2fr","3fr"], "70-30": ["7fr","3fr"], "30-70": ["3fr","7fr"] };
+      var cols = ratioMap[d.ratio] || ["1fr","1fr"];
+      return '<div style="padding:16px;">' +
+        '<div style="display:grid;grid-template-columns:' + cols.join(" ") + ';gap:12px;">' +
+        '<div style="background:#f8fafc;border-radius:8px;padding:14px;">' +
+          '<div style="font-size:11px;font-weight:800;color:#1e293b;margin-bottom:4px;">' + escapeHtml(d.leftTitle || "Left") + '</div>' +
+          '<div style="font-size:9px;color:#64748b;line-height:1.5;">' + escapeHtml(d.leftContent || "") + '</div>' +
+        '</div>' +
+        '<div style="background:#f8fafc;border-radius:8px;padding:14px;">' +
+          '<div style="font-size:11px;font-weight:800;color:#1e293b;margin-bottom:4px;">' + escapeHtml(d.rightTitle || "Right") + '</div>' +
+          '<div style="font-size:9px;color:#64748b;line-height:1.5;">' + escapeHtml(d.rightContent || "") + '</div>' +
+        '</div>' +
+        '</div></div>';
+
+    case "testimonial":
+      var revItems = (d.reviews || []).map(function (rev) {
+        var stars = '';
+        for (var s = 0; s < (rev.rating || 5); s++) stars += '&#9733;';
+        return '<div style="background:#f8fafc;border-radius:10px;padding:14px;text-align:center;">' +
+          '<div style="font-size:12px;color:#f59e0b;margin-bottom:4px;">' + stars + '</div>' +
+          '<div style="font-size:9px;color:#64748b;font-style:italic;margin-bottom:6px;">"' + escapeHtml(rev.text || "") + '"</div>' +
+          '<div style="font-size:9px;font-weight:700;color:#1e293b;">' + escapeHtml(rev.name || "") + '</div>' +
+          '</div>';
+      }).join("");
+      return '<div style="padding:16px;">' +
+        '<div style="display:grid;grid-template-columns:repeat(' + Math.min((d.reviews || []).length, 3) + ',1fr);gap:10px;">' + revItems + '</div>' +
         '</div>';
 
     default:
@@ -1314,6 +1510,60 @@ function generatePreviewBlock(block) {
         '<div style="max-width:800px;margin:0 auto;height:400px;background:#111;border-radius:16px;display:flex;align-items:center;justify-content:center;">' +
         '<span style="font-size:48px;opacity:0.3;">▶</span>' +
         '</div></section>';
+
+    case "cards":
+      var pcCols = d.columns || 3;
+      var pcCards = (d.cards || []).map(function (card) {
+        var cImg = card.image
+          ? '<img src="' + escapeHtml(card.image) + '" style="width:100%;height:140px;object-fit:cover;border-radius:12px;margin-bottom:12px;" />'
+          : '<div style="width:100%;height:140px;background:#1a1a2e;border-radius:12px;margin-bottom:12px;"></div>';
+        var cLink = card.link && card.link !== "#" ? "/modules/frontend/page.html?slug=" + card.link : "#";
+        return '<div style="background:#111;border-radius:16px;padding:20px;text-align:center;">' +
+          cImg +
+          '<p style="font-weight:700;font-size:16px;margin-bottom:4px;">' + escapeHtml(card.title || "") + '</p>' +
+          '<p style="font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:12px;">' + escapeHtml(card.desc || "") + '</p>' +
+          '<a href="' + cLink + '" style="display:inline-block;background:#6366f1;color:#fff;padding:8px 20px;border-radius:999px;font-size:12px;font-weight:700;text-decoration:none;">Read More</a>' +
+          '</div>';
+      }).join("");
+      return '<section style="padding:60px 40px;">' +
+        '<div style="display:grid;grid-template-columns:repeat(' + pcCols + ',1fr);gap:20px;max-width:1000px;margin:0 auto;">' + pcCards + '</div>' +
+        '</section>';
+
+    case "carousel":
+      var pcSlide = (d.slides && d.slides[0]) || {};
+      var pcSlideImg = pcSlide.image
+        ? '<img src="' + escapeHtml(pcSlide.image) + '" style="width:100%;height:400px;object-fit:cover;border-radius:16px;" />'
+        : '<div style="width:100%;height:400px;background:linear-gradient(135deg,#1a1a2e,#0f172a);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;">' + escapeHtml(pcSlide.caption || "Slide") + '</div>';
+      return '<section style="padding:40px;max-width:900px;margin:0 auto;">' + pcSlideImg + '</section>';
+
+    case "twocol":
+      var pcRatioMap = { "50-50": ["1fr","1fr"], "60-40": ["3fr","2fr"], "40-60": ["2fr","3fr"], "70-30": ["7fr","3fr"], "30-70": ["3fr","7fr"] };
+      var pcCols2 = pcRatioMap[d.ratio] || ["1fr","1fr"];
+      return '<section style="padding:60px 40px;">' +
+        '<div style="display:grid;grid-template-columns:' + pcCols2.join(" ") + ';gap:32px;max-width:900px;margin:0 auto;">' +
+        '<div>' +
+          (d.leftTitle ? '<h2 style="font-size:28px;font-weight:800;margin-bottom:12px;">' + escapeHtml(d.leftTitle) + '</h2>' : '') +
+          '<p style="font-size:16px;color:rgba(255,255,255,0.7);line-height:1.8;">' + escapeHtml(d.leftContent || "") + '</p>' +
+        '</div>' +
+        '<div>' +
+          (d.rightTitle ? '<h2 style="font-size:28px;font-weight:800;margin-bottom:12px;">' + escapeHtml(d.rightTitle) + '</h2>' : '') +
+          '<p style="font-size:16px;color:rgba(255,255,255,0.7);line-height:1.8;">' + escapeHtml(d.rightContent || "") + '</p>' +
+        '</div>' +
+        '</div></section>';
+
+    case "testimonial":
+      var pcRevs = (d.reviews || []).map(function (rev) {
+        var pcStars = '';
+        for (var ps = 0; ps < (rev.rating || 5); ps++) pcStars += '&#9733;';
+        return '<div style="background:#111;border-radius:16px;padding:28px;text-align:center;">' +
+          '<div style="font-size:20px;color:#f59e0b;margin-bottom:12px;">' + pcStars + '</div>' +
+          '<p style="font-size:15px;color:rgba(255,255,255,0.8);font-style:italic;margin-bottom:16px;line-height:1.6;">"' + escapeHtml(rev.text || "") + '"</p>' +
+          '<p style="font-weight:700;font-size:14px;">' + escapeHtml(rev.name || "") + '</p>' +
+          '</div>';
+      }).join("");
+      return '<section style="padding:60px 40px;">' +
+        '<div style="display:grid;grid-template-columns:repeat(' + Math.min((d.reviews || []).length, 3) + ',1fr);gap:20px;max-width:900px;margin:0 auto;">' + pcRevs + '</div>' +
+        '</section>';
 
     default:
       return '';

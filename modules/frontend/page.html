@@ -189,6 +189,47 @@
             '<span style="font-size:48px;opacity:0.3;">▶</span>' +
             '</div></section>';
 
+        case "cards":
+          var ccCols = d.columns || 3;
+          var ccCards = (d.cards || []).map(function (card) {
+            var cImg = card.image
+              ? '<img src="' + escapeHtml(card.image) + '" style="width:100%;height:140px;object-fit:cover;border-radius:12px;margin-bottom:12px;" />'
+              : '<div style="width:100%;height:140px;background:#1a1a2e;border-radius:12px;margin-bottom:12px;"></div>';
+            var cLink = card.link && card.link !== "#" ? "/modules/frontend/page.html?slug=" + card.link : "#";
+            return '<div style="background:#111;border-radius:16px;padding:20px;text-align:center;">' + cImg +
+              '<p style="font-weight:700;font-size:16px;margin-bottom:4px;">' + escapeHtml(card.title) + '</p>' +
+              '<p style="font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:12px;">' + escapeHtml(card.desc) + '</p>' +
+              '<a href="' + cLink + '" style="display:inline-block;background:#6366f1;color:#fff;padding:8px 20px;border-radius:999px;font-size:12px;font-weight:700;text-decoration:none;">Read More</a></div>';
+          }).join("");
+          return '<section style="padding:60px 40px;"><div style="display:grid;grid-template-columns:repeat(' + ccCols + ',1fr);gap:20px;max-width:1000px;margin:0 auto;">' + ccCards + '</div></section>';
+
+        case "carousel":
+          var ccSlide = (d.slides && d.slides[0]) || {};
+          var ccImg = ccSlide.image
+            ? '<img src="' + escapeHtml(ccSlide.image) + '" style="width:100%;height:400px;object-fit:cover;border-radius:16px;" />'
+            : '<div style="width:100%;height:400px;background:linear-gradient(135deg,#1a1a2e,#0f172a);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;">' + escapeHtml(ccSlide.caption || "Slide") + '</div>';
+          return '<section style="padding:40px;max-width:900px;margin:0 auto;">' + ccImg + '</section>';
+
+        case "twocol":
+          var ccRatio = { "50-50": ["1fr","1fr"], "60-40": ["3fr","2fr"], "40-60": ["2fr","3fr"], "70-30": ["7fr","3fr"], "30-70": ["3fr","7fr"] };
+          var ccC = ccRatio[d.ratio] || ["1fr","1fr"];
+          return '<section style="padding:60px 40px;"><div style="display:grid;grid-template-columns:' + ccC.join(" ") + ';gap:32px;max-width:900px;margin:0 auto;">' +
+            '<div>' + (d.leftTitle ? '<h2 style="font-size:28px;font-weight:800;margin-bottom:12px;">' + escapeHtml(d.leftTitle) + '</h2>' : '') +
+            '<p style="font-size:16px;color:rgba(255,255,255,0.7);line-height:1.8;">' + escapeHtml(d.leftContent || "") + '</p></div>' +
+            '<div>' + (d.rightTitle ? '<h2 style="font-size:28px;font-weight:800;margin-bottom:12px;">' + escapeHtml(d.rightTitle) + '</h2>' : '') +
+            '<p style="font-size:16px;color:rgba(255,255,255,0.7);line-height:1.8;">' + escapeHtml(d.rightContent || "") + '</p></div>' +
+            '</div></section>';
+
+        case "testimonial":
+          var ccRevs = (d.reviews || []).map(function (rev) {
+            var st = ''; for (var s = 0; s < (rev.rating||5); s++) st += '&#9733;';
+            return '<div style="background:#111;border-radius:16px;padding:28px;text-align:center;">' +
+              '<div style="font-size:20px;color:#f59e0b;margin-bottom:12px;">' + st + '</div>' +
+              '<p style="font-size:15px;color:rgba(255,255,255,0.8);font-style:italic;margin-bottom:16px;line-height:1.6;">"' + escapeHtml(rev.text) + '"</p>' +
+              '<p style="font-weight:700;font-size:14px;">' + escapeHtml(rev.name) + '</p></div>';
+          }).join("");
+          return '<section style="padding:60px 40px;"><div style="display:grid;grid-template-columns:repeat(' + Math.min((d.reviews||[]).length,3) + ',1fr);gap:20px;max-width:900px;margin:0 auto;">' + ccRevs + '</div></section>';
+
         default:
           return '';
       }

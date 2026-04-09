@@ -588,8 +588,9 @@
 .editor-layout {
   display: flex;
   flex: 1;
-  min-height: calc(100vh - 120px);
+  height: calc(100vh - 90px);
   background: #f1f5f9;
+  overflow: hidden;
 }
 
 /* ---- Left Sidebar: Block Library ---- */
@@ -600,9 +601,7 @@
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  position: sticky;
-  top: 0;
-  height: calc(100vh - 50px);
+  height: 100%;
   overflow-y: auto;
 }
 
@@ -723,6 +722,54 @@
 .block-library-info {
   display: flex;
   flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Tip icon + popup */
+.block-library-tip {
+  position: relative;
+  flex-shrink: 0;
+  color: #cbd5e1;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s;
+}
+
+.block-library-tip:hover {
+  color: #6366f1;
+}
+
+.block-library-tip-popup {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: -8px;
+  width: 200px;
+  background: #1e293b;
+  color: #f1f5f9;
+  font-size: 9px;
+  line-height: 1.5;
+  padding: 10px 12px;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  z-index: 30;
+  pointer-events: none;
+}
+
+.block-library-tip-popup::after {
+  content: "";
+  position: absolute;
+  bottom: -5px;
+  right: 12px;
+  width: 10px;
+  height: 10px;
+  background: #1e293b;
+  transform: rotate(45deg);
+}
+
+.block-library-tip:hover .block-library-tip-popup {
+  display: block;
 }
 
 .block-library-name {
@@ -744,6 +791,7 @@
   padding: 24px;
   display: flex;
   justify-content: center;
+  height: 100%;
 }
 
 .editor-canvas {
@@ -929,9 +977,7 @@
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  position: sticky;
-  top: 0;
-  height: calc(100vh - 50px);
+  height: 100%;
   overflow-y: auto;
 }
 
