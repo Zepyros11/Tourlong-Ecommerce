@@ -5,97 +5,59 @@
 // ============================================================
 
 // ===================== State =====================
-var currentEditPageId = 1; // เปิด Home Page เป็นหน้าแรกเลย
+var currentEditPageId = null;
 var selectedBlockId = null;
 var draggedBlockType = null;
 var draggedCanvasBlockId = null;
-
-// Mock Pages Data
-var pagesData = [
-  {
-    id: 1,
-    name: "Home Page",
-    slug: "home-page",
-    status: "published",
-    template: "landing",
-    description: "หน้าแรกของร้าน Tour Long",
-    blocks: [
-      { id: "b1", type: "header", data: { logoText: "TOUR LONG", navItems: ["Home", "Products", "About", "Contact"] } },
-      { id: "b2", type: "hero", data: { title: "น้ำพริกน้ำย้อย Chilli Crispy", subtitle: "ไม่ใส่ผงชูรส ลดน้ำตาล วัตถุดิบคัดสรร", buttonText: "Order Now", bgColor: "#0a0a0a" } },
-      { id: "b3", type: "products", data: { title: "สินค้าของเรา", columns: 3, limit: 6 } },
-      { id: "b4", type: "features", data: { title: "ทำไมต้องเลือกเรา", items: ["ไม่ใส่ผงชูรส", "ผลิตสดใหม่", "จัดส่งทั่วไทย", "รีวิว 5 ดาว"] } },
-      { id: "b5", type: "contact", data: { title: "ติดต่อเรา", phone: "081-234-5678", line: "@tourlong", email: "info@tourlong.com" } },
-      { id: "b6", type: "footer", data: { text: "© 2026 Tour Long. All rights reserved." } },
-    ],
-    lastModified: "2026-04-08",
-  },
-  {
-    id: 2,
-    name: "Products",
-    slug: "products",
-    status: "published",
-    template: "product",
-    description: "หน้ารวมสินค้าทั้งหมด",
-    blocks: [
-      { id: "b7", type: "header", data: { logoText: "TOUR LONG", navItems: ["Home", "Products", "About", "Contact"] } },
-      { id: "b8", type: "products", data: { title: "สินค้าทั้งหมด", columns: 3, limit: 12 } },
-      { id: "b9", type: "footer", data: { text: "© 2026 Tour Long. All rights reserved." } },
-    ],
-    lastModified: "2026-04-07",
-  },
-  {
-    id: 3,
-    name: "About Us",
-    slug: "about",
-    status: "published",
-    template: "content",
-    description: "เกี่ยวกับร้าน Tour Long",
-    blocks: [
-      { id: "b10", type: "header", data: { logoText: "TOUR LONG", navItems: ["Home", "Products", "About", "Contact"] } },
-      { id: "b11", type: "text", data: { heading: "เกี่ยวกับเรา", content: "Tour Long เกิดจากความรักในรสชาติน้ำพริกแบบไทยๆ ที่อยากให้ทุกคนได้ลิ้มลอง" } },
-      { id: "b12", type: "features", data: { title: "คุณค่าของเรา", items: ["คุณภาพ", "ความสด", "รสชาติ", "ส่งตรง"] } },
-      { id: "b13", type: "footer", data: { text: "© 2026 Tour Long. All rights reserved." } },
-    ],
-    lastModified: "2026-04-05",
-  },
-  {
-    id: 4,
-    name: "Contact Us",
-    slug: "contact",
-    status: "draft",
-    template: "content",
-    description: "หน้าติดต่อเรา",
-    blocks: [
-      { id: "b14", type: "header", data: { logoText: "TOUR LONG", navItems: ["Home", "Products", "About", "Contact"] } },
-      { id: "b15", type: "contact", data: { title: "ติดต่อเรา", phone: "081-234-5678", line: "@tourlong", email: "info@tourlong.com" } },
-      { id: "b16", type: "footer", data: { text: "© 2026 Tour Long. All rights reserved." } },
-    ],
-    lastModified: "2026-04-03",
-  },
-  {
-    id: 5,
-    name: "Promotions",
-    slug: "promotions",
-    status: "draft",
-    template: "landing",
-    description: "โปรโมชั่นพิเศษ",
-    blocks: [
-      { id: "b17", type: "hero", data: { title: "โปรโมชั่นสุดพิเศษ!", subtitle: "ลดสูงสุด 50% เฉพาะเดือนนี้", buttonText: "ดูโปรโมชั่น", bgColor: "#1a1a2e" } },
-    ],
-    lastModified: "2026-04-01",
-  },
-];
-
-var nextPageId = 6;
+var pagesData = []; // โหลดจาก Supabase
 var nextBlockId = 100;
 
 // ===================== Init =====================
 document.addEventListener("DOMContentLoaded", function () {
   renderBlockLibrary();
   bindEvents();
-  // เปิด editor ตรงๆ กับ Home Page (id=1)
-  openEditor(1);
+  // โหลดข้อมูลจาก Supabase แล้วเปิด editor
+  loadAllPages();
 });
+
+/** โหลด pages ทั้งหมดจาก Supabase แล้วเปิดหน้าแรก */
+function loadAllPages() {
+  fetchPages().then(function (pages) {
+    // โหลด blocks สำหรับแต่ละ page
+    var promises = pages.map(function (page) {
+      return fetchBlocks(page.id).then(function (blocks) {
+        page.blocks = blocks.map(function (b) {
+          return { id: "b" + b.id, dbId: b.id, type: b.type, data: b.data };
+        });
+        page.lastModified = page.last_modified;
+        return page;
+      });
+    });
+
+    return Promise.all(promises);
+  }).then(function (pages) {
+    pagesData = pages;
+    // เปิด page แรก
+    if (pagesData.length > 0) {
+      openEditor(pagesData[0].id);
+    }
+  }).catch(function (err) {
+    console.error("Failed to load pages:", err);
+    showToast("Error", "ไม่สามารถโหลดข้อมูลจาก Supabase ได้");
+  });
+}
+
+/** โหลด blocks ใหม่สำหรับ page ที่เปิดอยู่ */
+function reloadCurrentPageBlocks() {
+  var page = getCurrentPage();
+  if (!page) return Promise.resolve();
+
+  return fetchBlocks(page.id).then(function (blocks) {
+    page.blocks = blocks.map(function (b) {
+      return { id: "b" + b.id, dbId: b.id, type: b.type, data: b.data };
+    });
+  });
+}
 
 // ===================== Block Library =====================
 function renderBlockLibrary() {
@@ -896,29 +858,39 @@ function createNewPage() {
     slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
   }
 
-  var newPage = {
-    id: nextPageId++,
+  // สร้างใน Supabase
+  createPageDB({
     name: name,
     slug: slug,
     status: "draft",
     template: template,
     description: desc,
-    blocks: getTemplateBlocks(template),
-    lastModified: new Date().toISOString().split("T")[0],
-  };
+  }).then(function (result) {
+    if (!result || result.length === 0) throw new Error("Create failed");
+    var newPage = result[0];
+    var templateBlocks = getTemplateBlocks(template);
 
-  pagesData.push(newPage);
-  closeModalById("newPageModal");
+    // บันทึก template blocks ลง Supabase
+    return saveBlocksDB(newPage.id, templateBlocks).then(function () {
+      newPage.blocks = templateBlocks;
+      newPage.lastModified = newPage.last_modified;
+      pagesData.push(newPage);
 
-  // Clear form
-  document.getElementById("inputPageName").value = "";
-  document.getElementById("inputPageSlug").value = "";
-  document.getElementById("inputPageDesc").value = "";
-  document.getElementById("inputPageTemplate").value = "blank";
+      closeModalById("newPageModal");
 
-  // Open editor for the new page
-  openEditor(newPage.id);
-  showToast("Page Created!", name + " has been created");
+      // Clear form
+      document.getElementById("inputPageName").value = "";
+      document.getElementById("inputPageSlug").value = "";
+      document.getElementById("inputPageDesc").value = "";
+      document.getElementById("inputPageTemplate").value = "blank";
+
+      openEditor(newPage.id);
+      showToast("Page Created!", name + " has been created");
+    });
+  }).catch(function (err) {
+    console.error("Create page error:", err);
+    showToast("Error", "ไม่สามารถสร้างหน้าได้");
+  });
 }
 
 function getTemplateBlocks(template) {
@@ -964,11 +936,15 @@ function deleteCurrentPage() {
     "Delete Page",
     'Are you sure you want to delete "' + page.name + '"? This action cannot be undone.',
     function () {
-      pagesData = pagesData.filter(function (p) { return p.id !== page.id; });
-      closeModalById("pageSettingsModal");
-      // Switch to the first available page
-      openEditor(pagesData[0].id);
-      showToast("Page Deleted!", page.name + " has been removed");
+      deletePageDB(page.id).then(function () {
+        pagesData = pagesData.filter(function (p) { return p.id !== page.id; });
+        closeModalById("pageSettingsModal");
+        openEditor(pagesData[0].id);
+        showToast("Page Deleted!", page.name + " has been removed");
+      }).catch(function (err) {
+        console.error("Delete error:", err);
+        showToast("Error", "ไม่สามารถลบหน้าได้");
+      });
     }
   );
 }
@@ -979,10 +955,20 @@ function saveDraft() {
   if (!page) return;
 
   page.name = document.getElementById("editorPageTitle").value.trim() || page.name;
-  page.lastModified = new Date().toISOString().split("T")[0];
-  updatePageSelector();
+  var today = new Date().toISOString().split("T")[0];
+  page.lastModified = today;
 
-  showToast("Draft Saved!", page.name + " has been saved as draft");
+  // บันทึกลง Supabase
+  Promise.all([
+    updatePageDB(page.id, { name: page.name, last_modified: today }),
+    saveBlocksDB(page.id, page.blocks),
+  ]).then(function () {
+    updatePageSelector();
+    showToast("Draft Saved!", page.name + " has been saved");
+  }).catch(function (err) {
+    console.error("Save error:", err);
+    showToast("Error", "ไม่สามารถบันทึกได้");
+  });
 }
 
 function publishPage() {
@@ -991,16 +977,27 @@ function publishPage() {
 
   page.name = document.getElementById("editorPageTitle").value.trim() || page.name;
   page.status = "published";
-  page.lastModified = new Date().toISOString().split("T")[0];
-  updatePageSelector();
+  var today = new Date().toISOString().split("T")[0];
+  page.lastModified = today;
 
-  // Open published page in new tab
-  var previewHtml = generatePreviewHtml(page);
-  var newTab = window.open("", "_blank");
-  newTab.document.write(previewHtml);
-  newTab.document.close();
+  // บันทึกลง Supabase
+  Promise.all([
+    updatePageDB(page.id, { name: page.name, status: "published", last_modified: today }),
+    saveBlocksDB(page.id, page.blocks),
+  ]).then(function () {
+    updatePageSelector();
 
-  showToast("Page Published!", page.name + " is now live");
+    // Open published page in new tab
+    var previewHtml = generatePreviewHtml(page);
+    var newTab = window.open("", "_blank");
+    newTab.document.write(previewHtml);
+    newTab.document.close();
+
+    showToast("Page Published!", page.name + " is now live");
+  }).catch(function (err) {
+    console.error("Publish error:", err);
+    showToast("Error", "ไม่สามารถ publish ได้");
+  });
 }
 
 // ===================== Preview =====================
@@ -1259,6 +1256,19 @@ function savePageSettings() {
   page.description = document.getElementById("settingsMetaDesc").value.trim();
   page.status = document.getElementById("settingsStatus").checked ? "published" : "draft";
 
-  closeModalById("pageSettingsModal");
-  showToast("Settings Saved!", page.name);
+  updatePageDB(page.id, {
+    name: page.name,
+    slug: page.slug,
+    description: page.description,
+    status: page.status,
+  }).then(function () {
+    closeModalById("pageSettingsModal");
+    updatePageSelector();
+    document.getElementById("editorPageTitle").value = page.name;
+    document.getElementById("editorPageSlug").textContent = "/" + page.slug;
+    showToast("Settings Saved!", page.name);
+  }).catch(function (err) {
+    console.error("Save settings error:", err);
+    showToast("Error", "ไม่สามารถบันทึกได้");
+  });
 }
