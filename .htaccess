@@ -1,0 +1,13 @@
+RewriteEngine On
+
+# Redirect root to homepage
+RewriteRule ^$ /modules/frontend/home-page/home-page.html [L,R=302]
+
+# Clean URL: /homepage -> home-page.html
+RewriteRule ^homepage$ /modules/frontend/home-page/home-page.html [L]
+
+# Clean URL: /page-management -> main-page.html
+RewriteRule ^page-management$ /modules/frontend/page-management/main-page.html [L]
+
+# Clean URL: /backend -> sales dashboard
+RewriteRule ^backend$ /modules/backend/sales/dashboard.html [L]
