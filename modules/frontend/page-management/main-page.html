@@ -34,33 +34,76 @@
         <!-- Topbar -->
         <header class="topbar"></header>
 
-        <!-- Editor Content (เป็นหน้าหลักเลย) -->
-        <div class="content" id="editorView" style="padding:0;">
+        <!-- Welcome Screen (แสดงเมื่อไม่มี page) -->
+        <div class="content" id="welcomeView" style="display:none;">
+          <div class="welcome-screen">
+            <div class="welcome-icon">
+              <i data-lucide="palette"></i>
+            </div>
+            <h1 class="welcome-title">Welcome to Page Builder</h1>
+            <p class="welcome-subtitle">สร้างหน้าเว็บแรกของคุณเลย!</p>
+
+            <button class="welcome-create-btn" id="welcomeCreateBtn">
+              <i data-lucide="plus" style="width:18px;height:18px;"></i>
+              สร้างหน้าแรก
+            </button>
+
+            <p class="welcome-or">หรือเลือก template</p>
+
+            <div class="welcome-templates">
+              <div class="welcome-template-card" data-template="landing">
+                <!-- Wireframe Preview -->
+                <div class="template-wireframe">
+                  <div class="tw-bar"></div>
+                  <div class="tw-hero"></div>
+                  <div class="tw-row">
+                    <div class="tw-box"></div><div class="tw-box"></div><div class="tw-box"></div><div class="tw-box"></div>
+                  </div>
+                  <div class="tw-cta"></div>
+                  <div class="tw-bar tw-footer"></div>
+                </div>
+                <span>Landing Page</span>
+                <small>เมนู + แบนเนอร์ + จุดเด่น + CTA + ท้ายหน้า</small>
+              </div>
+              <div class="welcome-template-card" data-template="product">
+                <!-- Wireframe Preview -->
+                <div class="template-wireframe">
+                  <div class="tw-bar"></div>
+                  <div class="tw-title-line"></div>
+                  <div class="tw-grid">
+                    <div class="tw-product"></div><div class="tw-product"></div><div class="tw-product"></div>
+                    <div class="tw-product"></div><div class="tw-product"></div><div class="tw-product"></div>
+                  </div>
+                  <div class="tw-bar tw-footer"></div>
+                </div>
+                <span>Product Showcase</span>
+                <small>เมนู + ตารางสินค้ากริด + ท้ายหน้า</small>
+              </div>
+              <div class="welcome-template-card" data-template="content">
+                <!-- Wireframe Preview -->
+                <div class="template-wireframe">
+                  <div class="tw-bar"></div>
+                  <div class="tw-title-line lg"></div>
+                  <div class="tw-text-line"></div>
+                  <div class="tw-text-line w80"></div>
+                  <div class="tw-text-line w60"></div>
+                  <div class="tw-text-line"></div>
+                  <div class="tw-text-line w70"></div>
+                  <div class="tw-bar tw-footer"></div>
+                </div>
+                <span>Content Page</span>
+                <small>เมนู + หัวข้อ + เนื้อหาข้อความ + ท้ายหน้า</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Editor Content -->
+        <div class="content" id="editorView" style="padding:0;display:none;">
 
           <!-- Editor Topbar -->
           <div class="editor-topbar">
             <div class="editor-topbar-left">
-              <!-- Page Selector Dropdown -->
-              <div class="page-selector" id="pageSelector">
-                <button class="page-selector-btn" id="pageSelectorBtn">
-                  <i data-lucide="file-text" style="width:14px;height:14px;color:#6366f1;"></i>
-                  <span class="page-selector-name" id="pageSelectorName">Home Page</span>
-                  <span class="page-selector-status" id="pageSelectorStatus">Published</span>
-                  <i data-lucide="chevron-down" class="page-selector-chevron"></i>
-                </button>
-                <div class="page-selector-dropdown" id="pageSelectorDropdown">
-                  <div class="page-selector-dropdown-header">
-                    <span>Switch Page</span>
-                    <button class="page-selector-new-btn" id="newPageBtnInline" title="New Page">
-                      <i data-lucide="plus" style="width:12px;height:12px;"></i>
-                    </button>
-                  </div>
-                  <div class="page-selector-dropdown-list" id="pageSelectorList">
-                    <!-- render จาก JS -->
-                  </div>
-                </div>
-              </div>
-
               <div class="editor-page-info">
                 <input type="text" class="editor-page-title-input" id="editorPageTitle" placeholder="Page Title..." />
                 <span class="editor-page-slug" id="editorPageSlug">/home-page</span>
@@ -240,7 +283,7 @@
 
     <!-- Preview Modal -->
     <div class="modal-overlay" id="previewModal">
-      <div class="modal" style="max-width:90vw;width:1100px;height:85vh;">
+      <div class="modal" style="max-width:90vw;width:1100px;height:85vh;display:flex;flex-direction:column;">
         <div class="modal-header">
           <h3 class="modal-title">
             <i data-lucide="eye" style="width:14px;height:14px;display:inline;"></i>

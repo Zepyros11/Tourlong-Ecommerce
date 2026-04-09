@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tour Long</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Plus Jakarta Sans", sans-serif; background: #0a0a0a; color: #fff; }
+    .loading { display: flex; align-items: center; justify-content: center; min-height: 100vh; color: #64748b; font-size: 14px; }
+    .error-page { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; color: #64748b; }
+    .error-page h1 { font-size: 48px; font-weight: 800; color: #1e293b; margin-bottom: 8px; }
+    .error-page p { font-size: 16px; }
+    .error-page a { color: #ef4444; text-decoration: none; margin-top: 20px; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <div id="pageContent">
+    <div class="loading">Loading...</div>
+  </div>
+
+  <script>
+    // Supabase config
+    var SUPABASE_URL = "https://qdexibeljfwtrnfgqhmp.supabase.co";
+    var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkZXhpYmVsamZ3dHJuZmdxaG1wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MzgwNzEsImV4cCI6MjA5MTMxNDA3MX0.Xlw0tLsv7meuIBdSoGIwlcJ24vZy5djufhUB38cBWd4";
+    var headers = { "apikey": SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY };
+
+    // Get slug from URL
+    var params = new URLSearchParams(window.location.search);
+    var slug = params.get("slug") || "home-page";
+
+    // Update page title
+    document.title = "Tour Long — " + slug;
+
+    // Load page from Supabase
+    fetch(SUPABASE_URL + "/rest/v1/pages?slug=eq." + slug + "&select=*", { headers: headers })
+      .then(function (res) { return res.json(); })
+      .then(function (pages) {
+        if (!pages || pages.length === 0) {
+          showError("Page not found", slug);
+          return;
+        }
+        var page = pages[0];
+        document.title = page.name + " — Tour Long";
+
+        // Load blocks
+        return fetch(SUPABASE_URL + "/rest/v1/blocks?page_id=eq." + page.id + "&select=*&order=sort_order.asc", { headers: headers })
+          .then(function (res) { return res.json(); })
+          .then(function (blocks) {
+            renderPage(blocks);
+          });
+      })
+      .catch(function (err) {
+        console.error(err);
+        showError("Error loading page", err.message);
+      });
+
+    function showError(title, message) {
+      document.getElementById("pageContent").innerHTML =
+        '<div class="error-page">' +
+        '<h1>404</h1>' +
+        '<p>' + title + ': ' + escapeHtml(message) + '</p>' +
+        '<a href="/modules/frontend/page.html?slug=home-page">Go to Home Page</a>' +
+        '</div>';
+    }
+
+    function renderPage(blocks) {
+      var html = "";
+      blocks.forEach(function (block) {
+        html += renderBlock(block.type, block.data);
+      });
+      document.getElementById("pageContent").innerHTML = html;
+    }
+
+    function renderBlock(type, d) {
+      d = d || {};
+      switch (type) {
+        case "header":
+          var pageSlots = (d.navSlots || []).filter(function (s) { return s.name; });
+          var navLinks;
+          if (pageSlots.length > 0) {
+            navLinks = pageSlots.map(function (s) {
+              var href = s.slug ? "/modules/frontend/page.html?slug=" + s.slug : "#";
+              return '<a href="' + href + '" style="color:rgba(255,255,255,0.7);text-decoration:none;font-size:14px;transition:color 0.2s;">' + escapeHtml(s.name) + '</a>';
+            }).join("");
+          } else {
+            navLinks = (d.navItems || []).map(function (item) {
+              var navSlug = item.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+              return '<a href="/modules/frontend/page.html?slug=' + navSlug + '" style="color:rgba(255,255,255,0.7);text-decoration:none;font-size:14px;transition:color 0.2s;">' + escapeHtml(item) + '</a>';
+            }).join("");
+          }
+          var logoSizes = { small: 28, medium: 40, large: 56, xlarge: 72 };
+          var lh = logoSizes[d.logoSize] || 40;
+          var pageLogo = d.logoImage
+            ? '<img src="' + escapeHtml(d.logoImage) + '" style="height:' + lh + 'px;border-radius:8px;" />'
+            : '<div style="width:' + lh + 'px;height:' + lh + 'px;background:#ef4444;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;">TL</div>';
+          return '<header style="display:flex;align-items:center;justify-content:space-between;padding:20px 40px;background:#0a0a0a;">' +
+            '<a href="/modules/frontend/page.html?slug=home-page" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:#fff;">' +
+            pageLogo +
+            '<span style="font-weight:800;font-size:18px;">' + escapeHtml(d.logoText || "LOGO") + '</span>' +
+            '</a>' +
+            '<nav style="display:flex;gap:24px;">' + navLinks + '</nav>' +
+            '</header>';
+
+        case "hero":
+          return '<section style="background:' + (d.bgColor || '#0a0a0a') + ';padding:80px 40px;text-align:' + (d.textAlign || 'center') + ';">' +
+            '<h1 style="font-size:48px;font-weight:800;margin-bottom:16px;">' + escapeHtml(d.title || "") + '</h1>' +
+            '<p style="font-size:18px;color:rgba(255,255,255,0.7);margin-bottom:24px;max-width:600px;' + (d.textAlign === 'center' ? 'margin-left:auto;margin-right:auto;' : '') + '">' + escapeHtml(d.subtitle || "") + '</p>' +
+            '<a href="#" style="display:inline-block;background:#ef4444;color:#fff;padding:14px 36px;border-radius:999px;font-weight:700;text-decoration:none;">' + escapeHtml(d.buttonText || "Button") + '</a>' +
+            '</section>';
+
+        case "text":
+          var fs = d.headingSize === "large" ? "36px" : d.headingSize === "small" ? "20px" : "28px";
+          return '<section style="padding:60px 40px;text-align:' + (d.textAlign || 'left') + ';">' +
+            (d.heading ? '<h2 style="font-size:' + fs + ';font-weight:800;margin-bottom:16px;">' + escapeHtml(d.heading) + '</h2>' : '') +
+            '<p style="font-size:16px;color:rgba(255,255,255,0.7);line-height:1.8;max-width:800px;' + (d.textAlign === 'center' ? 'margin:0 auto;' : '') + '">' + escapeHtml(d.content || "") + '</p>' +
+            '</section>';
+
+        case "products":
+          var pCols = d.columns || 3;
+          var pCards = "";
+          for (var i = 0; i < Math.min(pCols, d.limit || 6); i++) {
+            pCards += '<div style="background:#111;border-radius:16px;padding:16px;text-align:center;">' +
+              '<div style="width:100%;height:120px;background:#1a1a2e;border-radius:12px;margin-bottom:12px;"></div>' +
+              '<p style="font-weight:700;font-size:14px;">Product ' + (i + 1) + '</p>' +
+              '<p style="color:#ef4444;font-weight:800;font-size:16px;margin-top:4px;">฿69</p>' +
+              '</div>';
+          }
+          return '<section style="padding:60px 40px;">' +
+            '<h2 style="font-size:28px;font-weight:800;text-align:center;margin-bottom:32px;">' + escapeHtml(d.title || "Products") + '</h2>' +
+            '<div style="display:grid;grid-template-columns:repeat(' + pCols + ',1fr);gap:20px;max-width:900px;margin:0 auto;">' + pCards + '</div>' +
+            '</section>';
+
+        case "features":
+          var fItems = (d.items || []).map(function (item) {
+            return '<div style="text-align:center;padding:24px;background:#111;border-radius:16px;">' +
+              '<div style="width:48px;height:48px;background:#1a1a2e;border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;color:#14b8a6;font-size:20px;">✓</div>' +
+              '<p style="font-weight:700;font-size:14px;">' + escapeHtml(item) + '</p>' +
+              '</div>';
+          }).join("");
+          return '<section style="padding:60px 40px;">' +
+            '<h2 style="font-size:28px;font-weight:800;text-align:center;margin-bottom:32px;">' + escapeHtml(d.title || "Features") + '</h2>' +
+            '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px;max-width:900px;margin:0 auto;">' + fItems + '</div>' +
+            '</section>';
+
+        case "contact":
+          return '<section style="padding:60px 40px;text-align:center;">' +
+            '<h2 style="font-size:28px;font-weight:800;margin-bottom:32px;">' + escapeHtml(d.title || "Contact") + '</h2>' +
+            '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:700px;margin:0 auto;">' +
+            '<div style="background:#111;border-radius:16px;padding:24px;"><p style="font-size:24px;margin-bottom:8px;">📞</p><p style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:4px;">Phone</p><p style="font-weight:700;">' + escapeHtml(d.phone || "-") + '</p></div>' +
+            '<div style="background:#111;border-radius:16px;padding:24px;"><p style="font-size:24px;margin-bottom:8px;">💬</p><p style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:4px;">Line</p><p style="font-weight:700;">' + escapeHtml(d.line || "-") + '</p></div>' +
+            '<div style="background:#111;border-radius:16px;padding:24px;"><p style="font-size:24px;margin-bottom:8px;">📧</p><p style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:4px;">Email</p><p style="font-weight:700;">' + escapeHtml(d.email || "-") + '</p></div>' +
+            '</div></section>';
+
+        case "cta":
+          return '<section style="padding:60px 40px;text-align:center;background:linear-gradient(135deg,#0f172a,#1e293b);">' +
+            '<h2 style="font-size:32px;font-weight:800;margin-bottom:12px;">' + escapeHtml(d.heading || "CTA") + '</h2>' +
+            '<p style="font-size:16px;color:rgba(255,255,255,0.7);margin-bottom:24px;">' + escapeHtml(d.description || "") + '</p>' +
+            '<a href="' + escapeHtml(d.buttonLink || "#") + '" style="display:inline-block;background:#14b8a6;color:#fff;padding:14px 36px;border-radius:999px;font-weight:700;text-decoration:none;">' + escapeHtml(d.buttonText || "Button") + '</a>' +
+            '</section>';
+
+        case "footer":
+          return '<footer style="padding:32px 40px;background:#0a0a0a;text-align:center;border-top:1px solid #1e293b;">' +
+            '<p style="color:rgba(255,255,255,0.5);font-size:13px;">' + escapeHtml(d.text || "") + '</p>' +
+            '</footer>';
+
+        case "spacer":
+          return '<div style="height:' + (d.height || 40) + 'px;"></div>';
+
+        case "divider":
+          return '<div style="padding:0 40px;"><hr style="border:none;border-top:2px ' + (d.style || 'solid') + ' ' + (d.color || '#1e293b') + ';margin:20px 0;" /></div>';
+
+        case "gallery":
+          var gCols = d.columns || 4;
+          var gItems = "";
+          for (var g = 0; g < gCols * 2; g++) {
+            gItems += '<div style="height:120px;background:linear-gradient(135deg,#111,#1a1a2e);border-radius:12px;"></div>';
+          }
+          return '<section style="padding:60px 40px;">' +
+            '<h2 style="font-size:28px;font-weight:800;text-align:center;margin-bottom:32px;">' + escapeHtml(d.title || "Gallery") + '</h2>' +
+            '<div style="display:grid;grid-template-columns:repeat(' + gCols + ',1fr);gap:12px;max-width:900px;margin:0 auto;">' + gItems + '</div>' +
+            '</section>';
+
+        case "video":
+          return '<section style="padding:60px 40px;text-align:center;">' +
+            '<div style="max-width:800px;margin:0 auto;height:400px;background:#111;border-radius:16px;display:flex;align-items:center;justify-content:center;">' +
+            '<span style="font-size:48px;opacity:0.3;">▶</span>' +
+            '</div></section>';
+
+        default:
+          return '';
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return "";
+      return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+  </script>
+</body>
+</html>

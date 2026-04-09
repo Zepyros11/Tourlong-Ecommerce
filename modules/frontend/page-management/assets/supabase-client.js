@@ -85,6 +85,29 @@ function saveBlocksDB(pageId, blocks) {
   });
 }
 
+// ===================== Storage (Upload) =====================
+
+/** Upload ไฟล์ไป Supabase Storage */
+function uploadFileToStorage(file, folder) {
+  folder = folder || "images";
+  var fileName = Date.now() + "-" + file.name.replace(/[^a-zA-Z0-9._-]/g, "");
+  var filePath = folder + "/" + fileName;
+
+  return fetch(SUPABASE_URL + "/storage/v1/object/upload logo/" + filePath, {
+    method: "POST",
+    headers: {
+      "apikey": SUPABASE_KEY,
+      "Authorization": "Bearer " + SUPABASE_KEY,
+      "Content-Type": file.type,
+    },
+    body: file,
+  }).then(function (res) {
+    if (!res.ok) throw new Error("Upload failed: " + res.status);
+    // Return public URL
+    return SUPABASE_URL + "/storage/v1/object/public/upload logo/" + filePath;
+  });
+}
+
 /** เพิ่ม block เดียว */
 function insertBlockDB(pageId, block, sortOrder) {
   return fetch(SUPABASE_URL + "/rest/v1/blocks", {

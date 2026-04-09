@@ -2,6 +2,7 @@
 // sidebar-menu.js — Frontend Sidebar Menu
 // ------------------------------------------------------------
 // หน้าที่: เมนู sidebar เฉพาะ Frontend (แยกจาก Backend)
+// แสดง pages จาก pagesData + ปุ่มเพิ่ม page
 // ============================================================
 
 var backendLink = {
@@ -10,36 +11,6 @@ var backendLink = {
   href: "/modules/backend/sales/dashboard.html",
 };
 
-var sidebarMenu = [
-  {
-    group: "Page Builder",
-    icon: "layout-dashboard",
-    basePath: "/modules/frontend/page-management/",
-    items: [
-      { name: "Page Management", icon: "file-edit",     href: "main-page.html" },
-    ],
-  },
-  {
-    group: "Frontend Pages",
-    icon: "globe",
-    basePath: "/modules/frontend/",
-    items: [
-      { name: "Home Page",         icon: "home",          href: "home-page/home-page.html" },
-      { name: "สินค้า",             icon: "shopping-bag",  href: "pages/products.html" },
-      { name: "รายละเอียดสินค้า",   icon: "package",       href: "pages/product-detail.html" },
-      { name: "ตะกร้าสินค้า",       icon: "shopping-cart", href: "pages/cart.html" },
-      { name: "ชำระเงิน",           icon: "credit-card",   href: "pages/checkout.html" },
-      { name: "ติดตามคำสั่งซื้อ",    icon: "map-pin",       href: "pages/order-tracking.html" },
-      { name: "ประวัติสั่งซื้อ",      icon: "clock",         href: "pages/order-history.html" },
-      { name: "โปรไฟล์",           icon: "user",          href: "pages/profile.html" },
-      { name: "สินค้าที่ถูกใจ",      icon: "heart",         href: "pages/wishlist.html" },
-      { name: "โปรโมชั่น",          icon: "tag",           href: "pages/promotions.html" },
-      { name: "เกี่ยวกับเรา",       icon: "info",          href: "pages/about.html" },
-      { name: "ติดต่อเรา",          icon: "phone",         href: "pages/contact.html" },
-    ],
-  },
-];
-
 /**
  * Render sidebar menu (Frontend version)
  */
@@ -47,52 +18,79 @@ function renderSidebarMenu() {
   var nav = document.querySelector(".sidebar-nav");
   if (!nav) return;
 
-  var currentPath = window.location.pathname;
-
-  // Render "Go to Backend" link at the top
   var html = '';
+
+  // Go to Backend link
   html += '<a href="' + backendLink.href + '" class="sidebar-backend-link">';
   html += '<i data-lucide="' + backendLink.icon + '" class="sidebar-icon"></i>';
   html += '<span>' + backendLink.label + '</span>';
   html += '</a>';
 
-  sidebarMenu.forEach(function (group, idx) {
-    var hasActive = group.items.some(function (item) {
-      var fullPath = (group.basePath || "") + item.href;
-      return currentPath.indexOf(fullPath) !== -1;
-    });
+  // Pages group header
+  html += '<div class="sidebar-group">';
+  html += '<div class="sidebar-group-label sidebar-group-label-static">';
+  html += '<i data-lucide="file-text" class="sidebar-group-icon"></i>';
+  html += '<span>Pages</span>';
+  html += '</div>';
 
-    html += '<div class="sidebar-group">';
-    html += '<div class="sidebar-group-label" data-group="' + idx + '">';
-    html += '<i data-lucide="' + group.icon + '" class="sidebar-group-icon"></i>';
-    html += "<span>" + group.group + "</span>";
-    html += '<i data-lucide="chevron-down" class="sidebar-chevron' + (hasActive ? " open" : "") + '"></i>';
-    html += "</div>";
-    html += '<div class="sidebar-group-items' + (hasActive ? " open" : "") + '" data-group-items="' + idx + '">';
-    group.items.forEach(function (item) {
-      var fullHref = (group.basePath || "") + item.href;
-      var isActive = currentPath.indexOf(fullHref) !== -1;
-      html += '<a href="' + fullHref + '" class="sidebar-nav-item' + (isActive ? " active" : "") + '">';
-      html += '<i data-lucide="' + item.icon + '" class="sidebar-icon"></i>';
-      html += "<span>" + item.name + "</span>";
-      if (isActive) html += '<div class="sidebar-nav-dot"></div>';
-      html += "</a>";
-    });
-    html += "</div>";
-    html += "</div>";
-  });
+  // Page list (dynamic — render จาก pagesData)
+  html += '<div class="sidebar-group-items open" id="sidebarPageList">';
+  html += '<!-- render จาก updateSidebarPages() -->';
+  html += '</div>';
+
+  // Add page button
+  html += '<button class="sidebar-add-page-btn" id="sidebarAddPageBtn">';
+  html += '<i data-lucide="plus" style="width:12px;height:12px;"></i>';
+  html += '<span>เพิ่ม Page</span>';
+  html += '</button>';
+
+  html += '</div>';
 
   nav.innerHTML = html;
   if (typeof lucide !== "undefined") lucide.createIcons();
 
-  // Toggle open/close
-  nav.querySelectorAll(".sidebar-group-label").forEach(function (label) {
-    label.addEventListener("click", function () {
-      var idx = this.dataset.group;
-      var items = nav.querySelector('[data-group-items="' + idx + '"]');
-      var chevron = this.querySelector(".sidebar-chevron");
-      if (items) items.classList.toggle("open");
-      if (chevron) chevron.classList.toggle("open");
+  // Bind add page button
+  var addBtn = document.getElementById("sidebarAddPageBtn");
+  if (addBtn) {
+    addBtn.addEventListener("click", function () {
+      openModalById("newPageModal");
+    });
+  }
+}
+
+/**
+ * Update page list ใน sidebar (เรียกหลังโหลด/สร้าง/ลบ page)
+ */
+function updateSidebarPages() {
+  var container = document.getElementById("sidebarPageList");
+  if (!container || typeof pagesData === "undefined") return;
+
+  if (pagesData.length === 0) {
+    container.innerHTML = '<div class="sidebar-no-pages">ยังไม่มีหน้าเว็บ</div>';
+    return;
+  }
+
+  var html = '';
+  pagesData.forEach(function (page) {
+    var isActive = page.id === currentEditPageId;
+    var isPub = page.status === "published";
+    html += '<a href="#" class="sidebar-nav-item sidebar-page-item' + (isActive ? ' active' : '') + '" data-page-id="' + page.id + '">';
+    html += '<i data-lucide="file" class="sidebar-icon"></i>';
+    html += '<span>' + page.name + '</span>';
+    html += '<span class="sidebar-page-badge ' + (isPub ? 'badge-pub' : 'badge-draft') + '">' + (isPub ? 'LIVE' : 'DRAFT') + '</span>';
+    html += '</a>';
+  });
+
+  container.innerHTML = html;
+  if (typeof lucide !== "undefined") lucide.createIcons();
+
+  // Bind click to switch page
+  container.querySelectorAll(".sidebar-page-item").forEach(function (item) {
+    item.addEventListener("click", function (e) {
+      e.preventDefault();
+      var pageId = parseInt(this.dataset.pageId);
+      openEditor(pageId);
+      updateSidebarPages();
     });
   });
 }

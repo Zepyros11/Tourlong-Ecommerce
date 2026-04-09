@@ -1,12 +1,15 @@
 RewriteEngine On
 
-# Redirect root to homepage
-RewriteRule ^$ /modules/frontend/home-page/home-page.html [L,R=302]
+# Redirect root to homepage (dynamic from Supabase)
+RewriteRule ^$ /modules/frontend/page.html?slug=home-page [L,R=302]
 
-# Clean URL: /homepage -> home-page.html
-RewriteRule ^homepage$ /modules/frontend/home-page/home-page.html [L]
+# Clean URL: /p/slug-name -> page.html?slug=slug-name
+RewriteRule ^p/([a-zA-Z0-9_-]+)$ /modules/frontend/page.html?slug=$1 [L,QSA]
 
-# Clean URL: /page-management -> main-page.html
+# Clean URL: /homepage -> dynamic page
+RewriteRule ^homepage$ /modules/frontend/page.html?slug=home-page [L]
+
+# Clean URL: /page-management -> editor
 RewriteRule ^page-management$ /modules/frontend/page-management/main-page.html [L]
 
 # Clean URL: /backend -> sales dashboard

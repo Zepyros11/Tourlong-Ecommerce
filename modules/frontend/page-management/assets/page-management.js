@@ -37,14 +37,31 @@ function loadAllPages() {
     return Promise.all(promises);
   }).then(function (pages) {
     pagesData = pages;
-    // เปิด page แรก
     if (pagesData.length > 0) {
+      // มี page → เปิด editor
+      showEditorView();
       openEditor(pagesData[0].id);
+    } else {
+      // ไม่มี page → แสดง Welcome Screen
+      showWelcomeView();
     }
   }).catch(function (err) {
     console.error("Failed to load pages:", err);
     showToast("Error", "ไม่สามารถโหลดข้อมูลจาก Supabase ได้");
   });
+}
+
+function showWelcomeView() {
+  document.getElementById("welcomeView").style.display = "block";
+  document.getElementById("editorView").style.display = "none";
+  updateSidebarPages();
+}
+
+function showEditorView() {
+  document.getElementById("welcomeView").style.display = "none";
+  document.getElementById("editorView").style.display = "";
+  document.getElementById("editorView").style.flexDirection = "column";
+  updateSidebarPages();
 }
 
 /** โหลด blocks ใหม่สำหรับ page ที่เปิดอยู่ */
@@ -123,8 +140,9 @@ function openEditor(pageId) {
   document.getElementById("editorPageTitle").value = page.name;
   document.getElementById("editorPageSlug").textContent = "/" + page.slug;
 
-  // Update page selector
+  // Update page selector + sidebar
   updatePageSelector();
+  updateSidebarPages();
 
   renderCanvasBlocks();
   renderBlockSettings();
@@ -134,52 +152,8 @@ function openEditor(pageId) {
 function updatePageSelector() {
   var page = getCurrentPage();
   if (!page) return;
-
-  // Update button label
-  document.getElementById("pageSelectorName").textContent = page.name;
-  var statusEl = document.getElementById("pageSelectorStatus");
-  statusEl.textContent = page.status === "published" ? "Published" : "Draft";
-  statusEl.className = "page-selector-status " + (page.status === "published" ? "status-published" : "status-draft");
-
-  // Update dropdown list
-  renderPageSelectorList();
-}
-
-function renderPageSelectorList() {
-  var container = document.getElementById("pageSelectorList");
-  if (!container) return;
-
-  container.innerHTML = pagesData.map(function (page) {
-    var isActive = page.id === currentEditPageId;
-    var statusDot = page.status === "published" ? "#10b981" : "#f59e0b";
-    return '<div class="page-selector-item' + (isActive ? ' active' : '') + '" data-page-id="' + page.id + '">' +
-      '<div class="page-selector-item-dot" style="background:' + statusDot + ';"></div>' +
-      '<div class="page-selector-item-info">' +
-        '<span class="page-selector-item-name">' + page.name + '</span>' +
-        '<span class="page-selector-item-slug">/' + page.slug + '</span>' +
-      '</div>' +
-      '<span class="page-selector-item-blocks">' + page.blocks.length + ' blocks</span>' +
-      '</div>';
-  }).join("");
-
-  // Bind click
-  container.querySelectorAll(".page-selector-item").forEach(function (item) {
-    item.addEventListener("click", function () {
-      var pageId = parseInt(this.dataset.pageId);
-      openEditor(pageId);
-      closePageSelectorDropdown();
-    });
-  });
-}
-
-function togglePageSelectorDropdown() {
-  var dropdown = document.getElementById("pageSelectorDropdown");
-  dropdown.classList.toggle("open");
-}
-
-function closePageSelectorDropdown() {
-  var dropdown = document.getElementById("pageSelectorDropdown");
-  dropdown.classList.remove("open");
+  // Update sidebar pages
+  updateSidebarPages();
 }
 
 function getCurrentPage() {
@@ -470,10 +444,12 @@ function generateSettingsFields(block) {
 
   switch (block.type) {
     case "hero":
+      var heroPageOptions = ["#"].concat(pagesData.map(function (p) { return p.slug; }));
       html += settingsSection("Content", [
         settingsField("Title", "text", "setting-title", data.title || ""),
         settingsField("Subtitle", "textarea", "setting-subtitle", data.subtitle || ""),
         settingsField("Button Text", "text", "setting-buttonText", data.buttonText || ""),
+        settingsPageLinkField("Button Link", "setting-buttonLink", data.buttonLink || "#"),
       ]);
       html += settingsSection("Style", [
         settingsColorField("Background", "setting-bgColor", data.bgColor || "#0a0a0a"),
@@ -536,15 +512,38 @@ function generateSettingsFields(block) {
         settingsField("Heading", "text", "setting-heading", data.heading || ""),
         settingsField("Description", "textarea", "setting-description", data.description || ""),
         settingsField("Button Text", "text", "setting-buttonText", data.buttonText || ""),
-        settingsField("Button Link", "text", "setting-buttonLink", data.buttonLink || ""),
+        settingsPageLinkField("Button Link", "setting-buttonLink", data.buttonLink || "#"),
       ]);
       break;
 
     case "header":
-      html += settingsSection("Content", [
+      html += settingsSection("Logo", [
+        settingsImageUpload("Logo Image", "setting-logoImage", data.logoImage || ""),
         settingsField("Logo Text", "text", "setting-logoText", data.logoText || ""),
-        settingsField("Nav Items (comma)", "text", "setting-navItems", (data.navItems || []).join(", ")),
+        settingsSelectField("Logo Size", "setting-logoSize", data.logoSize || "medium", ["small", "medium", "large", "xlarge"]),
       ]);
+      html += '<div class="settings-section">';
+      html += '<div class="settings-section-title">Navigation (max 10)</div>';
+      html += '<div class="nav-slots-list" id="navSlotsList">';
+      var slots = data.navSlots || [];
+      for (var ns = 0; ns < 10; ns++) {
+        var slot = slots[ns] || { name: "", slug: "" };
+        var hasValue = slot.name && slot.name.trim();
+        html += '<div class="nav-slot-row' + (hasValue ? ' active' : '') + '" data-slot-index="' + ns + '" draggable="true">';
+        html += '<span class="nav-slot-handle" title="Drag to reorder">&#9776;</span>';
+        html += '<span class="nav-slot-number">' + (ns + 1) + '</span>';
+        html += '<input type="text" class="nav-slot-input" data-slot="' + ns + '" placeholder="Menu name..." value="' + escapeHtml(slot.name || "") + '" />';
+        html += '<select class="nav-slot-page" data-slot="' + ns + '">';
+        html += '<option value="">-- Link to --</option>';
+        pagesData.forEach(function (p) {
+          html += '<option value="' + p.slug + '"' + (slot.slug === p.slug ? ' selected' : '') + '>' + p.name + '</option>';
+        });
+        html += '</select>';
+        html += '<span class="nav-slot-status">' + (hasValue ? '&#9679;' : '') + '</span>';
+        html += '</div>';
+      }
+      html += '</div>';
+      html += '</div>';
       break;
 
     case "footer":
@@ -605,10 +604,42 @@ function settingsField(label, type, id, value) {
     '</div>';
 }
 
+function settingsImageUpload(label, id, value) {
+  var preview = value
+    ? '<div class="settings-img-preview" id="' + id + '-preview">' +
+      '<img src="' + escapeHtml(value) + '" />' +
+      '<button class="settings-img-remove" onclick="clearImageField(\'' + id + '\')" title="Remove">x</button>' +
+      '</div>'
+    : '';
+  var dropzone = !value
+    ? '<div class="settings-img-dropzone" id="' + id + '-dropzone">' +
+      '<i data-lucide="upload" style="width:20px;height:20px;margin-bottom:4px;"></i>' +
+      '<span>Drag & drop or click to upload</span>' +
+      '</div>'
+    : '';
+  return '<div class="settings-field">' +
+    '<label class="settings-label">' + label + '</label>' +
+    preview + dropzone +
+    '<input type="hidden" id="' + id + '" value="' + escapeHtml(value) + '" />' +
+    '<input type="file" id="' + id + '-file" accept="image/*" style="display:none;" />' +
+    '</div>';
+}
+
 function settingsSelectField(label, id, value, options) {
   var optionsHtml = options.map(function (opt) {
     return '<option value="' + opt + '"' + (opt === value ? ' selected' : '') + '>' + opt.charAt(0).toUpperCase() + opt.slice(1) + '</option>';
   }).join("");
+  return '<div class="settings-field">' +
+    '<label class="settings-label">' + label + '</label>' +
+    '<select class="settings-select" id="' + id + '">' + optionsHtml + '</select>' +
+    '</div>';
+}
+
+function settingsPageLinkField(label, id, value) {
+  var optionsHtml = '<option value="#">-- ไม่มี link --</option>';
+  pagesData.forEach(function (p) {
+    optionsHtml += '<option value="' + p.slug + '"' + (value === p.slug ? ' selected' : '') + '>' + p.name + ' (/' + p.slug + ')</option>';
+  });
   return '<div class="settings-field">' +
     '<label class="settings-label">' + label + '</label>' +
     '<select class="settings-select" id="' + id + '">' + optionsHtml + '</select>' +
@@ -638,6 +669,144 @@ function bindSettingsEvents(block) {
       updateBlockData(block);
     });
   });
+
+  // Nav slot inputs
+  document.querySelectorAll(".nav-slot-input, .nav-slot-page").forEach(function (el) {
+    var eventType = el.tagName === "SELECT" ? "change" : "input";
+    el.addEventListener(eventType, function () {
+      updateBlockData(block);
+      // Update row active state
+      var idx = this.dataset.slot;
+      var row = this.closest(".nav-slot-row");
+      var nameInput = document.querySelector('.nav-slot-input[data-slot="' + idx + '"]');
+      var statusEl = row.querySelector(".nav-slot-status");
+      if (nameInput && nameInput.value.trim()) {
+        row.classList.add("active");
+        statusEl.innerHTML = "&#9679;";
+      } else {
+        row.classList.remove("active");
+        statusEl.innerHTML = "";
+      }
+    });
+  });
+
+  // Nav slot drag-to-reorder
+  var navList = document.getElementById("navSlotsList");
+  if (navList) {
+    var dragIdx = null;
+    navList.querySelectorAll(".nav-slot-row").forEach(function (row) {
+      row.addEventListener("dragstart", function () {
+        dragIdx = parseInt(this.dataset.slotIndex);
+        this.classList.add("dragging");
+      });
+      row.addEventListener("dragend", function () {
+        this.classList.remove("dragging");
+        dragIdx = null;
+        navList.querySelectorAll(".nav-slot-row").forEach(function (r) { r.classList.remove("drag-over"); });
+      });
+      row.addEventListener("dragover", function (e) {
+        e.preventDefault();
+        this.classList.add("drag-over");
+      });
+      row.addEventListener("dragleave", function () {
+        this.classList.remove("drag-over");
+      });
+      row.addEventListener("drop", function (e) {
+        e.preventDefault();
+        this.classList.remove("drag-over");
+        var targetIdx = parseInt(this.dataset.slotIndex);
+        if (dragIdx !== null && dragIdx !== targetIdx) {
+          // Swap slots in data
+          var slots = block.data.navSlots || [];
+          while (slots.length < 10) slots.push({ name: "", slug: "" });
+          var temp = slots[dragIdx];
+          slots[dragIdx] = slots[targetIdx];
+          slots[targetIdx] = temp;
+          block.data.navSlots = slots;
+          block.data.navItems = slots.filter(function (s) { return s.name; }).map(function (s) { return s.name; });
+          // Re-render
+          renderBlockSettings();
+          renderCanvasBlocks();
+        }
+      });
+    });
+  }
+
+  // Image upload dropzones
+  document.querySelectorAll("#blockSettingsContent .settings-img-dropzone").forEach(function (dropzone) {
+    var fieldId = dropzone.id.replace("-dropzone", "");
+    var fileInput = document.getElementById(fieldId + "-file");
+
+    // Click to open file picker
+    dropzone.addEventListener("click", function () {
+      fileInput.click();
+    });
+
+    // Drag events
+    dropzone.addEventListener("dragover", function (e) {
+      e.preventDefault();
+      this.style.borderColor = "#6366f1";
+      this.style.background = "#eef2ff";
+    });
+
+    dropzone.addEventListener("dragleave", function () {
+      this.style.borderColor = "";
+      this.style.background = "";
+    });
+
+    dropzone.addEventListener("drop", function (e) {
+      e.preventDefault();
+      this.style.borderColor = "";
+      this.style.background = "";
+      var file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith("image/")) {
+        handleImageUpload(file, fieldId, block);
+      }
+    });
+
+    // File input change
+    fileInput.addEventListener("change", function () {
+      if (this.files[0]) {
+        handleImageUpload(this.files[0], fieldId, block);
+      }
+    });
+  });
+}
+
+function handleImageUpload(file, fieldId, block) {
+  var dropzone = document.getElementById(fieldId + "-dropzone");
+  if (dropzone) {
+    dropzone.innerHTML = '<i data-lucide="loader" style="width:16px;height:16px;animation:spin 1s linear infinite;"></i><span>Uploading...</span>';
+  }
+
+  uploadFileToStorage(file, "logos").then(function (url) {
+    // Set hidden input value
+    var hidden = document.getElementById(fieldId);
+    if (hidden) hidden.value = url;
+
+    // Update block data
+    updateBlockData(block);
+
+    // Re-render settings to show preview
+    renderBlockSettings();
+  }).catch(function (err) {
+    console.error("Upload error:", err);
+    showToast("Upload Failed", "ไม่สามารถอัพโหลดรูปได้");
+    if (dropzone) {
+      dropzone.innerHTML = '<i data-lucide="upload" style="width:20px;height:20px;margin-bottom:4px;"></i><span>Drag & drop or click</span>';
+    }
+  });
+}
+
+function clearImageField(fieldId) {
+  var hidden = document.getElementById(fieldId);
+  if (hidden) hidden.value = "";
+
+  var block = getCurrentPage().blocks.find(function (b) { return b.id === selectedBlockId; });
+  if (block) {
+    updateBlockData(block);
+    renderBlockSettings();
+  }
 }
 
 function updateBlockData(block) {
@@ -648,6 +817,7 @@ function updateBlockData(block) {
       data.title = getVal("setting-title");
       data.subtitle = getVal("setting-subtitle");
       data.buttonText = getVal("setting-buttonText");
+      data.buttonLink = getVal("setting-buttonLink") || "#";
       data.bgColor = getVal("setting-bgColor") || data.bgColor;
       data.textAlign = getVal("setting-textAlign") || data.textAlign;
       break;
@@ -691,9 +861,12 @@ function updateBlockData(block) {
       data.buttonLink = getVal("setting-buttonLink");
       break;
     case "header":
+      data.logoImage = getVal("setting-logoImage");
       data.logoText = getVal("setting-logoText");
-      var nav = getVal("setting-navItems");
-      data.navItems = nav ? nav.split(",").map(function (s) { return s.trim(); }) : [];
+      data.logoSize = getVal("setting-logoSize") || "medium";
+      data.navSlots = readNavSlots();
+      // Keep navItems for backward compat
+      data.navItems = data.navSlots.filter(function (s) { return s.name; }).map(function (s) { return s.name; });
       break;
     case "footer":
       data.text = getVal("setting-text");
@@ -801,11 +974,16 @@ function generateBlockPreview(block) {
         '</div>';
 
     case "header":
-      var navHtml = (d.navItems || []).map(function (item) {
-        return '<span>' + escapeHtml(item) + '</span>';
-      }).join("");
+      var activeSlots = (d.navSlots || []).filter(function (s) { return s.name; });
+      var navHtml = activeSlots.length > 0
+        ? activeSlots.map(function (s) { return '<span>' + escapeHtml(s.name) + '</span>'; }).join("")
+        : (d.navItems || []).map(function (item) { return '<span>' + escapeHtml(item) + '</span>'; }).join("");
+      var lh = getLogoHeight(d.logoSize, true);
+      var logoHtml = d.logoImage
+        ? '<img src="' + escapeHtml(d.logoImage) + '" style="height:' + lh + 'px;border-radius:6px;" />'
+        : '<div style="width:' + lh + 'px;height:' + lh + 'px;background:#ef4444;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:10px;color:#fff;">TL</div>';
       return '<div class="block-preview-header">' +
-        '<span class="header-logo">' + escapeHtml(d.logoText || "LOGO") + '</span>' +
+        '<div style="display:flex;align-items:center;gap:8px;">' + logoHtml + '<span class="header-logo">' + escapeHtml(d.logoText || "LOGO") + '</span></div>' +
         '<div class="header-nav">' + navHtml + '</div>' +
         '</div>';
 
@@ -884,6 +1062,7 @@ function createNewPage() {
       document.getElementById("inputPageDesc").value = "";
       document.getElementById("inputPageTemplate").value = "blank";
 
+      showEditorView();
       openEditor(newPage.id);
       showToast("Page Created!", name + " has been created");
     });
@@ -987,12 +1166,8 @@ function publishPage() {
   ]).then(function () {
     updatePageSelector();
 
-    // Open published page in new tab
-    var previewHtml = generatePreviewHtml(page);
-    var newTab = window.open("", "_blank");
-    newTab.document.write(previewHtml);
-    newTab.document.close();
-
+    // Open preview modal to show published page
+    openPreview();
     showToast("Page Published!", page.name + " is now live");
   }).catch(function (err) {
     console.error("Publish error:", err);
@@ -1032,22 +1207,34 @@ function generatePreviewBlock(block) {
 
   switch (block.type) {
     case "header":
-      var navLinks = (d.navItems || []).map(function (item) {
-        return '<a href="#" style="color:rgba(255,255,255,0.7);text-decoration:none;font-size:14px;transition:color 0.2s;">' + escapeHtml(item) + '</a>';
-      }).join("");
+      var previewSlots = (d.navSlots || []).filter(function (s) { return s.name; });
+      var navLinks = previewSlots.length > 0
+        ? previewSlots.map(function (s) {
+            var href = s.slug ? "/modules/frontend/page.html?slug=" + s.slug : "#";
+            return '<a href="' + href + '" style="color:rgba(255,255,255,0.7);text-decoration:none;font-size:14px;">' + escapeHtml(s.name) + '</a>';
+          }).join("")
+        : (d.navItems || []).map(function (item) {
+            var slugLink = item.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+            return '<a href="/modules/frontend/page.html?slug=' + slugLink + '" style="color:rgba(255,255,255,0.7);text-decoration:none;font-size:14px;">' + escapeHtml(item) + '</a>';
+          }).join("");
+      var plh = getLogoHeight(d.logoSize, false);
+      var previewLogo = d.logoImage
+        ? '<img src="' + escapeHtml(d.logoImage) + '" style="height:' + plh + 'px;border-radius:8px;" />'
+        : '<div style="width:' + plh + 'px;height:' + plh + 'px;background:#ef4444;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;">TL</div>';
       return '<header style="display:flex;align-items:center;justify-content:space-between;padding:20px 40px;background:#0a0a0a;">' +
         '<div style="display:flex;align-items:center;gap:10px;">' +
-        '<div style="width:36px;height:36px;background:#ef4444;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;">TL</div>' +
+        previewLogo +
         '<span style="font-weight:800;font-size:18px;">' + escapeHtml(d.logoText || "LOGO") + '</span>' +
         '</div>' +
         '<nav style="display:flex;gap:24px;">' + navLinks + '</nav>' +
         '</header>';
 
     case "hero":
+      var heroLink = d.buttonLink && d.buttonLink !== "#" ? "/modules/frontend/page.html?slug=" + d.buttonLink : "#";
       return '<section style="background:' + (d.bgColor || '#0a0a0a') + ';padding:80px 40px;text-align:' + (d.textAlign || 'center') + ';">' +
         '<h1 style="font-size:48px;font-weight:800;margin-bottom:16px;">' + escapeHtml(d.title || "") + '</h1>' +
         '<p style="font-size:18px;color:rgba(255,255,255,0.7);margin-bottom:24px;max-width:600px;' + (d.textAlign === 'center' ? 'margin-left:auto;margin-right:auto;' : '') + '">' + escapeHtml(d.subtitle || "") + '</p>' +
-        '<a href="#" style="display:inline-block;background:#ef4444;color:#fff;padding:14px 36px;border-radius:999px;font-weight:700;text-decoration:none;">' + escapeHtml(d.buttonText || "Button") + '</a>' +
+        '<a href="' + heroLink + '" style="display:inline-block;background:#ef4444;color:#fff;padding:14px 36px;border-radius:999px;font-weight:700;text-decoration:none;">' + escapeHtml(d.buttonText || "Button") + '</a>' +
         '</section>';
 
     case "text":
@@ -1135,26 +1322,25 @@ function generatePreviewBlock(block) {
 
 // ===================== Events Binding =====================
 function bindEvents() {
-  // Page Selector dropdown toggle
-  document.getElementById("pageSelectorBtn").addEventListener("click", function (e) {
-    e.stopPropagation();
-    togglePageSelectorDropdown();
-  });
+  // Welcome Screen buttons
+  var welcomeCreateBtn = document.getElementById("welcomeCreateBtn");
+  if (welcomeCreateBtn) {
+    welcomeCreateBtn.addEventListener("click", function () {
+      openModalById("newPageModal");
+    });
+  }
 
-  // Close dropdown on outside click
-  document.addEventListener("click", function () {
-    closePageSelectorDropdown();
-  });
-
-  // Prevent dropdown close when clicking inside
-  document.getElementById("pageSelectorDropdown").addEventListener("click", function (e) {
-    e.stopPropagation();
-  });
-
-  // New Page button (inside page selector dropdown)
-  document.getElementById("newPageBtnInline").addEventListener("click", function () {
-    closePageSelectorDropdown();
-    openModalById("newPageModal");
+  document.querySelectorAll(".welcome-template-card").forEach(function (card) {
+    card.addEventListener("click", function () {
+      var template = this.dataset.template;
+      document.getElementById("inputPageTemplate").value = template;
+      // Pre-fill name based on template
+      var names = { landing: "Home Page", product: "Products", content: "About Us" };
+      document.getElementById("inputPageName").value = names[template] || "";
+      var slugs = { landing: "home-page", product: "products", content: "about" };
+      document.getElementById("inputPageSlug").value = slugs[template] || "";
+      openModalById("newPageModal");
+    });
   });
 
   // Page Settings button
@@ -1204,6 +1390,31 @@ function bindEvents() {
 }
 
 // ===================== Helpers =====================
+function readNavSlots() {
+  var slots = [];
+  for (var i = 0; i < 10; i++) {
+    var nameInput = document.querySelector('.nav-slot-input[data-slot="' + i + '"]');
+    var pageSelect = document.querySelector('.nav-slot-page[data-slot="' + i + '"]');
+    slots.push({
+      name: nameInput ? nameInput.value.trim() : "",
+      slug: pageSelect ? pageSelect.value : "",
+    });
+  }
+  return slots;
+}
+
+function getLogoHeight(size, isCanvas) {
+  // isCanvas = true → smaller for editor canvas, false → full size for preview/page
+  var sizes = {
+    small:  { canvas: 20, full: 28 },
+    medium: { canvas: 28, full: 40 },
+    large:  { canvas: 36, full: 56 },
+    xlarge: { canvas: 48, full: 72 },
+  };
+  var s = sizes[size] || sizes.medium;
+  return isCanvas ? s.canvas : s.full;
+}
+
 function getBlockTemplate(type) {
   if (typeof blockTemplates === "undefined") return null;
   return blockTemplates.find(function (t) { return t.type === type; });
