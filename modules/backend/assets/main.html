@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vitality - Dashboard</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="backend.css" />
+  </head>
+  <body>
+    <div class="layout">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-logo">
+          <div class="sidebar-logo-icon">
+            <i data-lucide="zap" class="sidebar-icon-sm"></i>
+          </div>
+          <h1 class="sidebar-logo-text">Vitality</h1>
+        </div>
+
+        <nav class="sidebar-nav">
+          <a href="#" class="sidebar-nav-item active">
+            <i data-lucide="flag" class="sidebar-icon"></i>
+            <span>Community</span>
+            <div class="sidebar-nav-dot"></div>
+          </a>
+          <a href="#" class="sidebar-nav-item">
+            <i data-lucide="zap" class="sidebar-icon"></i>
+            <span>Sport</span>
+          </a>
+          <a href="#" class="sidebar-nav-item">
+            <i data-lucide="calendar" class="sidebar-icon"></i>
+            <span>Plan</span>
+          </a>
+          <a href="#" class="sidebar-nav-item">
+            <i data-lucide="layout-grid" class="sidebar-icon"></i>
+            <span>Category</span>
+          </a>
+          <a href="#" class="sidebar-nav-item">
+            <i data-lucide="shopping-bag" class="sidebar-icon"></i>
+            <span>Store</span>
+          </a>
+        </nav>
+
+        <button class="sidebar-logout">
+          <i data-lucide="log-out" class="sidebar-icon-xs"></i>
+          <span>Go Out</span>
+        </button>
+      </aside>
+
+      <!-- Main Area -->
+      <div class="main-area">
+        <!-- Topbar -->
+        <header class="topbar">
+          <nav class="topbar-nav">
+            <button class="topbar-nav-item active">
+              Popular
+              <div class="topbar-nav-indicator"></div>
+            </button>
+            <button class="topbar-nav-item">Attention</button>
+            <button class="topbar-nav-item">Topic</button>
+            <button class="topbar-nav-item">Diary</button>
+          </nav>
+
+          <div class="topbar-actions">
+            <div class="topbar-search">
+              <i data-lucide="search" class="topbar-search-icon"></i>
+              <input
+                type="text"
+                placeholder="Search"
+                class="topbar-search-input"
+              />
+            </div>
+            <button class="topbar-bell">
+              <i data-lucide="bell" class="topbar-bell-icon"></i>
+              <span class="topbar-bell-badge"></span>
+            </button>
+          </div>
+        </header>
+
+        <!-- Content -->
+        <div class="content">
+          <h2 class="content-title">Welcome</h2>
+          <p class="content-subtitle">เนื้อหาหลักจะแสดงตรงนี้</p>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+          <p class="footer-text">&copy; 2026 Vitality. All rights reserved.</p>
+          <nav class="footer-nav">
+            <a href="#" class="footer-link">Privacy Policy</a>
+            <a href="#" class="footer-link">Terms of Service</a>
+            <a href="#" class="footer-link">Support</a>
+          </nav>
+        </footer>
+      </div>
+    </div>
+
+    <script>
+      lucide.createIcons();
+    </script>
+  </body>
+</html>

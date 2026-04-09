@@ -1,0 +1,197 @@
+﻿<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Backend Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <style>
+      body {
+        font-family: 'Kanit', sans-serif;
+        background: #eef2ff;
+        color: #0f172a;
+      }
+      .sidebar-item {
+        transition: all 0.25s ease;
+      }
+      .sidebar-item:hover,
+      .sidebar-active {
+        background: rgba(99, 102, 241, 0.12);
+        color: #3730a3;
+      }
+      .panel-card {
+        background: rgba(255,255,255,0.9);
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        box-shadow: 0 18px 60px -30px rgba(15, 23, 42, 0.2);
+        backdrop-filter: blur(14px);
+      }
+      .panel-card-strong {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 20px 80px -40px rgba(15, 23, 42, 0.12);
+      }
+      ::-webkit-scrollbar {
+        width: 7px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 9999px;
+      }
+    </style>
+  </head>
+  <body class="overflow-hidden">
+    <div class="flex h-screen w-full">
+      <aside class="w-12 xl:w-14 bg-white border-r border-slate-200 flex flex-col items-center py-3 space-y-3">
+        <div class="w-9 h-9 xl:w-10 xl:h-10 rounded-3xl bg-indigo-600 flex items-center justify-center text-white text-[14px] xl:text-[16px] font-bold shadow-md">B</div>
+        <nav class="flex flex-col gap-2.5 w-full px-1">
+          <button class="sidebar-item flex items-center justify-center w-full rounded-3xl px-1.5 py-1.5 text-slate-500 font-semibold sidebar-active">
+            <span class="w-7 h-7 xl:w-8 xl:h-8 rounded-3xl bg-indigo-100 flex items-center justify-center text-indigo-600">🏠</span>
+          </button>
+          <button class="sidebar-item flex items-center justify-center w-full rounded-3xl px-1.5 py-1.5 text-slate-500 font-semibold">
+            <span class="w-7 h-7 xl:w-8 xl:h-8 rounded-3xl bg-slate-100 flex items-center justify-center">📦</span>
+          </button>
+          <button class="sidebar-item flex items-center justify-center w-full rounded-3xl px-1.5 py-1.5 text-slate-500 font-semibold">
+            <span class="w-7 h-7 xl:w-8 xl:h-8 rounded-3xl bg-slate-100 flex items-center justify-center">🧾</span>
+          </button>
+          <button class="sidebar-item flex items-center justify-center w-full rounded-3xl px-1.5 py-1.5 text-slate-500 font-semibold">
+            <span class="w-7 h-7 xl:w-8 xl:h-8 rounded-3xl bg-slate-100 flex items-center justify-center">👤</span>
+          </button>
+          <button class="sidebar-item flex items-center justify-center w-full rounded-3xl px-1.5 py-1.5 text-slate-500 font-semibold">
+            <span class="w-7 h-7 xl:w-8 xl:h-8 rounded-3xl bg-slate-100 flex items-center justify-center">⚙️</span>
+          </button>
+        </nav>
+      </aside>
+
+      <main class="flex-1 overflow-hidden">
+        <div class="h-full overflow-hidden">
+          <div class="max-w-[1600px] mx-auto h-full">
+            <div class="flex h-full flex-col">
+              <header class="flex items-center justify-between px-6 py-5 bg-[#f8fbff] border-b border-slate-200">
+            <div>
+              <p class="text-[10px] uppercase tracking-[0.4em] text-slate-500">Backend</p>
+              <h1 class="text-[18px] md:text-[20px] font-bold text-slate-900 mt-2">ระบบหลังบ้าน</h1>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="relative">
+                <input type="text" placeholder="ค้นหา..." class="soft-input w-52 rounded-3xl px-4 py-2.5 pl-10 text-[12px] text-slate-700" />
+                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+              </div>
+              <button class="rounded-3xl bg-indigo-600 px-4 py-2 text-white font-semibold shadow-lg shadow-indigo-100/50">สร้างใหม่</button>
+            </div>
+          </header>
+
+          <div class="flex-1 overflow-y-auto px-5 py-6">
+            <section class="grid grid-cols-1 xl:grid-cols-[1.35fr_0.65fr] gap-6 mb-6 max-w-[1180px] mx-auto">
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="panel-card rounded-[1.75rem] p-4">
+                  <p class="text-[10px] uppercase tracking-[0.35em] text-slate-400 mb-3">ยอดสั่งซื้อวันนี้</p>
+                  <h2 class="text-[18px] font-bold text-slate-900">฿ 89,350</h2>
+                  <p class="text-[10px] text-emerald-500 mt-2">+12.4% เทียบเมื่อวาน</p>
+                </div>
+                <div class="panel-card rounded-[1.75rem] p-4">
+                  <p class="text-[10px] uppercase tracking-[0.35em] text-slate-400 mb-3">ลูกค้าที่ใช้งาน</p>
+                  <h2 class="text-[18px] font-bold text-slate-900">1,280</h2>
+                  <p class="text-[10px] text-slate-500 mt-2">ออนไลน์อยู่ 98 คน</p>
+                </div>
+                <div class="panel-card rounded-[1.75rem] p-4">
+                  <p class="text-[10px] uppercase tracking-[0.35em] text-slate-400 mb-3">สต็อกต่ำ</p>
+                  <h2 class="text-[18px] font-bold text-slate-900">14 รายการ</h2>
+                  <p class="text-[10px] text-slate-500 mt-2">แจ้งเตือนให้เติมสินค้า</p>
+                </div>
+              </div>
+
+              <div class="panel-card-strong rounded-[2.5rem] p-8 flex flex-col justify-between">
+                <div>
+                  <div class="flex items-center justify-between mb-6">
+                    <div>
+                      <p class="text-[12px] uppercase tracking-[0.35em] text-slate-400">ภาพรวมรายได้</p>
+                      <h3 class="text-[18px] font-bold text-slate-900 mt-2">สรุปรายรับประจำสัปดาห์</h3>
+                    </div>
+                    <button class="rounded-2xl border border-slate-200 px-4 py-2 text-[12px] text-slate-600">เดือนนี้</button>
+                  </div>
+                  <div class="h-48 rounded-[2rem] bg-slate-100 flex items-center justify-center text-slate-400">กราฟ placeholder</div>
+                </div>
+                <div class="mt-8 grid grid-cols-2 gap-4">
+                  <div class="rounded-[1.75rem] bg-slate-50 p-4">
+                    <p class="text-[10px] uppercase tracking-[0.35em] text-slate-400">อัตราการแปลง</p>
+                    <p class="text-[18px] font-bold text-slate-900 mt-3">4.8%</p>
+                  </div>
+                  <div class="rounded-[1.75rem] bg-slate-50 p-4">
+                    <p class="text-[10px] uppercase tracking-[0.35em] text-slate-400">ยอดคำสั่งซื้อ</p>
+                    <p class="text-[18px] font-bold text-slate-900 mt-3">112</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section class="grid grid-cols-1 xl:grid-cols-[1.2fr_0.8fr] gap-8">
+              <div class="panel-card-strong rounded-[2.5rem] p-8">
+                <div class="flex items-center justify-between mb-8">
+                  <div>
+                    <p class="text-[12px] uppercase tracking-[0.35em] text-slate-400">คำสั่งซื้อ</p>
+                    <h2 class="text-[18px] font-bold text-slate-900 mt-2">รายการล่าสุด</h2>
+                  </div>
+                  <button class="rounded-full bg-slate-100 px-4 py-2 text-[12px] text-slate-600">ดูทั้งหมด</button>
+                </div>
+                <div class="space-y-4">
+                  <div class="rounded-[1.75rem] bg-slate-50 p-4 grid grid-cols-12 gap-4 items-center">
+                    <div class="col-span-3">
+                      <p class="text-[12px] font-semibold text-slate-900">#A1023</p>
+                      <p class="text-[10px] text-slate-400">ตรวจสอบแล้ว</p>
+                    </div>
+                    <div class="col-span-4 text-[12px] text-slate-600">ลูกค้า: สมชาย</div>
+                    <div class="col-span-3 text-[12px] text-slate-600">฿ 5,430</div>
+                    <div class="col-span-2 text-right"><span class="rounded-full bg-emerald-100 px-3 py-1 text-[10px] text-emerald-700">สำเร็จ</span></div>
+                  </div>
+                  <div class="rounded-[1.75rem] bg-slate-50 p-4 grid grid-cols-12 gap-4 items-center">
+                    <div class="col-span-3">
+                      <p class="text-[12px] font-semibold text-slate-900">#A1022</p>
+                      <p class="text-[10px] text-slate-400">รอดำเนินการ</p>
+                    </div>
+                    <div class="col-span-4 text-[12px] text-slate-600">ลูกค้า: นฤมล</div>
+                    <div class="col-span-3 text-[12px] text-slate-600">฿ 3,120</div>
+                    <div class="col-span-2 text-right"><span class="rounded-full bg-amber-100 px-3 py-1 text-[10px] text-amber-700">รอดำเนินการ</span></div>
+                  </div>
+                  <div class="rounded-[1.75rem] bg-slate-50 p-4 grid grid-cols-12 gap-4 items-center">
+                    <div class="col-span-3">
+                      <p class="text-[12px] font-semibold text-slate-900">#A1021</p>
+                      <p class="text-[10px] text-slate-400">ชำระเงินแล้ว</p>
+                    </div>
+                    <div class="col-span-4 text-[12px] text-slate-600">ลูกค้า: ปวีณา</div>
+                    <div class="col-span-3 text-[12px] text-slate-600">฿ 8,890</div>
+                    <div class="col-span-2 text-right"><span class="rounded-full bg-blue-100 px-3 py-1 text-[10px] text-blue-700">ชำระแล้ว</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="panel-card rounded-[2.5rem] p-8 space-y-6">
+                <div>
+                  <p class="text-[12px] uppercase tracking-[0.35em] text-slate-400">กิจกรรม</p>
+                  <h2 class="text-[18px] font-bold text-slate-900 mt-2">การแจ้งเตือนล่าสุด</h2>
+                </div>
+                <div class="space-y-4">
+                  <div class="rounded-[1.75rem] bg-slate-50 p-4">
+                    <p class="text-[12px] font-semibold text-slate-900">คำสั่งซื้อใหม่เข้ามา</p>
+                    <p class="text-[10px] text-slate-500 mt-1">มีคำสั่งซื้อ 3 รายการรอชำระเงิน</p>
+                  </div>
+                  <div class="rounded-[1.75rem] bg-slate-50 p-4">
+                    <p class="text-[12px] font-semibold text-slate-900">สินค้าใกล้หมด</p>
+                    <p class="text-[10px] text-slate-500 mt-1">มี 4 รายการที่สต็อกต่ำกว่า 10</p>
+                  </div>
+                  <div class="rounded-[1.75rem] bg-slate-50 p-4">
+                    <p class="text-[12px] font-semibold text-slate-900">ใบแจ้งหนี้รอตรวจสอบ</p>
+                    <p class="text-[10px] text-slate-500 mt-1">รวม 2 ใบแจ้งหนี้ยังไม่อนุมัติ</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

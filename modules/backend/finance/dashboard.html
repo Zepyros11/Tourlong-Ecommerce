@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pathara - Finance Dashboard</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../assets/backend.css" />
+  </head>
+  <body>
+    <div class="layout">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-logo">
+          <div class="sidebar-logo-icon">
+            <i data-lucide="zap" class="sidebar-icon-sm"></i>
+          </div>
+          <h1 class="sidebar-logo-text">Pathara</h1>
+        </div>
+
+        <nav class="sidebar-nav">
+          <!-- render จาก sidebar-menu.js -->
+        </nav>
+
+        <button class="sidebar-logout">
+          <i data-lucide="log-out" class="sidebar-icon-xs"></i>
+          <span>Go Out</span>
+        </button>
+      </aside>
+
+      <!-- Main Area -->
+      <div class="main-area">
+        <!-- Topbar -->
+        <header class="topbar">
+          <!-- render จาก topbar.js -->
+        </header>
+
+        <!-- Content -->
+        <div class="content">
+          <div class="content-header">
+            <div>
+              <h2 class="content-title">Finance Dashboard</h2>
+              <p class="content-subtitle">ภาพรวมการเงิน</p>
+            </div>
+          </div>
+
+          <!-- Overview Cards -->
+          <div class="stat-cards">
+            <div class="stat-card">
+              <div class="stat-card-icon stat-card-icon-active">
+                <i data-lucide="trending-up" class="stat-icon"></i>
+              </div>
+              <div>
+                <p class="stat-card-label">Total Income</p>
+                <p class="stat-card-value">฿1,245,800</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-icon stat-card-icon-inactive">
+                <i data-lucide="trending-down" class="stat-icon"></i>
+              </div>
+              <div>
+                <p class="stat-card-label">Total Expenses</p>
+                <p class="stat-card-value">฿587,300</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-icon" style="background-color: #ecfdf5; color: #10b981;">
+                <i data-lucide="banknote" class="stat-icon"></i>
+              </div>
+              <div>
+                <p class="stat-card-label">Net Balance</p>
+                <p class="stat-card-value">฿658,500</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-icon" style="background-color: #fef3c7; color: #f59e0b;">
+                <i data-lucide="landmark" class="stat-icon"></i>
+              </div>
+              <div>
+                <p class="stat-card-label">Bank Accounts</p>
+                <p class="stat-card-value">3</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Two Column Layout -->
+          <div class="dashboard-grid">
+            <!-- Recent Payments -->
+            <div class="dashboard-card">
+              <div class="dashboard-card-header">
+                <h3 class="dashboard-card-title">Recent Payments</h3>
+              </div>
+              <div class="table-container" style="border: none; box-shadow: none;">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Customer</th>
+                      <th>Method</th>
+                      <th>Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>2026-04-08</td>
+                      <td>คุณสมศรี จันทร์ดี</td>
+                      <td>โอนธนาคาร</td>
+                      <td>฿12,500</td>
+                    </tr>
+                    <tr>
+                      <td>2026-04-07</td>
+                      <td>บ.เอบีซี จำกัด</td>
+                      <td>เงินสด</td>
+                      <td>฿45,000</td>
+                    </tr>
+                    <tr>
+                      <td>2026-04-07</td>
+                      <td>คุณวิชัย สุขสม</td>
+                      <td>บัตรเครดิต</td>
+                      <td>฿8,900</td>
+                    </tr>
+                    <tr>
+                      <td>2026-04-06</td>
+                      <td>คุณธนา ใจงาม</td>
+                      <td>โอนธนาคาร</td>
+                      <td>฿18,750</td>
+                    </tr>
+                    <tr>
+                      <td>2026-04-05</td>
+                      <td>บ.XYZ เทรดดิ้ง</td>
+                      <td>เช็ค</td>
+                      <td>฿92,000</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Recent Expenses -->
+            <div class="dashboard-card">
+              <div class="dashboard-card-header">
+                <h3 class="dashboard-card-title">Recent Expenses</h3>
+              </div>
+              <div class="table-container" style="border: none; box-shadow: none;">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Description</th>
+                      <th>Category</th>
+                      <th>Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>2026-04-08</td>
+                      <td>จ่าย PO-2026-007 บ.สยามซัพพลาย</td>
+                      <td>จัดซื้อ</td>
+                      <td>฿92,000</td>
+                    </tr>
+                    <tr>
+                      <td>2026-04-07</td>
+                      <td>ค่าขนส่งสินค้า</td>
+                      <td>ขนส่ง</td>
+                      <td>฿5,500</td>
+                    </tr>
+                    <tr>
+                      <td>2026-04-06</td>
+                      <td>ค่าเช่าสำนักงาน เม.ย.</td>
+                      <td>สำนักงาน</td>
+                      <td>฿35,000</td>
+                    </tr>
+                    <tr>
+                      <td>2026-04-05</td>
+                      <td>ค่าไฟฟ้า มี.ค.</td>
+                      <td>สาธารณูปโภค</td>
+                      <td>฿8,200</td>
+                    </tr>
+                    <tr>
+                      <td>2026-04-04</td>
+                      <td>เงินเดือนพนักงาน เม.ย.</td>
+                      <td>เงินเดือน</td>
+                      <td>฿180,000</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+          <p class="footer-text">&copy; 2026 Pathara. All rights reserved.</p>
+          <nav class="footer-nav">
+            <a href="#" class="footer-link">Privacy Policy</a>
+            <a href="#" class="footer-link">Terms of Service</a>
+            <a href="#" class="footer-link">Support</a>
+          </nav>
+        </footer>
+      </div>
+    </div>
+
+    <script src="../assets/js/modal.js"></script>
+    <script src="../assets/js/sidebar-menu.js"></script>
+    <script>renderSidebarMenu("dashboard.html");</script>
+    <script src="/assets/js/topbar.js"></script>
+    <script>renderTopbar({ group: "Finance", page: "Dashboard" });</script>
+    <script>lucide.createIcons();</script>
+  </body>
+</html>

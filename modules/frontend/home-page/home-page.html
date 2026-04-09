@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tour Long - น้ำพริกทัวร์ลง</title>
+    <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body { margin: 0; font-family: "Plus Jakarta Sans", sans-serif; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const { useState } = React;
+
+      const App = () => {
+        const [activeTab, setActiveTab] = useState("numprik");
+        const [cartItems, setCartItems] = useState([]);
+
+        // หมวดหมู่สินค้า
+        const categories = [
+          { key: "all", name: "ทั้งหมด" },
+          { key: "numprik", name: "น้ำพริก" },
+          { key: "set", name: "เซ็ตสุดคุ้ม" },
+          { key: "snack", name: "ของทานเล่น" },
+          { key: "new", name: "สินค้าใหม่" },
+        ];
+
+        // สินค้า
+        const products = [
+          {
+            id: 1,
+            name: "น้ำพริกน้ำย้อย เห็ดกรอบ",
+            nameEn: "Numprik Numyoi Oyster Mushroom",
+            desc: "ไม่ใส่ผงชูรส • สูตรหวานน้อย • 50 กรัม",
+            price: 69,
+            image: "/assets/images/green-pack.jpg",
+            category: "numprik",
+            badge: "ขายดี",
+          },
+          {
+            id: 2,
+            name: "น้ำพริกน้ำย้อย เผ็ดจี๊ด",
+            nameEn: "Numprik Numyoi Spicy",
+            desc: "เผ็ดจี๊ดทุกคำ • เบ๊กกี้ ศรีธัญญา • 50 กรัม",
+            price: 69,
+            image: "/assets/images/red-pack.jpg",
+            category: "numprik",
+            badge: "เผ็ด",
+          },
+          {
+            id: 3,
+            name: "น้ำพริกน้ำย้อย อกไก่แซ่บ",
+            nameEn: "Numprik Numyoi Chicken Breast",
+            desc: "ไม่ใส่ผงชูรส • สูตรหวานน้อย • 50 กรัม",
+            price: 69,
+            image: "/assets/images/orange-pack.jpg",
+            category: "numprik",
+            badge: "ใหม่",
+          },
+          {
+            id: 4,
+            name: "เซ็ต 3 ซอง สุดคุ้ม",
+            nameEn: "Value Pack 3 Sachets",
+            desc: "รวม 3 รสชาติ • ประหยัดกว่า • 150 กรัม",
+            price: 198,
+            originalPrice: 207,
+            image: "/assets/images/promo-pack.png",
+            category: "set",
+            badge: "คุ้มสุด",
+          },
+          {
+            id: 5,
+            name: "ข้าวเกรียบพริกทัวร์ลง",
+            nameEn: "Tour Long Chilli Crackers",
+            desc: "กรอบ อร่อย เผ็ดนิดๆ • 80 กรัม",
+            price: 45,
+            image: "/assets/images/green-pack.jpg",
+            category: "snack",
+            badge: "",
+          },
+          {
+            id: 6,
+            name: "น้ำพริกน้ำย้อย ปลาทู",
+            nameEn: "Numprik Numyoi Mackerel",
+            desc: "สูตรใหม่ล่าสุด • รสชาติเข้มข้น • 50 กรัม",
+            price: 75,
+            image: "/assets/images/red-pack.jpg",
+            category: "new",
+            badge: "ใหม่",
+          },
+        ];
+
+        const filteredProducts = activeTab === "all"
+          ? products
+          : products.filter(p => p.category === activeTab);
+
+        const addToCart = (product) => {
+          setCartItems(prev => [...prev, product]);
+        };
+
+        const cartTotal = cartItems.reduce((sum, item) => sum + item.price, 0);
+
+        return (
+          <div className="min-h-screen bg-[#0a0a0a] text-white font-sans selection:bg-red-600 overflow-x-hidden">
+            {/* เอฟเฟกต์พื้นหลัง */}
+            <div className="fixed inset-0 pointer-events-none opacity-30">
+              <div className="absolute top-0 left-1/4 w-2 h-2 bg-orange-500 rounded-full blur-sm animate-pulse" style={{ animationDuration: "3s" }}></div>
+              <div className="absolute top-1/3 right-1/4 w-1 h-1 bg-red-600 rounded-full blur-sm animate-ping" style={{ animationDuration: "4s" }}></div>
+              <div className="absolute bottom-1/4 left-1/2 w-2 h-2 bg-yellow-500 rounded-full blur-md animate-bounce" style={{ animationDuration: "5s" }}></div>
+            </div>
+
+            {/* Navbar */}
+            <header className="relative z-50 flex items-center justify-between px-6 py-4 md:px-16 border-b border-white/5 bg-black/20 backdrop-blur-md">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center font-black text-xs">
+                  TL
+                </div>
+                <div>
+                  <span className="font-black tracking-tighter text-lg block leading-none">TOUR LONG</span>
+                  <span className="text-[9px] text-gray-500 tracking-widest uppercase">น้ำพริกทัวร์ลง</span>
+                </div>
+              </div>
+
+              <nav className="hidden lg:flex items-center gap-8 text-sm font-medium uppercase tracking-widest text-gray-400">
+                <a href="#" className="text-white hover:text-red-500 transition-colors">หน้าแรก</a>
+                <a href="#products" className="hover:text-red-500 transition-colors">สินค้า</a>
+                <a href="#about" className="hover:text-red-500 transition-colors">เกี่ยวกับเรา</a>
+                <a href="#contact" className="hover:text-red-500 transition-colors">ติดต่อเรา</a>
+              </nav>
+
+              <div className="flex items-center gap-4">
+                <button className="relative bg-white/5 hover:bg-white/10 p-3 rounded-xl border border-white/10 transition-colors">
+                  🛒
+                  {cartItems.length > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                      {cartItems.length}
+                    </span>
+                  )}
+                </button>
+                {cartTotal > 0 && (
+                  <span className="hidden md:block text-sm font-bold text-red-500">฿{cartTotal.toLocaleString()}</span>
+                )}
+                <button className="lg:hidden text-white text-2xl">☰</button>
+              </div>
+            </header>
+
+            {/* Hero */}
+            <section className="relative min-h-[90vh] flex flex-col md:flex-row items-center justify-center px-6 md:px-16 pt-10 pb-20 overflow-hidden">
+              <div className="w-full md:w-1/2 z-10">
+                <span className="text-red-500 font-bold uppercase tracking-widest text-sm mb-4 block">
+                  🌶️ ตรา น้ำพริกทัวร์ลง
+                </span>
+                <h1 className="text-5xl md:text-7xl font-black mb-6 leading-none">
+                  น้ำพริกน้ำย้อย
+                  <br />
+                  <span className="text-red-500">Chilli Crispy</span>
+                </h1>
+                <p className="max-w-md text-gray-400 text-sm md:text-base leading-relaxed mb-10">
+                  อร่อยเข้มข้น สูตรหวานน้อย ไม่ใส่ผงชูรส
+                  คัดสรรวัตถุดิบคุณภาพ ผลิตสดใหม่ทุกล็อต
+                  เซ็ต 3 ซอง ราคาพิเศษ 198.-
+                </p>
+                <div className="flex flex-wrap gap-4">
+                  <a href="#products" className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-full font-bold flex items-center gap-3 transition-transform hover:scale-105 active:scale-95">
+                    🛒 สั่งซื้อเลย
+                  </a>
+                  <a href="#about" className="bg-white/5 hover:bg-white/10 text-white px-8 py-4 rounded-full font-bold flex items-center gap-3 border border-white/10 transition-transform hover:scale-105 active:scale-95">
+                    เกี่ยวกับเรา →
+                  </a>
+                </div>
+              </div>
+
+              <div className="w-full md:w-1/2 relative mt-16 md:mt-0 flex justify-center">
+                <div className="absolute top-0 right-1/4 z-20 bg-red-600 p-4 rounded-xl shadow-2xl shadow-red-900/50 rotate-6 animate-pulse">
+                  <span className="block text-2xl font-black italic text-white">฿198</span>
+                  <span className="text-[10px] text-white/70">เซ็ต 3 ซอง</span>
+                </div>
+                <div className="absolute bottom-1/4 right-0 z-20 bg-yellow-500 text-black px-4 py-2 rounded-full font-black text-xs uppercase tracking-tighter shadow-lg">
+                  NEW
+                </div>
+                <div className="relative group">
+                  <div className="absolute inset-0 bg-orange-600/20 blur-[100px] rounded-full group-hover:bg-orange-600/30 transition-all"></div>
+                  <img
+                    src="/assets/images/promo-pack.png"
+                    alt="Tour Long เซ็ต 3 ซอง"
+                    className="relative z-10 w-[400px] md:w-[600px] drop-shadow-[0_35px_35px_rgba(0,0,0,0.8)] rounded-3xl"
+                  />
+                </div>
+              </div>
+            </section>
+
+            {/* สินค้า */}
+            <section id="products" className="px-6 md:px-16 py-24 bg-[#080808]">
+              <div className="flex flex-col items-center mb-16">
+                <h2 className="text-4xl font-black uppercase tracking-tighter mb-2">สินค้าของเรา</h2>
+                <p className="text-gray-500 text-sm mb-10">เลือกความอร่อยที่ใช่สำหรับคุณ</p>
+                <div className="flex flex-wrap justify-center gap-3 bg-white/5 p-2 rounded-2xl border border-white/5">
+                  {categories.map((cat) => (
+                    <button
+                      key={cat.key}
+                      onClick={() => setActiveTab(cat.key)}
+                      className={`px-6 py-3 rounded-xl font-bold transition-all ${
+                        activeTab === cat.key
+                          ? "bg-red-600 text-white shadow-lg shadow-red-900/30"
+                          : "text-gray-500 hover:text-white"
+                      }`}
+                    >
+                      {cat.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mx-auto max-w-[900px]">
+                {filteredProducts.map((item) => (
+                  <div
+                    key={item.id}
+                    className="bg-[#121212] border border-white/5 rounded-3xl p-5 group hover:border-red-600/50 transition-all hover:-translate-y-2"
+                  >
+                    <div className="relative mb-4">
+                      {item.badge && (
+                        <span className="absolute top-2 left-2 z-10 bg-red-600 text-white text-[10px] font-bold px-3 py-1 rounded-full">
+                          {item.badge}
+                        </span>
+                      )}
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className="w-full aspect-square object-cover rounded-2xl group-hover:scale-105 transition-transform duration-500"
+                      />
+                    </div>
+                    <p className="text-[10px] text-gray-600 uppercase tracking-wider mb-1">{item.nameEn}</p>
+                    <h3 className="text-base font-bold mb-1 group-hover:text-red-500 transition-colors">
+                      {item.name}
+                    </h3>
+                    <p className="text-xs text-gray-500 mb-4 leading-relaxed">
+                      {item.desc}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-lg font-black text-white">฿{item.price}</span>
+                        {item.originalPrice && (
+                          <span className="text-xs text-gray-600 line-through">฿{item.originalPrice}</span>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => addToCart(item)}
+                        className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-xl transition-colors text-white text-sm font-bold flex items-center gap-2"
+                      >
+                        🛒 เพิ่ม
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {/* เกี่ยวกับเรา */}
+            <section id="about" className="relative px-6 md:px-16 py-32 bg-black overflow-hidden">
+              <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-16">
+                <div className="w-full md:w-1/2">
+                  <span className="text-red-500 font-bold uppercase tracking-widest text-sm mb-4 block">
+                    เกี่ยวกับเรา
+                  </span>
+                  <h2 className="text-5xl font-black mb-8 leading-tight">
+                    ตรา น้ำพริก
+                    <br />
+                    <span className="text-red-500">ทัวร์ลง</span>
+                  </h2>
+
+                  <div className="grid grid-cols-2 gap-6 mb-10">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-red-600/10 rounded-2xl flex items-center justify-center text-red-500 text-xl">🌶️</div>
+                      <div>
+                        <h4 className="font-bold text-sm">ไม่ใส่ผงชูรส</h4>
+                        <p className="text-xs text-gray-500">สูตรหวานน้อย ปลอดภัย</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-red-600/10 rounded-2xl flex items-center justify-center text-red-500 text-xl">🏭</div>
+                      <div>
+                        <h4 className="font-bold text-sm">ผลิตสดใหม่</h4>
+                        <p className="text-xs text-gray-500">ทุกล็อตผ่าน มอก.</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-red-600/10 rounded-2xl flex items-center justify-center text-red-500 text-xl">🚚</div>
+                      <div>
+                        <h4 className="font-bold text-sm">จัดส่งทั่วไทย</h4>
+                        <p className="text-xs text-gray-500">ส่งเร็ว 1-3 วัน</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-red-600/10 rounded-2xl flex items-center justify-center text-red-500 text-xl">⭐</div>
+                      <div>
+                        <h4 className="font-bold text-sm">รีวิว 5 ดาว</h4>
+                        <p className="text-xs text-gray-500">ลูกค้ากว่า 10,000 คน</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <a href="#products" className="bg-red-600 px-8 py-4 rounded-full font-bold hover:scale-105 transition-transform inline-block">
+                    ดูสินค้าทั้งหมด
+                  </a>
+                </div>
+
+                <div className="w-full md:w-1/2 relative flex justify-center">
+                  <div className="absolute inset-0 bg-red-600/10 blur-[120px] rounded-full"></div>
+                  <img
+                    src="/assets/images/promo-pack.png"
+                    alt="Tour Long Products"
+                    className="relative z-10 w-full max-w-md rounded-3xl shadow-[0_50px_100px_rgba(0,0,0,0.8)] border-4 border-white/5"
+                  />
+                </div>
+              </div>
+            </section>
+
+            {/* ติดต่อเรา */}
+            <section id="contact" className="px-6 md:px-16 py-24 bg-[#080808]">
+              <div className="max-w-2xl mx-auto text-center">
+                <h2 className="text-4xl font-black mb-4">ติดต่อเรา</h2>
+                <p className="text-gray-500 text-sm mb-12">สนใจสั่งซื้อหรือเป็นตัวแทนจำหน่าย ติดต่อได้เลย</p>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                  <div className="bg-[#121212] border border-white/5 rounded-2xl p-6 text-center">
+                    <div className="text-2xl mb-3">📞</div>
+                    <p className="text-sm font-bold">โทรศัพท์</p>
+                    <p className="text-xs text-gray-500 mt-1">081-234-5678</p>
+                  </div>
+                  <div className="bg-[#121212] border border-white/5 rounded-2xl p-6 text-center">
+                    <div className="text-2xl mb-3">💬</div>
+                    <p className="text-sm font-bold">Line Official</p>
+                    <p className="text-xs text-gray-500 mt-1">@tourlong</p>
+                  </div>
+                  <div className="bg-[#121212] border border-white/5 rounded-2xl p-6 text-center">
+                    <div className="text-2xl mb-3">📧</div>
+                    <p className="text-sm font-bold">Email</p>
+                    <p className="text-xs text-gray-500 mt-1">info@tourlong.com</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Footer */}
+            <footer className="bg-black py-16 border-t border-white/5">
+              <div className="container mx-auto px-6 text-center">
+                <div className="flex justify-center items-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center font-black text-xs">
+                    TL
+                  </div>
+                  <span className="font-black text-lg">TOUR LONG</span>
+                </div>
+                <p className="text-gray-500 text-sm mb-6 max-w-md mx-auto">
+                  น้ำพริกทัวร์ลง อร่อยเข้มข้น สูตรหวานน้อย ไม่ใส่ผงชูรส
+                  ผลิตจากวัตถุดิบคุณภาพ ส่งตรงถึงบ้านคุณ
+                </p>
+                <div className="flex justify-center gap-6 text-gray-400 text-sm">
+                  <a href="#" className="hover:text-white transition-colors">Facebook</a>
+                  <a href="#" className="hover:text-white transition-colors">Instagram</a>
+                  <a href="#" className="hover:text-white transition-colors">TikTok</a>
+                  <a href="#" className="hover:text-white transition-colors">Shopee</a>
+                  <a href="#" className="hover:text-white transition-colors">Lazada</a>
+                </div>
+                <div className="mt-10 pt-10 border-t border-white/5 text-[10px] uppercase tracking-widest text-gray-700">
+                  © 2026 TOUR LONG. น้ำพริกทัวร์ลง — All rights reserved.
+                </div>
+              </div>
+            </footer>
+
+            <style>{`
+              @keyframes float {
+                0% { transform: translateY(0px) rotate(0deg); }
+                50% { transform: translateY(-20px) rotate(5deg); }
+                100% { transform: translateY(0px) rotate(0deg); }
+              }
+              @keyframes float-reverse {
+                0% { transform: translateY(0px) rotate(0deg); }
+                50% { transform: translateY(20px) rotate(-5deg); }
+                100% { transform: translateY(0px) rotate(0deg); }
+              }
+              .animate-float { animation: float 5s ease-in-out infinite; }
+              .animate-float-reverse { animation: float-reverse 7s ease-in-out infinite; }
+            `}</style>
+          </div>
+        );
+      };
+
+      ReactDOM.render(<App />, document.getElementById("root"));
+    </script>
+  </body>
+</html>

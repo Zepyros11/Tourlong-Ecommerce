@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — Pathara</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="../assets/backend.css">
+    <style>
+        .auth-wrapper { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+        .auth-card { background: #fff; border-radius: 18px; padding: 36px; width: 360px; box-shadow: 0 20px 60px rgba(0,0,0,0.08); }
+        .auth-logo { display: flex; align-items: center; gap: 8px; justify-content: center; margin-bottom: 28px; }
+        .auth-logo-icon { width: 32px; height: 32px; background-color: #fcd34d; border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .auth-logo-icon i { width: 18px; height: 18px; color: #fff; }
+        .auth-logo-text { font-size: 22px; font-weight: 700; color: #1e293b; font-style: italic; }
+        .auth-title { font-size: 16px; font-weight: 800; color: #1e293b; text-align: center; margin: 0 0 4px; }
+        .auth-subtitle { font-size: 11px; color: #94a3b8; text-align: center; margin: 0 0 24px; }
+        .auth-form { display: flex; flex-direction: column; gap: 14px; }
+        .auth-btn { width: 100%; padding: 10px; background-color: #47b8b4; color: #fff; border: none; border-radius: 12px; font-family: "Plus Jakarta Sans", sans-serif; font-size: 12px; font-weight: 700; cursor: pointer; transition: background-color 0.2s; }
+        .auth-btn:hover { background-color: #3da8a4; }
+        .auth-link { font-size: 11px; color: #47b8b4; text-decoration: none; font-weight: 600; text-align: center; display: block; margin-top: 12px; }
+        .auth-link:hover { text-decoration: underline; }
+        .auth-footer { font-size: 9px; color: #cbd5e1; text-align: center; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="auth-wrapper">
+        <div class="auth-card">
+            <div class="auth-logo">
+                <div class="auth-logo-icon">
+                    <i data-lucide="zap"></i>
+                </div>
+                <span class="auth-logo-text">Pathara</span>
+            </div>
+
+            <h2 class="auth-title">เข้าสู่ระบบ</h2>
+            <p class="auth-subtitle">กรุณากรอกข้อมูลเพื่อเข้าใช้งาน</p>
+
+            <form class="auth-form" onsubmit="return false;">
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-input" placeholder="you@example.com">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" class="form-input" placeholder="••••••••">
+                </div>
+                <button type="button" class="auth-btn" onclick="alert('Login — connect to backend later')">Login</button>
+            </form>
+
+            <a class="auth-link" href="forgot-password.html">ลืมรหัสผ่าน?</a>
+            <p class="auth-footer">&copy; 2026 Pathara. All rights reserved.</p>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

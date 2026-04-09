@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pathara - Roles & Permissions</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../assets/backend.css" />
+    <style>
+      .form-checkbox-group { display: flex; flex-direction: column; gap: 6px; }
+      .form-checkbox { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #334155; cursor: pointer; }
+      .form-checkbox input[type="checkbox"] { accent-color: #47b8b4; width: 14px; height: 14px; cursor: pointer; }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-logo">
+          <div class="sidebar-logo-icon">
+            <i data-lucide="zap" class="sidebar-icon-sm"></i>
+          </div>
+          <h1 class="sidebar-logo-text">Pathara</h1>
+        </div>
+
+        <nav class="sidebar-nav">
+          <!-- render จาก sidebar-menu.js -->
+        </nav>
+
+        <button class="sidebar-logout">
+          <i data-lucide="log-out" class="sidebar-icon-xs"></i>
+          <span>Go Out</span>
+        </button>
+      </aside>
+
+      <!-- Main Area -->
+      <div class="main-area">
+        <!-- Topbar -->
+        <header class="topbar">
+          <!-- render จาก topbar.js -->
+        </header>
+
+        <!-- Content -->
+        <div class="content">
+          <div class="content-header">
+            <div>
+              <h2 class="content-title">Roles & Permissions</h2>
+              <p class="content-subtitle">จัดการสิทธิ์การใช้งาน</p>
+            </div>
+            <button class="btn-primary" id="addRoleBtn">
+              <i data-lucide="plus" class="btn-icon"></i>
+              Add Role
+            </button>
+          </div>
+
+          <!-- Status Cards -->
+          <div class="stat-cards">
+            <div class="stat-card">
+              <div class="stat-card-icon stat-card-icon-all">
+                <i data-lucide="shield" class="stat-icon"></i>
+              </div>
+              <div>
+                <p class="stat-card-label">All Roles</p>
+                <p class="stat-card-value" id="statAll">0</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-icon stat-card-icon-active">
+                <i data-lucide="check-circle" class="stat-icon"></i>
+              </div>
+              <div>
+                <p class="stat-card-label">Active</p>
+                <p class="stat-card-value" id="statActive">0</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filter Bar -->
+          <div class="filter-bar">
+            <div class="filter-group">
+              <div class="filter-search">
+                <i data-lucide="search" class="filter-search-icon"></i>
+                <input type="text" placeholder="Search role..." class="filter-search-input" />
+              </div>
+            </div>
+            <div class="filter-group">
+              <select class="form-select filter-sort" id="sortSelect">
+                <option value="default">Sort by</option>
+                <option value="name-asc">Name A-Z</option>
+                <option value="name-desc">Name Z-A</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Roles Table -->
+          <div class="table-container">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th data-sort="name">Role Name</th>
+                  <th data-sort="desc">Description</th>
+                  <th data-sort="users" data-sort-type="number">Users</th>
+                  <th data-sort="permissions" data-sort-type="number">Permissions</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="roleTableBody">
+                <!-- render จาก JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+          <p class="footer-text">&copy; 2026 Pathara. All rights reserved.</p>
+          <nav class="footer-nav">
+            <a href="#" class="footer-link">Privacy Policy</a>
+            <a href="#" class="footer-link">Terms of Service</a>
+            <a href="#" class="footer-link">Support</a>
+          </nav>
+        </footer>
+      </div>
+    </div>
+
+    <!-- Modal Add/Edit Role -->
+    <div class="modal-overlay" id="roleModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title" id="modalTitle">Add Role</h3>
+          <button class="modal-close"><i data-lucide="x"></i></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="editId" />
+          <div class="form-group">
+            <label class="form-label">Role Name</label>
+            <input type="text" class="form-input" id="inputName" placeholder="ชื่อ Role..." />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <input type="text" class="form-input" id="inputDesc" placeholder="รายละเอียด..." />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Permissions</label>
+            <div class="form-checkbox-group">
+              <label class="form-checkbox"><input type="checkbox" value="dashboard_view" class="permission-check"> Dashboard View</label>
+              <label class="form-checkbox"><input type="checkbox" value="inventory_view" class="permission-check"> Inventory View</label>
+              <label class="form-checkbox"><input type="checkbox" value="inventory_edit" class="permission-check"> Inventory Edit</label>
+              <label class="form-checkbox"><input type="checkbox" value="inventory_delete" class="permission-check"> Inventory Delete</label>
+              <label class="form-checkbox"><input type="checkbox" value="settings_view" class="permission-check"> Settings View</label>
+              <label class="form-checkbox"><input type="checkbox" value="settings_edit" class="permission-check"> Settings Edit</label>
+              <label class="form-checkbox"><input type="checkbox" value="users_manage" class="permission-check"> Users Manage</label>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" onclick="closeModalById('roleModal')">Cancel</button>
+          <button class="btn-primary" onclick="saveRole()">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div class="modal-overlay" id="confirmModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title" id="confirmTitle">Confirm</h3>
+          <button class="modal-close"><i data-lucide="x"></i></button>
+        </div>
+        <div class="modal-body">
+          <p id="confirmMessage" style="font-size: 12px; color: #64748b;"></p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" id="confirmCancelBtn">Cancel</button>
+          <button class="btn-primary" id="confirmOkBtn">OK</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="../assets/js/table.js"></script>
+    <script src="../assets/js/modal.js"></script>
+    <script src="../assets/js/confirm.js"></script>
+    <script src="../assets/js/sidebar-menu.js"></script>
+    <script>renderSidebarMenu("roles-permissions.html");</script>
+    <script src="/assets/js/topbar.js"></script>
+    <script>renderTopbar({ group: "Settings", page: "สิทธิ์การใช้งาน" });</script>
+    <script src="roles-permissions.js"></script>
+  </body>
+</html>

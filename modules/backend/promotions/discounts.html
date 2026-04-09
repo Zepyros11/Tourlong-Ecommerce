@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pathara - Discounts</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../assets/backend.css" />
+  </head>
+  <body>
+    <div class="layout">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-logo">
+          <div class="sidebar-logo-icon">
+            <i data-lucide="zap" class="sidebar-icon-sm"></i>
+          </div>
+          <h1 class="sidebar-logo-text">Pathara</h1>
+        </div>
+
+        <nav class="sidebar-nav">
+          <!-- render จาก sidebar-menu.js -->
+        </nav>
+
+        <button class="sidebar-logout">
+          <i data-lucide="log-out" class="sidebar-icon-xs"></i>
+          <span>Go Out</span>
+        </button>
+      </aside>
+
+      <!-- Main Area -->
+      <div class="main-area">
+        <!-- Topbar -->
+        <header class="topbar">
+          <!-- render จาก topbar.js -->
+        </header>
+
+        <!-- Content -->
+        <div class="content">
+          <div class="content-header">
+            <div>
+              <h2 class="content-title">Discounts</h2>
+              <p class="content-subtitle">จัดการโปรโมชั่นลดราคา</p>
+            </div>
+            <button class="btn-primary" id="addDiscountBtn">
+              <i data-lucide="plus" class="btn-icon"></i>
+              Add Discount
+            </button>
+          </div>
+
+          <!-- Status Cards -->
+          <div class="stat-cards">
+            <div class="stat-card">
+              <div class="stat-card-icon stat-card-icon-all">
+                <i data-lucide="percent" class="stat-icon"></i>
+              </div>
+              <div>
+                <p class="stat-card-label">All Discounts</p>
+                <p class="stat-card-value" id="statAll">0</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-icon stat-card-icon-active">
+                <i data-lucide="check-circle" class="stat-icon"></i>
+              </div>
+              <div>
+                <p class="stat-card-label">Active</p>
+                <p class="stat-card-value" id="statActive">0</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-icon stat-card-icon-inactive">
+                <i data-lucide="x-circle" class="stat-icon"></i>
+              </div>
+              <div>
+                <p class="stat-card-label">Inactive</p>
+                <p class="stat-card-value" id="statInactive">0</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filter Bar -->
+          <div class="filter-bar">
+            <div class="filter-group">
+              <button class="filter-btn active" data-status="all">All</button>
+              <button class="filter-btn" data-status="active">Active</button>
+              <button class="filter-btn" data-status="inactive">Inactive</button>
+              <div class="filter-search">
+                <i data-lucide="search" class="filter-search-icon"></i>
+                <input type="text" placeholder="Search discount..." class="filter-search-input" />
+              </div>
+            </div>
+            <div class="filter-group">
+              <select class="form-select filter-sort" id="sortSelect">
+                <option value="default">Sort by</option>
+                <option value="name-asc">Name A-Z</option>
+                <option value="name-desc">Name Z-A</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Discounts Table -->
+          <div class="table-container">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th data-sort="name">Promotion Name</th>
+                  <th data-sort="discount" data-sort-type="number">Discount</th>
+                  <th data-sort="apply">Apply To</th>
+                  <th data-sort="start" data-sort-type="date">Start Date</th>
+                  <th data-sort="end" data-sort-type="date">End Date</th>
+                  <th data-sort="status">Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="discountTableBody">
+                <!-- render จาก JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+          <p class="footer-text">&copy; 2026 Pathara. All rights reserved.</p>
+          <nav class="footer-nav">
+            <a href="#" class="footer-link">Privacy Policy</a>
+            <a href="#" class="footer-link">Terms of Service</a>
+            <a href="#" class="footer-link">Support</a>
+          </nav>
+        </footer>
+      </div>
+    </div>
+
+    <!-- Modal Add/Edit Discount -->
+    <div class="modal-overlay" id="discountModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title" id="modalTitle">Add Discount</h3>
+          <button class="modal-close"><i data-lucide="x"></i></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="editId" />
+          <div class="form-group">
+            <label class="form-label">Promotion Name</label>
+            <input type="text" class="form-input" id="inputName" placeholder="ชื่อโปรโมชั่น..." />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Discount</label>
+            <input type="number" class="form-input" id="inputDiscount" placeholder="จำนวนส่วนลด..." />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Type</label>
+            <select class="form-select" id="inputType">
+              <option value="percent">Percent (%)</option>
+              <option value="fixed">Fixed (฿)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Apply To</label>
+            <select class="form-select" id="inputApplyTo">
+              <option value="all">สินค้าทั้งหมด</option>
+              <option value="category">เฉพาะหมวดหมู่</option>
+              <option value="product">เฉพาะสินค้า</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Start Date</label>
+            <input type="date" class="form-input" id="inputStartDate" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">End Date</label>
+            <input type="date" class="form-input" id="inputEndDate" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <div class="status-toggle">
+              <label class="toggle">
+                <input type="checkbox" id="inputStatus" checked />
+                <span class="toggle-slider"></span>
+              </label>
+              <span class="status-toggle-label active-label" id="inputStatusLabel">Active</span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" onclick="closeModalById('discountModal')">Cancel</button>
+          <button class="btn-primary" onclick="saveDiscount()">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div class="modal-overlay" id="confirmModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title" id="confirmTitle">Confirm</h3>
+          <button class="modal-close"><i data-lucide="x"></i></button>
+        </div>
+        <div class="modal-body">
+          <p id="confirmMessage" style="font-size: 12px; color: #64748b;"></p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" id="confirmCancelBtn">Cancel</button>
+          <button class="btn-primary" id="confirmOkBtn">OK</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="../assets/js/table.js"></script>
+    <script src="../assets/js/modal.js"></script>
+    <script src="../assets/js/confirm.js"></script>
+    <script src="../assets/js/sidebar-menu.js"></script>
+    <script>renderSidebarMenu("discounts.html");</script>
+    <script src="/assets/js/topbar.js"></script>
+    <script>renderTopbar({ group: "Promotions", page: "โปรโมชั่นลดราคา" });</script>
+    <script src="discounts.js"></script>
+  </body>
+</html>

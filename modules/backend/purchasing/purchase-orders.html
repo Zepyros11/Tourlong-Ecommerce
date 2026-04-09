@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pathara - Purchase Orders</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../assets/backend.css" />
+  </head>
+  <body>
+    <div class="layout">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-logo">
+          <div class="sidebar-logo-icon">
+            <i data-lucide="zap" class="sidebar-icon-sm"></i>
+          </div>
+          <h1 class="sidebar-logo-text">Pathara</h1>
+        </div>
+
+        <nav class="sidebar-nav">
+          <!-- render จาก sidebar-menu.js -->
+        </nav>
+
+        <button class="sidebar-logout">
+          <i data-lucide="log-out" class="sidebar-icon-xs"></i>
+          <span>Go Out</span>
+        </button>
+      </aside>
+
+      <!-- Main Area -->
+      <div class="main-area">
+        <!-- Topbar -->
+        <header class="topbar">
+          <!-- render จาก topbar.js -->
+        </header>
+
+        <!-- Content -->
+        <div class="content">
+          <div class="content-header">
+            <div>
+              <h2 class="content-title">Purchase Orders</h2>
+              <p class="content-subtitle">จัดการใบสั่งซื้อ</p>
+            </div>
+            <div class="content-header-actions">
+              <button class="btn-primary" id="addPOBtn">
+                <i data-lucide="plus" class="btn-icon"></i>
+                Create PO
+              </button>
+            </div>
+          </div>
+
+          <!-- Status Cards -->
+          <div class="stat-cards">
+            <div class="stat-card">
+              <div class="stat-card-icon stat-card-icon-all">
+                <i data-lucide="file-text" class="stat-icon"></i>
+              </div>
+              <div>
+                <p class="stat-card-label">All POs</p>
+                <p class="stat-card-value" id="statAll">0</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-icon stat-card-icon-active">
+                <i data-lucide="check-circle" class="stat-icon"></i>
+              </div>
+              <div>
+                <p class="stat-card-label">Approved</p>
+                <p class="stat-card-value" id="statApproved">0</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-icon" style="background-color:#fef3c7;color:#f59e0b;">
+                <i data-lucide="clock" class="stat-icon"></i>
+              </div>
+              <div>
+                <p class="stat-card-label">Pending</p>
+                <p class="stat-card-value" id="statPending">0</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-icon stat-card-icon-inactive">
+                <i data-lucide="x-circle" class="stat-icon"></i>
+              </div>
+              <div>
+                <p class="stat-card-label">Cancelled</p>
+                <p class="stat-card-value" id="statCancelled">0</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filter Bar -->
+          <div class="filter-bar">
+            <div class="filter-group">
+              <button class="filter-btn active" data-status="all">All</button>
+              <button class="filter-btn" data-status="approved">Approved</button>
+              <button class="filter-btn" data-status="pending">Pending</button>
+              <button class="filter-btn" data-status="cancelled">Cancelled</button>
+              <div class="filter-search">
+                <i data-lucide="search" class="filter-search-icon"></i>
+                <input type="text" placeholder="Search PO..." class="filter-search-input" />
+              </div>
+            </div>
+            <div class="filter-group">
+              <select class="form-select filter-sort" id="sortSelect">
+                <option value="default">Sort by</option>
+                <option value="date-desc">Date: Newest</option>
+                <option value="date-asc">Date: Oldest</option>
+                <option value="amount-desc">Amount: High-Low</option>
+                <option value="amount-asc">Amount: Low-High</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Purchase Orders Table -->
+          <div class="table-container">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th data-sort="po">PO Number</th>
+                  <th data-sort="supplier">Supplier</th>
+                  <th data-sort="date" data-sort-type="date">Date</th>
+                  <th data-sort="items" data-sort-type="number">Items</th>
+                  <th data-sort="amount" data-sort-type="number">Total Amount</th>
+                  <th data-sort="status">Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="poTableBody">
+                <!-- render จาก JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+          <p class="footer-text">&copy; 2026 Pathara. All rights reserved.</p>
+          <nav class="footer-nav">
+            <a href="#" class="footer-link">Privacy Policy</a>
+            <a href="#" class="footer-link">Terms of Service</a>
+            <a href="#" class="footer-link">Support</a>
+          </nav>
+        </footer>
+      </div>
+    </div>
+
+    <!-- Modal Add/Edit PO -->
+    <div class="modal-overlay" id="poModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title" id="modalTitle">Create PO</h3>
+          <button class="modal-close"><i data-lucide="x"></i></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="editId" />
+          <div class="form-group">
+            <label class="form-label">PO Number</label>
+            <input type="text" class="form-input" id="inputPONumber" placeholder="เลข PO..." readonly />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Supplier</label>
+            <select class="form-select" id="inputSupplier">
+              <option value="บ.สยามซัพพลาย">บ.สยามซัพพลาย</option>
+              <option value="บ.ไทยเทรด">บ.ไทยเทรด</option>
+              <option value="บ.แกรนด์โลจิสติกส์">บ.แกรนด์โลจิสติกส์</option>
+              <option value="บ.เอเชียซัพพลาย">บ.เอเชียซัพพลาย</option>
+              <option value="บ.โกลบอลเทค">บ.โกลบอลเทค</option>
+              <option value="บ.พรีเมียมกู๊ดส์">บ.พรีเมียมกู๊ดส์</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Date</label>
+            <input type="date" class="form-input" id="inputDate" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Items</label>
+            <input type="number" class="form-input" id="inputItems" placeholder="จำนวนรายการ..." />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Total Amount</label>
+            <input type="number" class="form-input" id="inputAmount" placeholder="ยอดรวม..." />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <select class="form-select" id="inputStatus">
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" onclick="closeModalById('poModal')">Cancel</button>
+          <button class="btn-primary" onclick="savePO()">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div class="modal-overlay" id="confirmModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title" id="confirmTitle">Confirm</h3>
+          <button class="modal-close"><i data-lucide="x"></i></button>
+        </div>
+        <div class="modal-body">
+          <p id="confirmMessage" style="font-size: 12px; color: #64748b;"></p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" id="confirmCancelBtn">Cancel</button>
+          <button class="btn-primary" id="confirmOkBtn">OK</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="../assets/js/table.js"></script>
+    <script src="../assets/js/modal.js"></script>
+    <script src="../assets/js/confirm.js"></script>
+    <script src="../assets/js/sidebar-menu.js"></script>
+    <script>renderSidebarMenu("purchase-orders.html");</script>
+    <script src="/assets/js/topbar.js"></script>
+    <script>renderTopbar({ group: "Purchasing", page: "ใบสั่งซื้อ" });</script>
+    <script src="purchase-orders.js"></script>
+  </body>
+</html>

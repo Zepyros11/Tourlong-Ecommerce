@@ -1,0 +1,132 @@
+// ============================================================
+// topbar.js — Topbar Component (ใช้ร่วมทุกหน้า)
+// ------------------------------------------------------------
+// หน้าที่: Breadcrumb, Global Search, Notifications, User Menu
+// วิธีใช้: <script src="../../assets/js/topbar.js"></script>
+//          renderTopbar({ group: "Settings", page: "Users" });
+// ============================================================
+
+var topbarNotifications = [
+  { text: "สินค้า <b>Yoga Mat</b> หมดสต็อก", time: "5 นาทีที่แล้ว", dot: "#ef4444" },
+  { text: "PO-2026-007 รอ<b>อนุมัติ</b>", time: "30 นาทีที่แล้ว", dot: "#f59e0b" },
+  { text: "<b>คุณวิภา</b> สร้าง GR-2026-006", time: "1 ชั่วโมงที่แล้ว", dot: "#3b82f6" },
+  { text: "Invoice INV-2026-008 <b>เกินกำหนด</b>", time: "2 ชั่วโมงที่แล้ว", dot: "#ef4444" },
+  { text: "<b>คุณธนา</b> เพิ่มสินค้าใหม่", time: "3 ชั่วโมงที่แล้ว", dot: "#10b981" },
+];
+
+var topbarUser = {
+  name: "สมชาย",
+  initials: "ส",
+  role: "Admin",
+};
+
+/**
+ * Render topbar
+ * @param {Object} options
+ * @param {string} options.group - ชื่อ group เช่น "Settings"
+ * @param {string} options.page - ชื่อหน้าปัจจุบัน เช่น "Users"
+ */
+function renderTopbar(options) {
+  var topbar = document.querySelector(".topbar");
+  if (!topbar) return;
+
+  var group = options.group || "";
+  var page = options.page || "";
+
+  topbar.innerHTML = `
+    <div class="topbar-left">
+      <div class="topbar-breadcrumb">
+        <a href="#">${group}</a>
+        <span class="topbar-breadcrumb-sep">›</span>
+        <span class="topbar-breadcrumb-current">${page}</span>
+      </div>
+    </div>
+
+    <div class="topbar-actions">
+      <div class="topbar-search">
+        <i data-lucide="search" class="topbar-search-icon"></i>
+        <input type="text" placeholder="Search..." class="topbar-search-input" id="globalSearch" />
+      </div>
+
+      <a href="/modules/note.html" class="topbar-bell" title="Dev Notes" style="position:relative;text-decoration:none;">
+        <i data-lucide="notebook-pen" class="topbar-bell-icon"></i>
+        <span class="topbar-bell-badge" style="background-color:#f59e0b;"></span>
+      </a>
+
+      <div class="topbar-bell" id="notifBtn" style="position:relative;">
+        <i data-lucide="bell" class="topbar-bell-icon"></i>
+        <span class="topbar-bell-badge"></span>
+        <div class="topbar-dropdown" id="notifDropdown">
+          <div class="topbar-dropdown-header">
+            <p class="topbar-dropdown-title">Notifications</p>
+            <span class="topbar-dropdown-link" onclick="alert('Mark all as read')">Mark all read</span>
+          </div>
+          <div class="topbar-dropdown-body">
+            ${topbarNotifications.map(function (n) {
+              return '<div class="topbar-notif-item">' +
+                '<div class="topbar-notif-dot" style="background-color:' + n.dot + ';"></div>' +
+                '<div>' +
+                '<p class="topbar-notif-text">' + n.text + '</p>' +
+                '<p class="topbar-notif-time">' + n.time + '</p>' +
+                '</div></div>';
+            }).join("")}
+          </div>
+        </div>
+      </div>
+
+      <div class="topbar-user" id="userBtn">
+        <div class="topbar-user-avatar">${topbarUser.initials}</div>
+        <div class="topbar-user-info">
+          <span class="topbar-user-name">${topbarUser.name}</span>
+          <span class="topbar-user-role">${topbarUser.role}</span>
+        </div>
+        <i data-lucide="chevron-down" class="topbar-user-chevron"></i>
+        <div class="topbar-user-dropdown" id="userDropdown">
+          <a href="#" class="topbar-user-menu-item" onclick="alert('Profile')">
+            <i data-lucide="user"></i> Profile
+          </a>
+          <a href="#" class="topbar-user-menu-item" onclick="alert('Change Password')">
+            <i data-lucide="lock"></i> Change Password
+          </a>
+          <div class="topbar-user-menu-divider"></div>
+          <a href="#" class="topbar-user-menu-item danger" onclick="alert('Logout')">
+            <i data-lucide="log-out"></i> Logout
+          </a>
+        </div>
+      </div>
+    </div>
+  `;
+
+  if (typeof lucide !== "undefined") lucide.createIcons();
+
+  // Toggle notifications dropdown
+  var notifBtn = document.getElementById("notifBtn");
+  var notifDropdown = document.getElementById("notifDropdown");
+  notifBtn.addEventListener("click", function (e) {
+    e.stopPropagation();
+    notifDropdown.classList.toggle("open");
+    document.getElementById("userDropdown").classList.remove("open");
+    document.getElementById("userBtn").classList.remove("open");
+  });
+
+  // Toggle user dropdown
+  var userBtn = document.getElementById("userBtn");
+  var userDropdown = document.getElementById("userDropdown");
+  userBtn.addEventListener("click", function (e) {
+    e.stopPropagation();
+    userDropdown.classList.toggle("open");
+    userBtn.classList.toggle("open");
+    notifDropdown.classList.remove("open");
+  });
+
+  // Close dropdowns on outside click
+  document.addEventListener("click", function () {
+    notifDropdown.classList.remove("open");
+    userDropdown.classList.remove("open");
+    userBtn.classList.remove("open");
+  });
+
+  // Prevent dropdown close when clicking inside
+  notifDropdown.addEventListener("click", function (e) { e.stopPropagation(); });
+  userDropdown.addEventListener("click", function (e) { e.stopPropagation(); });
+}

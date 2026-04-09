@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sidebar Component</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="backend.css" />
+  </head>
+  <body>
+    <!-- Sidebar Component -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-icon">
+          <i data-lucide="zap" class="sidebar-icon-sm"></i>
+        </div>
+        <h1 class="sidebar-logo-text">Vitality</h1>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="#" class="sidebar-nav-item active">
+          <i data-lucide="flag" class="sidebar-icon"></i>
+          <span>Community</span>
+          <div class="sidebar-nav-dot"></div>
+        </a>
+        <a href="#" class="sidebar-nav-item">
+          <i data-lucide="zap" class="sidebar-icon"></i>
+          <span>Sport</span>
+        </a>
+        <a href="#" class="sidebar-nav-item">
+          <i data-lucide="calendar" class="sidebar-icon"></i>
+          <span>Plan</span>
+        </a>
+        <a href="#" class="sidebar-nav-item">
+          <i data-lucide="layout-grid" class="sidebar-icon"></i>
+          <span>Category</span>
+        </a>
+        <a href="#" class="sidebar-nav-item">
+          <i data-lucide="shopping-bag" class="sidebar-icon"></i>
+          <span>Store</span>
+        </a>
+      </nav>
+
+      <button class="sidebar-logout">
+        <i data-lucide="log-out" class="sidebar-icon-xs"></i>
+        <span>Go Out</span>
+      </button>
+    </aside>
+
+    <script>
+      lucide.createIcons();
+    </script>
+  </body>
+</html>

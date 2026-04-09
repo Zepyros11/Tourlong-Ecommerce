@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dev Notes — Tourlong ERP</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: "Plus Jakarta Sans", sans-serif; background: #f7fbfb; color: #334155; padding: 32px; max-width: 860px; margin: 0 auto; }
+      .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+      h1 { font-size: 20px; font-weight: 800; color: #1e293b; }
+      .back { font-size: 11px; color: #47b8b4; text-decoration: none; font-weight: 700; }
+      .back:hover { text-decoration: underline; }
+      .subtitle { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+      .section { background: #fff; border: 1px solid #f1f5f9; border-radius: 12px; margin-bottom: 12px; overflow: hidden; box-shadow: 0 4px 20px -8px rgba(0,0,0,0.04); }
+      .section-header { display: flex; align-items: center; gap: 8px; padding: 12px 16px; cursor: pointer; user-select: none; transition: background 0.2s; }
+      .section-header:hover { background: #f8fafc; }
+      .section-title { font-size: 12px; font-weight: 800; color: #1e293b; }
+      .badge { display: inline-block; padding: 2px 7px; border-radius: 5px; font-size: 9px; font-weight: 700; }
+      .b-red { background: #fef2f2; color: #ef4444; }
+      .b-yellow { background: #fef3c7; color: #f59e0b; }
+      .b-blue { background: #eff6ff; color: #3b82f6; }
+      .b-green { background: #ecfdf5; color: #10b981; }
+      .count { margin-left: auto; font-size: 9px; color: #94a3b8; font-weight: 700; }
+      .chevron { width: 12px; height: 12px; color: #94a3b8; transition: transform 0.2s; }
+      .section.open .chevron { transform: rotate(90deg); }
+      .section-body { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+      .section.open .section-body { max-height: 2000px; }
+      .note { display: flex; gap: 10px; padding: 10px 16px; border-top: 1px solid #f8fafc; font-size: 11px; line-height: 1.5; }
+      .note:hover { background: #fafbfc; }
+      .note-icon { width: 6px; height: 6px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+      .dot-red { background: #ef4444; }
+      .dot-yellow { background: #f59e0b; }
+      .dot-blue { background: #3b82f6; }
+      .dot-green { background: #10b981; }
+      .note strong { color: #1e293b; }
+      .note code { background: #f1f5f9; padding: 1px 5px; border-radius: 4px; font-size: 10px; color: #8b5cf6; }
+      .note .ref { color: #47b8b4; font-weight: 600; font-size: 10px; }
+      .note .muted { color: #94a3b8; }
+      .updated { font-size: 9px; color: #cbd5e1; text-align: center; margin-top: 20px; }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <div>
+        <h1>Dev Notes</h1>
+        <p class="subtitle">สิ่งที่ต้องทำตอน dev จริง — Tourlong ERP</p>
+      </div>
+      <a href="javascript:history.back()" class="back">← กลับ</a>
+    </div>
+
+    <!-- API & External Data -->
+    <div class="section open">
+      <div class="section-header" onclick="this.parentElement.classList.toggle('open')">
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        <span class="section-title">API & External Data</span>
+        <span class="badge b-red">สำคัญ</span>
+        <span class="count">4 items</span>
+      </div>
+      <div class="section-body">
+        <div class="note">
+          <div class="note-icon dot-red"></div>
+          <div><strong>Country Code → เปลี่ยนเป็น API</strong><br/>ตอนนี้ user พิมพ์เอง อาจผิด → ใช้ <code>REST Countries API</code> เป็น dropdown<br/><span class="ref">restcountries.com/v3.1/all</span></div>
+        </div>
+        <div class="note">
+          <div class="note-icon dot-yellow"></div>
+          <div><strong>ที่อยู่ไทย → API จังหวัด/อำเภอ/ตำบล</strong><br/>ใช้ dropdown cascade แทนพิมพ์เอง <span class="muted">(~8,000 rows)</span></div>
+        </div>
+        <div class="note">
+          <div class="note-icon dot-blue"></div>
+          <div><strong>อัตราแลกเปลี่ยน</strong> — ถ้ามี warehouse ต่างประเทศ<br/><span class="ref">Open Exchange Rates API</span></div>
+        </div>
+        <div class="note">
+          <div class="note-icon dot-blue"></div>
+          <div><strong>Tracking API</strong> — ดึงสถานะจัดส่งจาก Kerry, Flash, J&T อัตโนมัติ</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Validation -->
+    <div class="section">
+      <div class="section-header" onclick="this.parentElement.classList.toggle('open')">
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        <span class="section-title">Data Validation</span>
+        <span class="badge b-yellow">Todo</span>
+        <span class="count">4 items</span>
+      </div>
+      <div class="section-body">
+        <div class="note">
+          <div class="note-icon dot-yellow"></div>
+          <div><strong>Form validation</strong> — required, email format, phone format, duplicate check</div>
+        </div>
+        <div class="note">
+          <div class="note-icon dot-yellow"></div>
+          <div><strong>Country Code</strong> — validate ISO 3166-1 alpha-2 <span class="muted">(แก้ด้วย dropdown)</span></div>
+        </div>
+        <div class="note">
+          <div class="note-icon dot-yellow"></div>
+          <div><strong>Price/Amount</strong> — ทศนิยม 2 ตำแหน่ง, ไม่ติดลบ <code>toFixed(2)</code></div>
+        </div>
+        <div class="note">
+          <div class="note-icon dot-yellow"></div>
+          <div><strong>Auto Number</strong> — PO/SO/Invoice ต้อง unique จาก DB sequence</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Database -->
+    <div class="section">
+      <div class="section-header" onclick="this.parentElement.classList.toggle('open')">
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        <span class="section-title">Database & Backend</span>
+        <span class="badge b-blue">Design</span>
+        <span class="count">4 items</span>
+      </div>
+      <div class="section-body">
+        <div class="note">
+          <div class="note-icon dot-red"></div>
+          <div><strong>Mock Data → Database</strong> — เปลี่ยนจาก JS Array เป็น MySQL/PostgreSQL + REST API</div>
+        </div>
+        <div class="note">
+          <div class="note-icon dot-blue"></div>
+          <div><strong>Relationships</strong> — Product→Category, Warehouse→Branch→Country, PO→Supplier, SO→Customer, Invoice→SO, Payment→Invoice</div>
+        </div>
+        <div class="note">
+          <div class="note-icon dot-red"></div>
+          <div><strong>Authentication</strong> — JWT/Session, bcrypt, role-based access</div>
+        </div>
+        <div class="note">
+          <div class="note-icon dot-yellow"></div>
+          <div><strong>Import Excel</strong> — ใช้ <code>SheetJS</code> อ่านฝั่ง browser หรือ backend parse</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- UX -->
+    <div class="section">
+      <div class="section-header" onclick="this.parentElement.classList.toggle('open')">
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        <span class="section-title">UX Improvements</span>
+        <span class="badge b-yellow">Todo</span>
+        <span class="count">5 items</span>
+      </div>
+      <div class="section-body">
+        <div class="note"><div class="note-icon dot-yellow"></div><div><strong>Pagination</strong> — ทุกตารางยังไม่มี</div></div>
+        <div class="note"><div class="note-icon dot-yellow"></div><div><strong>Loading State</strong> — spinner/skeleton ตอนโหลดข้อมูล</div></div>
+        <div class="note"><div class="note-icon dot-green"></div><div><strong>Toast Notification</strong> — "บันทึกสำเร็จ", "ลบเรียบร้อย"</div></div>
+        <div class="note"><div class="note-icon dot-yellow"></div><div><strong>Responsive</strong> — sidebar→hamburger, table→scroll</div></div>
+        <div class="note"><div class="note-icon dot-blue"></div><div><strong>Dark Mode</strong> — toggle สำหรับ backend</div></div>
+      </div>
+    </div>
+
+    <!-- Security -->
+    <div class="section">
+      <div class="section-header" onclick="this.parentElement.classList.toggle('open')">
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        <span class="section-title">Security</span>
+        <span class="badge b-red">สำคัญ</span>
+        <span class="count">3 items</span>
+      </div>
+      <div class="section-body">
+        <div class="note"><div class="note-icon dot-red"></div><div><strong>XSS</strong> — sanitize input ก่อน render, ใช้ <code>textContent</code> แทน <code>innerHTML</code></div></div>
+        <div class="note"><div class="note-icon dot-red"></div><div><strong>RBAC</strong> — check permission ฝั่ง backend ไม่ใช่แค่ซ่อนปุ่ม</div></div>
+        <div class="note"><div class="note-icon dot-yellow"></div><div><strong>CSRF / CORS</strong> — config เมื่อมี API จริง</div></div>
+      </div>
+    </div>
+
+    <!-- Performance -->
+    <div class="section">
+      <div class="section-header" onclick="this.parentElement.classList.toggle('open')">
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        <span class="section-title">Performance</span>
+        <span class="badge b-blue">Design</span>
+        <span class="count">2 items</span>
+      </div>
+      <div class="section-body">
+        <div class="note"><div class="note-icon dot-yellow"></div><div><strong>CDN → Local</strong> — ย้าย Lucide, Font, Tailwind เป็น npm + bundler</div></div>
+        <div class="note"><div class="note-icon dot-blue"></div><div><strong>CSS Splitting</strong> — backend.css ใหญ่ขึ้นเรื่อยๆ อาจแยก module</div></div>
+      </div>
+    </div>
+
+    <p class="updated">Last updated: 2026-04-08</p>
+  </body>
+</html>

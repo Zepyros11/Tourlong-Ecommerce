@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pathara - Warehouses</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../../assets/backend.css" />
+    <style>
+      /* Form Inline */
+      .form-inline { display: flex; align-items: center; gap: 4px; }
+      .form-inline .form-select, .form-inline .form-input { min-width: 0; }
+      .form-inline .btn-outline { font-size: 9px; padding: 5px 8px; flex-shrink: 0; }
+
+      /* Tree View */
+      .tree { display: flex; flex-direction: column; gap: 8px; }
+
+      .tree-country {
+        background: #ffffff;
+        border: 1px solid #f1f5f9;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 10px 40px -10px rgba(0,0,0,0.04);
+      }
+
+      .tree-country-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 16px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        user-select: none;
+      }
+      .tree-country-header:hover { background-color: #f8fafc; }
+
+      .tree-chevron {
+        width: 14px; height: 14px;
+        color: #94a3b8;
+        transition: transform 0.2s;
+        flex-shrink: 0;
+      }
+      .tree-country.open > .tree-country-header .tree-chevron { transform: rotate(90deg); }
+
+      .tree-flag {
+        font-size: 9px; font-weight: 800; color: #3b82f6;
+        background: #eff6ff; padding: 3px 8px; border-radius: 6px;
+      }
+
+      .tree-country-name { font-size: 12px; font-weight: 700; color: #1e293b; }
+
+      .tree-country-meta {
+        margin-left: auto;
+        display: flex; align-items: center; gap: 8px;
+        font-size: 10px; color: #94a3b8;
+      }
+
+      .tree-country-actions {
+        display: flex; gap: 4px;
+      }
+
+      .tree-branches {
+        max-height: 0; overflow: hidden;
+        transition: max-height 0.3s ease;
+        border-top: 1px solid #f1f5f9;
+      }
+      .tree-country.open > .tree-branches {
+        max-height: 2000px;
+        border-top: 1px solid #f1f5f9;
+      }
+
+      .tree-branch {
+        border-bottom: 1px solid #f8fafc;
+      }
+      .tree-branch:last-child { border-bottom: none; }
+
+      .tree-branch-header {
+        display: flex; align-items: center; gap: 10px;
+        padding: 10px 16px 10px 40px;
+        cursor: pointer; transition: background-color 0.2s;
+        user-select: none;
+      }
+      .tree-branch-header:hover { background-color: #f8fafc; }
+
+      .tree-branch-icon { width: 13px; height: 13px; color: #47b8b4; flex-shrink: 0; }
+
+      .tree-branch-name { font-size: 11px; font-weight: 700; color: #334155; }
+      .tree-branch-info { font-size: 10px; color: #94a3b8; margin-left: 4px; }
+
+      .tree-branch-meta {
+        margin-left: auto;
+        display: flex; align-items: center; gap: 8px;
+        font-size: 10px; color: #94a3b8;
+      }
+
+      .tree-branch-actions { display: flex; gap: 4px; }
+
+      .tree-warehouses {
+        max-height: 0; overflow: hidden;
+        transition: max-height 0.3s ease;
+      }
+      .tree-branch.open > .tree-warehouses { max-height: 1000px; }
+
+      .tree-warehouse {
+        display: flex; align-items: center; gap: 10px;
+        padding: 8px 16px 8px 64px;
+        border-top: 1px solid #fafbfc;
+        transition: background-color 0.2s;
+      }
+      .tree-warehouse:hover { background-color: #f8fafb; }
+
+      .tree-wh-icon { width: 12px; height: 12px; color: #f59e0b; flex-shrink: 0; }
+
+      .tree-wh-name { font-size: 11px; font-weight: 600; color: #334155; min-width: 140px; }
+      .tree-wh-detail { font-size: 10px; color: #94a3b8; }
+      .tree-wh-manager { font-size: 10px; color: #64748b; font-weight: 600; }
+
+      .tree-wh-meta {
+        margin-left: auto;
+        display: flex; align-items: center; gap: 8px;
+      }
+
+      .tree-wh-actions { display: flex; gap: 4px; }
+
+      /* Add buttons row */
+      .tree-add-row {
+        display: flex; gap: 6px; margin-bottom: 14px;
+      }
+
+      /* Mode Toggle */
+      .mode-toggle {
+        display: flex; align-items: center; gap: 2px;
+        background: #f1f5f9; padding: 3px; border-radius: 10px;
+      }
+      .mode-btn {
+        padding: 5px 14px; font-family: "Plus Jakarta Sans", sans-serif;
+        font-size: 10px; font-weight: 700; color: #94a3b8;
+        background: none; border: none; border-radius: 8px;
+        cursor: pointer; transition: all 0.2s;
+      }
+      .mode-btn.active {
+        background: #fff; color: #1e293b;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      }
+      .mode-btn:hover:not(.active) { color: #64748b; }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-logo">
+          <div class="sidebar-logo-icon">
+            <i data-lucide="zap" class="sidebar-icon-sm"></i>
+          </div>
+          <h1 class="sidebar-logo-text">Pathara</h1>
+        </div>
+        <nav class="sidebar-nav"></nav>
+        <button class="sidebar-logout">
+          <i data-lucide="log-out" class="sidebar-icon-xs"></i>
+          <span>Go Out</span>
+        </button>
+      </aside>
+
+      <!-- Main Area -->
+      <div class="main-area">
+        <header class="topbar"></header>
+
+        <div class="content">
+          <div class="content-header">
+            <div>
+              <h2 class="content-title">Warehouses</h2>
+              <p class="content-subtitle">จัดการประเทศ สาขา และคลังสินค้า</p>
+            </div>
+          </div>
+
+          <!-- Stat Cards -->
+          <div class="stat-cards">
+            <div class="stat-card">
+              <div class="stat-card-icon stat-card-icon-all"><i data-lucide="globe" class="stat-icon"></i></div>
+              <div>
+                <p class="stat-card-label">Countries</p>
+                <p class="stat-card-value" id="statCountries">0</p>
+              </div>
+            </div>
+            <div class="stat-card" id="statBranchCard">
+              <div class="stat-card-icon stat-card-icon-active"><i data-lucide="building" class="stat-icon"></i></div>
+              <div>
+                <p class="stat-card-label">Branches</p>
+                <p class="stat-card-value" id="statBranches">0</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-icon" style="background-color:#fef3c7;color:#f59e0b;"><i data-lucide="warehouse" class="stat-icon"></i></div>
+              <div>
+                <p class="stat-card-label">Warehouses</p>
+                <p class="stat-card-value" id="statWarehouses">0</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mode Toggle + Add + Search -->
+          <div class="filter-bar">
+            <div class="filter-group">
+              <button class="btn-primary" id="addWarehouseBtn"><i data-lucide="plus" class="btn-icon"></i> Add Warehouse</button>
+            </div>
+            <div class="filter-group">
+              <div class="filter-search">
+                <i data-lucide="search" class="filter-search-icon"></i>
+                <input type="text" placeholder="Search..." class="filter-search-input" id="treeSearch" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Tree View -->
+          <div class="tree" id="treeContainer"></div>
+        </div>
+
+        <footer class="footer">
+          <p class="footer-text">&copy; 2026 Pathara. All rights reserved.</p>
+          <nav class="footer-nav">
+            <a href="#" class="footer-link">Privacy Policy</a>
+            <a href="#" class="footer-link">Terms of Service</a>
+            <a href="#" class="footer-link">Support</a>
+          </nav>
+        </footer>
+      </div>
+    </div>
+
+    <!-- Modal: Add/Edit Warehouse (รวม Country + Branch + Warehouse) -->
+    <div class="modal-overlay" id="warehouseModal">
+      <div class="modal" style="width: 560px;">
+        <div class="modal-header">
+          <h3 class="modal-title" id="modalTitle">Add Warehouse</h3>
+          <button class="modal-close"><i data-lucide="x"></i></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="editId" />
+          <input type="hidden" id="editType" value="warehouse" />
+
+          <!-- Row 1: Country + Branch -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <!-- Country -->
+            <div class="form-group">
+              <label class="form-label">Country</label>
+              <div class="form-inline" id="countrySelectRow">
+                <select class="form-select" id="inputCountry" style="flex:1;" onchange="onCountryChange()"></select>
+                <button class="btn-outline" type="button" onclick="toggleNewCountry()" style="white-space:nowrap;padding:6px 8px;font-size:9px;">+ ใหม่</button>
+              </div>
+              <div class="form-inline" id="countryNewRow" style="display:none;">
+                <input type="text" class="form-input" id="inputCountryCode" placeholder="Code" maxlength="3" style="width:50px;" />
+                <input type="text" class="form-input" id="inputCountryName" placeholder="ชื่อประเทศ..." style="flex:1;" />
+                <button class="btn-outline" type="button" onclick="toggleNewCountry()" style="padding:6px 8px;font-size:9px;">เลือก</button>
+              </div>
+            </div>
+
+            <!-- Branch (ซ่อนเมื่อ 2 ชั้น) -->
+            <div class="form-group" id="branchFormGroup">
+              <label class="form-label">Branch</label>
+              <div class="form-inline" id="branchSelectRow">
+                <select class="form-select" id="inputBranch" style="flex:1;"></select>
+                <button class="btn-outline" type="button" onclick="toggleNewBranch()" style="white-space:nowrap;padding:6px 8px;font-size:9px;">+ ใหม่</button>
+              </div>
+              <div class="form-inline" id="branchNewRow" style="display:none;">
+                <input type="text" class="form-input" id="inputBranchName" placeholder="ชื่อสาขา..." style="flex:1;" />
+                <button class="btn-outline" type="button" onclick="toggleNewBranch()" style="padding:6px 8px;font-size:9px;">เลือก</button>
+              </div>
+            </div>
+          </div>
+
+          <hr style="border:none;border-top:1px solid #f1f5f9;margin:8px 0;" />
+
+          <!-- Row 2: Warehouse Name + Location -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="form-group">
+              <label class="form-label">Warehouse Name</label>
+              <input type="text" class="form-input" id="inputWhName" placeholder="ชื่อคลังสินค้า..." />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Location</label>
+              <input type="text" class="form-input" id="inputWhLocation" placeholder="ที่ตั้ง..." />
+            </div>
+          </div>
+
+          <!-- Row 3: Manager + Status -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="form-group">
+              <label class="form-label">Manager</label>
+              <input type="text" class="form-input" id="inputWhManager" placeholder="ผู้จัดการ..." />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Status</label>
+              <div class="status-toggle">
+                <label class="toggle">
+                  <input type="checkbox" id="inputWhStatus" checked />
+                  <span class="toggle-slider"></span>
+                </label>
+                <span class="status-toggle-label active-label" id="inputWhStatusLabel">Active</span>
+              </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" onclick="closeModalById('warehouseModal')">Cancel</button>
+          <button class="btn-primary" onclick="saveAll()">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div class="modal-overlay" id="confirmModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title" id="confirmTitle">Confirm</h3>
+          <button class="modal-close"><i data-lucide="x"></i></button>
+        </div>
+        <div class="modal-body">
+          <p id="confirmMessage" style="font-size: 12px; color: #64748b;"></p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" id="confirmCancelBtn">Cancel</button>
+          <button class="btn-primary" id="confirmOkBtn">OK</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="../../assets/js/table.js"></script>
+    <script src="../../assets/js/modal.js"></script>
+    <script src="../../assets/js/confirm.js"></script>
+    <script src="../../assets/js/sidebar-menu.js"></script>
+    <script>renderSidebarMenu();</script>
+    <script src="/assets/js/topbar.js"></script>
+    <script>renderTopbar({ group: "Inventory", page: "คลังสินค้า" });</script>
+    <script src="warehouses.js"></script>
+  </body>
+</html>

@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pathara - Coupons</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../assets/backend.css" />
+  </head>
+  <body>
+    <div class="layout">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-logo">
+          <div class="sidebar-logo-icon">
+            <i data-lucide="zap" class="sidebar-icon-sm"></i>
+          </div>
+          <h1 class="sidebar-logo-text">Pathara</h1>
+        </div>
+
+        <nav class="sidebar-nav">
+          <!-- render จาก sidebar-menu.js -->
+        </nav>
+
+        <button class="sidebar-logout">
+          <i data-lucide="log-out" class="sidebar-icon-xs"></i>
+          <span>Go Out</span>
+        </button>
+      </aside>
+
+      <!-- Main Area -->
+      <div class="main-area">
+        <!-- Topbar -->
+        <header class="topbar">
+          <!-- render จาก topbar.js -->
+        </header>
+
+        <!-- Content -->
+        <div class="content">
+          <div class="content-header">
+            <div>
+              <h2 class="content-title">Coupons</h2>
+              <p class="content-subtitle">จัดการคูปองส่วนลด</p>
+            </div>
+            <div class="content-header-actions">
+              <button class="btn-primary" id="addCouponBtn">
+                <i data-lucide="plus" class="btn-icon"></i>
+                Add Coupon
+              </button>
+            </div>
+          </div>
+
+          <!-- Status Cards -->
+          <div class="stat-cards">
+            <div class="stat-card">
+              <div class="stat-card-icon stat-card-icon-all">
+                <i data-lucide="ticket" class="stat-icon"></i>
+              </div>
+              <div>
+                <p class="stat-card-label">All Coupons</p>
+                <p class="stat-card-value" id="statAll">0</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-icon stat-card-icon-active">
+                <i data-lucide="check-circle" class="stat-icon"></i>
+              </div>
+              <div>
+                <p class="stat-card-label">Active</p>
+                <p class="stat-card-value" id="statActive">0</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-icon stat-card-icon-inactive">
+                <i data-lucide="x-circle" class="stat-icon"></i>
+              </div>
+              <div>
+                <p class="stat-card-label">Expired</p>
+                <p class="stat-card-value" id="statExpired">0</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filter Bar -->
+          <div class="filter-bar">
+            <div class="filter-group">
+              <button class="filter-btn active" data-status="all">All</button>
+              <button class="filter-btn" data-status="active">Active</button>
+              <button class="filter-btn" data-status="expired">Expired</button>
+              <div class="filter-search">
+                <i data-lucide="search" class="filter-search-icon"></i>
+                <input type="text" placeholder="Search coupon..." class="filter-search-input" />
+              </div>
+            </div>
+            <div class="filter-group">
+              <select class="form-select filter-sort" id="sortSelect">
+                <option value="default">Sort by</option>
+                <option value="name-asc">Name A-Z</option>
+                <option value="name-desc">Name Z-A</option>
+                <option value="discount-desc">Discount High-Low</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Coupons Table -->
+          <div class="table-container">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th data-sort="code">Coupon Code</th>
+                  <th data-sort="discount" data-sort-type="number">Discount</th>
+                  <th data-sort="type">Type</th>
+                  <th data-sort="min" data-sort-type="number">Min Purchase</th>
+                  <th>Usage/Limit</th>
+                  <th data-sort="expiry" data-sort-type="date">Expiry Date</th>
+                  <th data-sort="status">Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="couponTableBody">
+                <!-- render จาก JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+          <p class="footer-text">&copy; 2026 Pathara. All rights reserved.</p>
+          <nav class="footer-nav">
+            <a href="#" class="footer-link">Privacy Policy</a>
+            <a href="#" class="footer-link">Terms of Service</a>
+            <a href="#" class="footer-link">Support</a>
+          </nav>
+        </footer>
+      </div>
+    </div>
+
+    <!-- Modal Add/Edit Coupon -->
+    <div class="modal-overlay" id="couponModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title" id="modalTitle">Add Coupon</h3>
+          <button class="modal-close"><i data-lucide="x"></i></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="editId" />
+          <div class="form-group">
+            <label class="form-label">Coupon Code</label>
+            <input type="text" class="form-input" id="inputCode" placeholder="รหัสคูปอง..." />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Discount</label>
+            <input type="number" class="form-input" id="inputDiscount" placeholder="ส่วนลด..." />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Type</label>
+            <select class="form-select" id="inputType">
+              <option value="percent">เปอร์เซ็นต์ (%)</option>
+              <option value="fixed">จำนวนเงิน (฿)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Min Purchase</label>
+            <input type="number" class="form-input" id="inputMinPurchase" placeholder="ยอดขั้นต่ำ..." />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Usage Limit</label>
+            <input type="number" class="form-input" id="inputLimit" placeholder="จำนวนครั้งที่ใช้ได้..." />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Expiry Date</label>
+            <input type="date" class="form-input" id="inputExpiry" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <div class="status-toggle">
+              <label class="toggle">
+                <input type="checkbox" id="inputStatus" checked />
+                <span class="toggle-slider"></span>
+              </label>
+              <span class="status-toggle-label active-label" id="inputStatusLabel">Active</span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" onclick="closeModalById('couponModal')">Cancel</button>
+          <button class="btn-primary" onclick="saveCoupon()">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div class="modal-overlay" id="confirmModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title" id="confirmTitle">Confirm</h3>
+          <button class="modal-close"><i data-lucide="x"></i></button>
+        </div>
+        <div class="modal-body">
+          <p id="confirmMessage" style="font-size: 12px; color: #64748b;"></p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" id="confirmCancelBtn">Cancel</button>
+          <button class="btn-primary" id="confirmOkBtn">OK</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="../assets/js/table.js"></script>
+    <script src="../assets/js/modal.js"></script>
+    <script src="../assets/js/confirm.js"></script>
+    <script src="../assets/js/sidebar-menu.js"></script>
+    <script>renderSidebarMenu("coupons.html");</script>
+    <script src="/assets/js/topbar.js"></script>
+    <script>renderTopbar({ group: "Promotions", page: "คูปองส่วนลด" });</script>
+    <script src="coupons.js"></script>
+  </body>
+</html>

@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pathara - Company Info</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../assets/backend.css" />
+  </head>
+  <body>
+    <div class="layout">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-logo">
+          <div class="sidebar-logo-icon">
+            <i data-lucide="zap" class="sidebar-icon-sm"></i>
+          </div>
+          <h1 class="sidebar-logo-text">Pathara</h1>
+        </div>
+
+        <nav class="sidebar-nav">
+          <!-- render จาก sidebar-menu.js -->
+        </nav>
+
+        <button class="sidebar-logout">
+          <i data-lucide="log-out" class="sidebar-icon-xs"></i>
+          <span>Go Out</span>
+        </button>
+      </aside>
+
+      <!-- Main Area -->
+      <div class="main-area">
+        <!-- Topbar -->
+        <header class="topbar">
+          <!-- render จาก topbar.js -->
+        </header>
+
+        <!-- Content -->
+        <div class="content">
+          <div class="content-header">
+            <div>
+              <h2 class="content-title">Company Info</h2>
+              <p class="content-subtitle">ข้อมูลบริษัท</p>
+            </div>
+            <button class="btn-primary" id="editCompanyBtn">
+              <i data-lucide="pencil" class="btn-icon"></i>
+              Edit
+            </button>
+          </div>
+
+          <!-- Company Info Card -->
+          <div class="company-info-grid">
+            <!-- Logo & Basic -->
+            <div class="dashboard-card">
+              <div class="company-logo-section">
+                <div class="company-logo-placeholder" id="companyLogo">
+                  <i data-lucide="building-2" style="width: 32px; height: 32px; color: #94a3b8;"></i>
+                </div>
+                <div>
+                  <h3 class="company-name" id="displayName">Pathara Co., Ltd.</h3>
+                  <p class="company-type" id="displayType">บริษัท จำกัด</p>
+                </div>
+              </div>
+
+              <div class="company-detail-list">
+                <div class="company-detail-item">
+                  <div class="company-detail-icon"><i data-lucide="hash"></i></div>
+                  <div>
+                    <p class="company-detail-label">Tax ID</p>
+                    <p class="company-detail-value" id="displayTaxId">0-1234-56789-01-2</p>
+                  </div>
+                </div>
+                <div class="company-detail-item">
+                  <div class="company-detail-icon"><i data-lucide="phone"></i></div>
+                  <div>
+                    <p class="company-detail-label">Phone</p>
+                    <p class="company-detail-value" id="displayPhone">02-123-4567</p>
+                  </div>
+                </div>
+                <div class="company-detail-item">
+                  <div class="company-detail-icon"><i data-lucide="mail"></i></div>
+                  <div>
+                    <p class="company-detail-label">Email</p>
+                    <p class="company-detail-value" id="displayEmail">info@pathara.com</p>
+                  </div>
+                </div>
+                <div class="company-detail-item">
+                  <div class="company-detail-icon"><i data-lucide="globe"></i></div>
+                  <div>
+                    <p class="company-detail-label">Website</p>
+                    <p class="company-detail-value" id="displayWebsite">www.pathara.com</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Address -->
+            <div class="dashboard-card">
+              <h3 class="dashboard-card-title">Address</h3>
+              <div class="company-detail-list">
+                <div class="company-detail-item">
+                  <div class="company-detail-icon"><i data-lucide="map-pin"></i></div>
+                  <div>
+                    <p class="company-detail-label">ที่อยู่</p>
+                    <p class="company-detail-value" id="displayAddress">123/45 ถ.สุขุมวิท แขวงคลองเตย เขตคลองเตย กรุงเทพมหานคร 10110</p>
+                  </div>
+                </div>
+                <div class="company-detail-item">
+                  <div class="company-detail-icon"><i data-lucide="map"></i></div>
+                  <div>
+                    <p class="company-detail-label">Branch</p>
+                    <p class="company-detail-value" id="displayBranch">สำนักงานใหญ่</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+          <p class="footer-text">&copy; 2026 Pathara. All rights reserved.</p>
+          <nav class="footer-nav">
+            <a href="#" class="footer-link">Privacy Policy</a>
+            <a href="#" class="footer-link">Terms of Service</a>
+            <a href="#" class="footer-link">Support</a>
+          </nav>
+        </footer>
+      </div>
+    </div>
+
+    <!-- Modal Edit Company -->
+    <div class="modal-overlay" id="companyModal">
+      <div class="modal" style="width: 440px;">
+        <div class="modal-header">
+          <h3 class="modal-title">Edit Company Info</h3>
+          <button class="modal-close"><i data-lucide="x"></i></button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Company Name</label>
+            <input type="text" class="form-input" id="inputName" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Company Type</label>
+            <input type="text" class="form-input" id="inputType" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tax ID</label>
+            <input type="text" class="form-input" id="inputTaxId" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Phone</label>
+            <input type="text" class="form-input" id="inputPhone" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-input" id="inputEmail" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Website</label>
+            <input type="text" class="form-input" id="inputWebsite" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Address</label>
+            <input type="text" class="form-input" id="inputAddress" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Branch</label>
+            <input type="text" class="form-input" id="inputBranch" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" onclick="closeModalById('companyModal')">Cancel</button>
+          <button class="btn-primary" onclick="saveCompany()">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="../assets/js/modal.js"></script>
+    <script src="../assets/js/sidebar-menu.js"></script>
+    <script>renderSidebarMenu("company-info.html");</script>
+    <script src="/assets/js/topbar.js"></script>
+    <script>renderTopbar({ group: "Settings", page: "ข้อมูลบริษัท" });</script>
+    <script src="company-info.js"></script>
+  </body>
+</html>

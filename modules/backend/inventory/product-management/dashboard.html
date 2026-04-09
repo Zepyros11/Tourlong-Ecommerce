@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pathara - Inventory Dashboard</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../../assets/backend.css" />
+  </head>
+  <body>
+    <div class="layout">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-logo">
+          <div class="sidebar-logo-icon">
+            <i data-lucide="zap" class="sidebar-icon-sm"></i>
+          </div>
+          <h1 class="sidebar-logo-text">Pathara</h1>
+        </div>
+
+        <nav class="sidebar-nav">
+          <!-- render จาก sidebar-menu.js -->
+        </nav>
+
+        <button class="sidebar-logout">
+          <i data-lucide="log-out" class="sidebar-icon-xs"></i>
+          <span>Go Out</span>
+        </button>
+      </aside>
+
+      <!-- Main Area -->
+      <div class="main-area">
+        <!-- Topbar -->
+        <header class="topbar">
+          <!-- render จาก topbar.js -->
+        </header>
+
+        <!-- Content -->
+        <div class="content">
+          <div class="content-header">
+            <div>
+              <h2 class="content-title">Inventory Dashboard</h2>
+              <p class="content-subtitle">ภาพรวมคลังสินค้าทั้งหมด</p>
+            </div>
+            <div class="content-header-actions">
+              <button class="btn-outline" onclick="alert('Download template coming soon')">
+                <i data-lucide="file-down" class="btn-icon"></i>
+                Template
+              </button>
+              <button class="btn-outline" onclick="alert('Import coming soon')">
+                <i data-lucide="upload" class="btn-icon"></i>
+                Import
+              </button>
+              <button class="btn-outline" onclick="alert('Export coming soon')">
+                <i data-lucide="download" class="btn-icon"></i>
+                Export
+              </button>
+            </div>
+          </div>
+
+          <!-- Overview Cards -->
+          <div class="stat-cards">
+            <div class="stat-card">
+              <div class="stat-card-icon stat-card-icon-all">
+                <i data-lucide="layout-grid" class="stat-icon"></i>
+              </div>
+              <div>
+                <p class="stat-card-label">Categories</p>
+                <p class="stat-card-value">8</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-icon stat-card-icon-active">
+                <i data-lucide="package" class="stat-icon"></i>
+              </div>
+              <div>
+                <p class="stat-card-label">Products</p>
+                <p class="stat-card-value">10</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-icon" style="background-color: #fef3c7; color: #f59e0b;">
+                <i data-lucide="warehouse" class="stat-icon"></i>
+              </div>
+              <div>
+                <p class="stat-card-label">Warehouses</p>
+                <p class="stat-card-value">5</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-icon" style="background-color: #f0e4ff; color: #8b5cf6;">
+                <i data-lucide="boxes" class="stat-icon"></i>
+              </div>
+              <div>
+                <p class="stat-card-label">Total Stock</p>
+                <p class="stat-card-value">240</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Two Column Layout -->
+          <div class="dashboard-grid">
+            <!-- Low Stock Alert -->
+            <div class="dashboard-card">
+              <div class="dashboard-card-header">
+                <h3 class="dashboard-card-title">Low Stock Alert</h3>
+                <span class="badge badge-inactive">3 items</span>
+              </div>
+              <div class="table-container" style="border: none; box-shadow: none;">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Product</th>
+                      <th>Category</th>
+                      <th>Stock</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Yoga Mat</td>
+                      <td>Sports</td>
+                      <td>0</td>
+                      <td><span class="badge badge-inactive">Out of Stock</span></td>
+                    </tr>
+                    <tr>
+                      <td>Leather Wallet</td>
+                      <td>Accessories</td>
+                      <td>0</td>
+                      <td><span class="badge badge-inactive">Out of Stock</span></td>
+                    </tr>
+                    <tr>
+                      <td>Smart Watch</td>
+                      <td>Electronics</td>
+                      <td>8</td>
+                      <td><span class="badge" style="background-color: #fef3c7; color: #f59e0b;">Low Stock</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="dashboard-card">
+              <h3 class="dashboard-card-title">Recent Activity</h3>
+              <div class="activity-list">
+                <div class="activity-item">
+                  <div class="activity-dot activity-dot-green"></div>
+                  <div>
+                    <p class="activity-text">เพิ่มสินค้า <strong>Wireless Headphones</strong></p>
+                    <p class="activity-time">2 ชั่วโมงที่แล้ว</p>
+                  </div>
+                </div>
+                <div class="activity-item">
+                  <div class="activity-dot activity-dot-blue"></div>
+                  <div>
+                    <p class="activity-text">อัปเดต stock <strong>Cotton T-Shirt</strong> → 120</p>
+                    <p class="activity-time">5 ชั่วโมงที่แล้ว</p>
+                  </div>
+                </div>
+                <div class="activity-item">
+                  <div class="activity-dot activity-dot-yellow"></div>
+                  <div>
+                    <p class="activity-text">สร้างคลัง <strong>คลังออนไลน์</strong></p>
+                    <p class="activity-time">1 วันที่แล้ว</p>
+                  </div>
+                </div>
+                <div class="activity-item">
+                  <div class="activity-dot activity-dot-red"></div>
+                  <div>
+                    <p class="activity-text">ลบหมวดหมู่ <strong>Toys</strong></p>
+                    <p class="activity-time">2 วันที่แล้ว</p>
+                  </div>
+                </div>
+                <div class="activity-item">
+                  <div class="activity-dot activity-dot-green"></div>
+                  <div>
+                    <p class="activity-text">Import ข้อมูล <strong>8 รายการ</strong></p>
+                    <p class="activity-time">3 วันที่แล้ว</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+          <p class="footer-text">&copy; 2026 Pathara. All rights reserved.</p>
+          <nav class="footer-nav">
+            <a href="#" class="footer-link">Privacy Policy</a>
+            <a href="#" class="footer-link">Terms of Service</a>
+            <a href="#" class="footer-link">Support</a>
+          </nav>
+        </footer>
+      </div>
+    </div>
+
+    <script src="../../assets/js/modal.js"></script>
+    <script src="../../assets/js/sidebar-menu.js"></script>
+    <script>renderSidebarMenu("dashboard.html");</script>
+    <script src="/assets/js/topbar.js"></script>
+    <script>renderTopbar({ group: "Inventory", page: "Dashboard" });</script>
+    <script>lucide.createIcons();</script>
+  </body>
+</html>

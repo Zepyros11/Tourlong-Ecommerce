@@ -1,0 +1,453 @@
+﻿<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vitality Fitness Dashboard</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../backend/assets/backend.css" />
+  </head>
+  <body class="flex h-screen overflow-hidden text-slate-700">
+    <!-- Sidebar -->
+    <aside
+      class="w-64 bg-gradient-to-b from-[#69d4cc] to-[#51b6c8] p-8 flex flex-col rounded-r-[40px] shadow-xl z-20"
+    >
+      <div class="flex items-center gap-3 mb-12">
+        <div
+          class="w-8 h-8 bg-yellow-300 rounded-lg flex items-center justify-center shadow-lg"
+        >
+          <i data-lucide="zap" class="text-white fill-current w-5 h-5"></i>
+        </div>
+        <h1 class="text-2xl font-bold text-white tracking-tight italic">
+          Vitality
+        </h1>
+      </div>
+
+      <nav class="flex flex-col gap-2 flex-1">
+        <a
+          href="#"
+          class="flex items-center gap-4 px-6 py-4 rounded-[20px] bg-white text-[#47b8b4] shadow-lg shadow-teal-600/20 group transition-all"
+        >
+          <i data-lucide="flag" class="w-5 h-5"></i>
+          <span class="font-bold text-sm tracking-wide">Community</span>
+          <div class="ml-auto w-1.5 h-1.5 rounded-full bg-[#47b8b4]"></div>
+        </a>
+        <a
+          href="#"
+          class="flex items-center gap-4 px-6 py-4 rounded-[20px] text-white/70 hover:bg-white/10 hover:text-white transition-all group"
+        >
+          <i
+            data-lucide="zap"
+            class="w-5 h-5 opacity-60 group-hover:opacity-100"
+          ></i>
+          <span class="font-bold text-sm tracking-wide">Sport</span>
+        </a>
+        <a
+          href="#"
+          class="flex items-center gap-4 px-6 py-4 rounded-[20px] text-white/70 hover:bg-white/10 hover:text-white transition-all group"
+        >
+          <i
+            data-lucide="calendar"
+            class="w-5 h-5 opacity-60 group-hover:opacity-100"
+          ></i>
+          <span class="font-bold text-sm tracking-wide">Plan</span>
+        </a>
+        <a
+          href="#"
+          class="flex items-center gap-4 px-6 py-4 rounded-[20px] text-white/70 hover:bg-white/10 hover:text-white transition-all group"
+        >
+          <i
+            data-lucide="layout-grid"
+            class="w-5 h-5 opacity-60 group-hover:opacity-100"
+          ></i>
+          <span class="font-bold text-sm tracking-wide">Category</span>
+        </a>
+        <a
+          href="#"
+          class="flex items-center gap-4 px-6 py-4 rounded-[20px] text-white/70 hover:bg-white/10 hover:text-white transition-all group"
+        >
+          <i
+            data-lucide="shopping-bag"
+            class="w-5 h-5 opacity-60 group-hover:opacity-100"
+          ></i>
+          <span class="font-bold text-sm tracking-wide">Store</span>
+        </a>
+      </nav>
+
+      <button
+        class="mt-auto flex items-center justify-center gap-2 bg-white/20 hover:bg-white/30 text-white py-3 px-6 rounded-2xl transition-all border border-white/20"
+      >
+        <i data-lucide="log-out" class="w-4 h-4"></i>
+        <span class="font-semibold text-xs uppercase tracking-wider"
+          >Go Out</span
+        >
+      </button>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-10 overflow-y-auto custom-scrollbar">
+      <!-- Header -->
+      <header class="flex items-center justify-between mb-10">
+        <div class="flex items-center gap-10">
+          <button class="text-lg font-bold text-[#47b8b4] relative">
+            Popular
+            <div
+              class="absolute -bottom-2 left-0 w-6 h-1 bg-[#47b8b4] rounded-full"
+            ></div>
+          </button>
+          <button
+            class="text-lg font-bold text-slate-300 hover:text-slate-400 transition-colors"
+          >
+            Attention
+          </button>
+          <button
+            class="text-lg font-bold text-slate-300 hover:text-slate-400 transition-colors"
+          >
+            Topic
+          </button>
+          <button
+            class="text-lg font-bold text-slate-300 hover:text-slate-400 transition-colors"
+          >
+            Diary
+          </button>
+        </div>
+
+        <div class="flex items-center gap-6">
+          <div class="relative">
+            <i
+              data-lucide="search"
+              class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 w-4 h-4"
+            ></i>
+            <input
+              type="text"
+              placeholder="Search"
+              class="pl-12 pr-4 py-3 bg-white rounded-2xl border border-slate-100 shadow-soft focus:outline-none focus:ring-2 focus:ring-[#47b8b4]/20 w-64"
+            />
+          </div>
+          <button
+            class="relative p-3 bg-white rounded-2xl shadow-soft border border-slate-100 text-slate-400 hover:bg-slate-50 transition-colors"
+          >
+            <i data-lucide="bell" class="w-5 h-5"></i>
+            <span
+              class="absolute top-3 right-3 w-2 h-2 bg-orange-400 rounded-full border-2 border-white"
+            ></span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Stats Section -->
+      <div class="grid grid-cols-12 gap-8 mb-10">
+        <!-- Main Stats Card -->
+        <div
+          class="col-span-8 bg-gradient-to-r from-[#69d4cc] to-[#51b6c8] rounded-[40px] p-8 text-white relative overflow-hidden shadow-teal-glow"
+        >
+          <div class="flex justify-between items-start relative z-10">
+            <div>
+              <span
+                class="text-yellow-300 font-bold uppercase tracking-wider text-[10px]"
+                >Training Time</span
+              >
+              <div class="flex items-baseline gap-2 mt-2">
+                <span class="text-7xl font-black tracking-tighter">27</span>
+                <span class="text-xl font-bold opacity-80">Day</span>
+              </div>
+              <div class="mt-8 space-y-2 opacity-90 text-sm font-semibold">
+                <p>Fat burning: <span class="font-bold">49Kcal</span></p>
+                <p>Duration: <span class="font-bold">13minutes</span></p>
+              </div>
+            </div>
+
+            <div class="flex flex-col items-end">
+              <span
+                class="font-bold opacity-80 uppercase text-[10px] tracking-widest"
+                >Training trend</span
+              >
+              <div class="mt-4 w-64 h-32">
+                <svg viewBox="0 0 200 100" class="w-full h-full">
+                  <path
+                    d="M0 60 Q 25 30 50 60 T 100 60 T 150 60 T 200 40"
+                    fill="none"
+                    stroke="white"
+                    stroke-width="4"
+                    stroke-linecap="round"
+                    class="path-anim"
+                  />
+                  <circle
+                    cx="100"
+                    cy="60"
+                    r="4"
+                    fill="white"
+                    class="shadow-lg"
+                  />
+                  <text
+                    x="92"
+                    y="45"
+                    fill="white"
+                    font-size="9"
+                    font-weight="bold"
+                  >
+                    Kcal 31
+                  </text>
+                </svg>
+              </div>
+              <div
+                class="mt-2 text-[10px] opacity-70 font-bold uppercase tracking-tighter text-right"
+              >
+                From 18Kcal to 31Kcal
+              </div>
+            </div>
+          </div>
+          <i
+            data-lucide="activity"
+            class="absolute top-4 right-4 opacity-10 w-20 h-20"
+          ></i>
+        </div>
+
+        <!-- Calorie Card -->
+        <div
+          class="col-span-4 bg-white rounded-[40px] p-8 shadow-soft border border-slate-50 flex flex-col items-center"
+        >
+          <div class="w-full flex justify-between items-center mb-6">
+            <span class="font-extrabold text-sm text-slate-800"
+              >Burn calories</span
+            >
+            <span class="text-[10px] font-bold text-slate-300">Jun 2019</span>
+          </div>
+
+          <!-- Circular Progress SVG -->
+          <div class="relative w-40 h-40 flex items-center justify-center">
+            <svg class="w-full h-full -rotate-90">
+              <circle
+                cx="80"
+                cy="80"
+                r="65"
+                stroke="#f1f5f9"
+                stroke-width="10"
+                fill="none"
+              />
+              <circle
+                cx="80"
+                cy="80"
+                r="65"
+                stroke="#47b8b4"
+                stroke-width="12"
+                stroke-dasharray="408"
+                stroke-dashoffset="140"
+                stroke-linecap="round"
+                fill="none"
+              />
+            </svg>
+            <div class="absolute flex flex-col items-center">
+              <span class="text-4xl font-black text-slate-800 tracking-tighter"
+                >179<span class="text-sm font-bold opacity-30 uppercase ml-1"
+                  >cal</span
+                ></span
+              >
+              <span
+                class="text-[8px] font-black text-slate-300 mt-1 tracking-widest"
+                >USD</span
+              >
+            </div>
+          </div>
+
+          <div
+            class="w-full flex justify-around mt-8 text-[10px] font-extrabold uppercase tracking-widest"
+          >
+            <div class="flex items-center gap-2">
+              <div class="w-2 h-2 rounded-full bg-[#47b8b4]"></div>
+              Avg 8%
+            </div>
+            <div class="flex items-center gap-2 text-slate-200">
+              <div class="w-2 h-2 rounded-full bg-slate-200"></div>
+              You 5%
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Grid -->
+      <div class="grid grid-cols-12 gap-8 pb-10">
+        <div class="col-span-8 flex flex-col gap-8">
+          <!-- Training Types -->
+          <div
+            class="bg-white rounded-[40px] p-8 shadow-soft border border-slate-50"
+          >
+            <h3 class="font-extrabold text-slate-800 mb-6">Training type</h3>
+            <div class="flex gap-4">
+              <div
+                class="bg-[#6dd3c9] p-5 rounded-3xl text-white shadow-lg shadow-teal-100 hover:scale-110 transition-transform cursor-pointer"
+              >
+                <i data-lucide="activity" class="w-6 h-6"></i>
+              </div>
+              <div
+                class="bg-[#6dd3c9] p-5 rounded-3xl text-white shadow-lg shadow-teal-100 hover:scale-110 transition-transform cursor-pointer"
+              >
+                <i data-lucide="waves" class="w-6 h-6"></i>
+              </div>
+              <div
+                class="bg-[#6dd3c9] p-5 rounded-3xl text-white shadow-lg shadow-teal-100 hover:scale-110 transition-transform cursor-pointer"
+              >
+                <i data-lucide="dumbbell" class="w-6 h-6"></i>
+              </div>
+              <button
+                class="bg-[#fcd34d] p-5 rounded-3xl text-white shadow-lg shadow-yellow-100 hover:scale-110 transition-transform ml-auto"
+              >
+                <i data-lucide="plus" class="w-6 h-6"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Clients Placeholder -->
+          <div
+            class="bg-white rounded-[40px] p-8 shadow-soft border border-slate-50"
+          >
+            <div class="flex justify-between items-center mb-6">
+              <h3 class="font-extrabold text-slate-800">Clients</h3>
+              <button
+                class="text-[#47b8b4] text-[10px] font-black uppercase tracking-widest flex items-center gap-1"
+              >
+                View all <i data-lucide="chevron-right" class="w-3 h-3"></i>
+              </button>
+            </div>
+            <div class="space-y-4">
+              <div
+                class="flex items-center justify-between p-4 bg-slate-50 rounded-3xl group cursor-pointer hover:bg-slate-100 transition-all"
+              >
+                <div class="flex items-center gap-3">
+                  <div
+                    class="w-10 h-10 rounded-2xl bg-teal-100 flex items-center justify-center font-bold text-teal-600"
+                  >
+                    B
+                  </div>
+                  <div>
+                    <p class="text-sm font-bold">Business Project</p>
+                    <p class="text-[10px] font-medium text-slate-400 uppercase">
+                      3 Tasks left
+                    </p>
+                  </div>
+                </div>
+                <i
+                  data-lucide="more-vertical"
+                  class="w-4 h-4 text-slate-300"
+                ></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Group Column -->
+        <div
+          class="col-span-4 bg-white rounded-[40px] p-8 shadow-soft border border-slate-50"
+        >
+          <div class="flex justify-between items-center mb-8">
+            <h3 class="font-extrabold text-slate-800 text-xl">Group</h3>
+            <i
+              data-lucide="more-vertical"
+              class="text-slate-200 cursor-pointer w-5 h-5"
+            ></i>
+          </div>
+
+          <div class="space-y-6">
+            <div class="flex items-center gap-4 group cursor-pointer">
+              <div
+                class="w-12 h-12 bg-rose-100 rounded-2xl flex items-center justify-center text-rose-500 font-black shadow-sm group-hover:scale-110 transition-all"
+              >
+                L
+              </div>
+              <div class="flex-1">
+                <h4 class="font-extrabold text-sm text-slate-800">Lillian</h4>
+                <p class="text-[10px] text-slate-400 font-bold uppercase">
+                  Congratulations
+                </p>
+              </div>
+              <div class="w-1.5 h-1.5 rounded-full bg-slate-100"></div>
+            </div>
+            <div class="flex items-center gap-4 group cursor-pointer">
+              <div
+                class="w-12 h-12 bg-indigo-100 rounded-2xl flex items-center justify-center text-indigo-500 font-black shadow-sm group-hover:scale-110 transition-all"
+              >
+                H
+              </div>
+              <div class="flex-1">
+                <h4 class="font-extrabold text-sm text-slate-800">Helena</h4>
+                <p class="text-[10px] text-slate-400 font-bold uppercase">
+                  Thank you
+                </p>
+              </div>
+              <div
+                class="w-1.5 h-1.5 rounded-full bg-[#47b8b4] shadow-[0_0_8px_rgba(71,184,180,0.5)]"
+              ></div>
+            </div>
+            <div class="flex items-center gap-4 group cursor-pointer">
+              <div
+                class="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-500 font-black shadow-sm group-hover:scale-110 transition-all"
+              >
+                S
+              </div>
+              <div class="flex-1">
+                <h4 class="font-extrabold text-sm text-slate-800">
+                  Strickland
+                </h4>
+                <p class="text-[10px] text-slate-400 font-bold uppercase">
+                  You can check it
+                </p>
+              </div>
+              <div class="w-1.5 h-1.5 rounded-full bg-slate-100"></div>
+            </div>
+          </div>
+
+          <div
+            class="mt-10 p-5 bg-slate-50 rounded-[30px] flex items-center justify-between"
+          >
+            <div class="flex -space-x-3">
+              <div
+                class="w-9 h-9 rounded-full border-2 border-white bg-slate-200 shadow-sm"
+              ></div>
+              <div
+                class="w-9 h-9 rounded-full border-2 border-white bg-slate-300 shadow-sm"
+              ></div>
+              <div
+                class="w-9 h-9 rounded-full border-2 border-white bg-slate-400 shadow-sm"
+              ></div>
+            </div>
+            <span
+              class="text-[10px] font-black text-[#47b8b4] uppercase tracking-widest cursor-pointer hover:underline"
+              >Invite Link</span
+            >
+          </div>
+        </div>
+      </div>
+
+      <!-- Floating Days Filter -->
+      <div class="fixed bottom-10 right-10 flex gap-2">
+        <button
+          class="px-7 py-3 rounded-full font-black text-xs uppercase tracking-widest shadow-lg bg-[#47b8b4] text-white shadow-teal-200 active:scale-95 transition-all"
+        >
+          Mon
+        </button>
+        <button
+          class="px-7 py-3 rounded-full font-black text-xs uppercase tracking-widest shadow-lg bg-white text-slate-300 border border-slate-50 hover:bg-slate-50 active:scale-95 transition-all"
+        >
+          Tue
+        </button>
+        <button
+          class="px-7 py-3 rounded-full font-black text-xs uppercase tracking-widest shadow-lg bg-white text-slate-300 border border-slate-50 hover:bg-slate-50 active:scale-95 transition-all"
+        >
+          Wen
+        </button>
+      </div>
+    </main>
+
+    <script>
+      // Initialize Lucide Icons
+      lucide.createIcons();
+    </script>
+  </body>
+</html>

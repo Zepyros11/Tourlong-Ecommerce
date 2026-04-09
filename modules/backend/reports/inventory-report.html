@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pathara - Inventory Report</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../assets/backend.css" />
+  </head>
+  <body>
+    <div class="layout">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-logo">
+          <div class="sidebar-logo-icon">
+            <i data-lucide="zap" class="sidebar-icon-sm"></i>
+          </div>
+          <h1 class="sidebar-logo-text">Pathara</h1>
+        </div>
+
+        <nav class="sidebar-nav">
+          <!-- render จาก sidebar-menu.js -->
+        </nav>
+
+        <button class="sidebar-logout">
+          <i data-lucide="log-out" class="sidebar-icon-xs"></i>
+          <span>Go Out</span>
+        </button>
+      </aside>
+
+      <!-- Main Area -->
+      <div class="main-area">
+        <!-- Topbar -->
+        <header class="topbar">
+          <!-- render จาก topbar.js -->
+        </header>
+
+        <!-- Content -->
+        <div class="content">
+          <div class="content-header">
+            <div>
+              <h2 class="content-title">Inventory Report</h2>
+              <p class="content-subtitle">รายงานสินค้าคงเหลือ</p>
+            </div>
+            <div class="content-header-actions">
+              <button class="btn-outline" onclick="alert('coming soon')">
+                <i data-lucide="file-text" class="btn-icon"></i>
+                Export PDF
+              </button>
+              <button class="btn-outline" onclick="alert('coming soon')">
+                <i data-lucide="download" class="btn-icon"></i>
+                Export Excel
+              </button>
+            </div>
+          </div>
+
+          <!-- Status Cards -->
+          <div class="stat-cards">
+            <div class="stat-card">
+              <div class="stat-card-icon stat-card-icon-all" id="statProducts">
+                <i data-lucide="package" class="stat-icon"></i>
+              </div>
+              <div>
+                <p class="stat-card-label">Total Products</p>
+                <p class="stat-card-value" id="statProductsVal">10</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-icon stat-card-icon-active" id="statInStock">
+                <i data-lucide="check-circle" class="stat-icon"></i>
+              </div>
+              <div>
+                <p class="stat-card-label">In Stock</p>
+                <p class="stat-card-value" id="statInStockVal">8</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-icon stat-card-icon-inactive" id="statOut">
+                <i data-lucide="x-circle" class="stat-icon"></i>
+              </div>
+              <div>
+                <p class="stat-card-label">Out of Stock</p>
+                <p class="stat-card-value" id="statOutVal">2</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-icon" style="background-color:#fef3c7;color:#f59e0b;" id="statValue">
+                <i data-lucide="banknote" class="stat-icon"></i>
+              </div>
+              <div>
+                <p class="stat-card-label">Total Value</p>
+                <p class="stat-card-value" id="statValueVal">฿385,000</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filter Bar -->
+          <div class="filter-bar">
+            <div class="filter-group">
+              <button class="filter-btn active" data-status="all">All</button>
+              <button class="filter-btn" data-status="instock">In Stock</button>
+              <button class="filter-btn" data-status="outofstock">Out of Stock</button>
+              <div class="filter-search">
+                <i data-lucide="search" class="filter-search-icon"></i>
+                <input type="text" placeholder="Search product..." class="filter-search-input" />
+              </div>
+            </div>
+            <div class="filter-group">
+              <select class="form-select filter-sort" id="sortSelect">
+                <option value="default">Sort by</option>
+                <option value="name-asc">Name A-Z</option>
+                <option value="name-desc">Name Z-A</option>
+                <option value="stock-desc">Stock: High-Low</option>
+                <option value="stock-asc">Stock: Low-High</option>
+                <option value="value-desc">Value: High-Low</option>
+                <option value="value-asc">Value: Low-High</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Inventory Report Table -->
+          <div class="table-container">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th data-sort="name">Product Name</th>
+                  <th data-sort="category">Category</th>
+                  <th data-sort="unit">Unit</th>
+                  <th data-sort="stock" data-sort-type="number">Stock</th>
+                  <th data-sort="cost" data-sort-type="number">Unit Cost</th>
+                  <th data-sort="value" data-sort-type="number">Total Value</th>
+                  <th data-sort="status">Status</th>
+                </tr>
+              </thead>
+              <tbody id="reportTableBody">
+                <!-- render จาก JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+          <p class="footer-text">&copy; 2026 Pathara. All rights reserved.</p>
+          <nav class="footer-nav">
+            <a href="#" class="footer-link">Privacy Policy</a>
+            <a href="#" class="footer-link">Terms of Service</a>
+            <a href="#" class="footer-link">Support</a>
+          </nav>
+        </footer>
+      </div>
+    </div>
+
+    <script src="../assets/js/table.js"></script>
+    <script src="../assets/js/modal.js"></script>
+    <script src="../assets/js/sidebar-menu.js"></script>
+    <script>renderSidebarMenu("inventory-report.html");</script>
+    <script src="/assets/js/topbar.js"></script>
+    <script>renderTopbar({ group: "Reports", page: "รายงานสินค้าคงเหลือ" });</script>
+    <script src="inventory-report.js"></script>
+  </body>
+</html>

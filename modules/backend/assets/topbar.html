@@ -1,0 +1,56 @@
+<!-- ============================================================
+  topbar.html — Topbar Component (ใช้ร่วมทุกหน้า)
+  หน้าที่: Breadcrumb, Global Search, Notifications, User Menu
+  วิธีใช้: วาง <header class="topbar"></header> ในหน้า
+           แล้วเรียก renderTopbar({ group: "...", page: "..." });
+  ต้องใช้ร่วมกับ: js/topbar.js, backend.css
+============================================================ -->
+
+<!-- Topbar Template — copy ส่วน <header> นี้ไปใช้ในทุกหน้า -->
+<header class="topbar">
+  <!-- render อัตโนมัติจาก topbar.js -->
+</header>
+
+<!--
+  วิธีใช้:
+  1. ใส่ <header class="topbar"></header> ใน main-area
+  2. โหลด script:
+     <script src="/assets/js/topbar.js"></script>
+     <script>renderTopbar({ group: "Settings", page: "Users" });</script>
+
+  ตัวอย่าง group/page:
+    { group: "Inventory",  page: "Dashboard" }
+    { group: "Inventory",  page: "หมวดหมู่สินค้า" }
+    { group: "Sales",      page: "คำสั่งซื้อ" }
+    { group: "Purchasing",  page: "ใบสั่งซื้อ" }
+    { group: "Promotions", page: "คูปองส่วนลด" }
+    { group: "Shipping",   page: "การจัดส่ง" }
+    { group: "Reports",    page: "รายงานยอดขาย" }
+    { group: "Finance",    page: "รายรับ" }
+    { group: "Settings",   page: "Users" }
+    { group: "Settings",   page: "ข้อมูลบริษัท" }
+-->
+
+<!-- Preview (เปิดไฟล์นี้ตรงๆ เพื่อดู topbar) -->
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Topbar Component</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="backend.css" />
+  </head>
+  <body style="padding: 0; margin: 0;">
+    <header class="topbar"></header>
+
+    <script src="/assets/js/topbar.js"></script>
+    <script>
+      renderTopbar({ group: "Settings", page: "Users" });
+    </script>
+  </body>
+</html>

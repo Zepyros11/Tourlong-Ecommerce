@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pathara - Advance Settings</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../assets/backend.css" />
+    <style>
+      .setting-card {
+        background: #fff; border: 1px solid #f1f5f9; border-radius: 14px;
+        padding: 18px; margin-bottom: 12px;
+        box-shadow: 0 10px 40px -10px rgba(0,0,0,0.04);
+      }
+      .setting-card-title {
+        font-size: 12px; font-weight: 800; color: #1e293b; margin: 0 0 4px;
+      }
+      .setting-card-desc {
+        font-size: 10px; color: #94a3b8; margin: 0 0 14px;
+      }
+      .setting-row {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 10px 0; border-bottom: 1px solid #f8fafc;
+      }
+      .setting-row:last-child { border-bottom: none; }
+      .setting-label { font-size: 11px; font-weight: 700; color: #334155; }
+      .setting-hint { font-size: 9px; color: #94a3b8; margin-top: 2px; }
+      /* Toggle ใช้จาก backend.css แล้ว */
+      /* Saved indicator */
+      .save-msg {
+        display: none; font-size: 10px; color: #10b981; font-weight: 700;
+        padding: 6px 12px; background: #ecfdf5; border-radius: 8px;
+      }
+      .save-msg.show { display: inline-block; }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="sidebar-logo">
+          <div class="sidebar-logo-icon"><i data-lucide="zap" class="sidebar-icon-sm"></i></div>
+          <h1 class="sidebar-logo-text">Pathara</h1>
+        </div>
+        <nav class="sidebar-nav"></nav>
+        <button class="sidebar-logout">
+          <i data-lucide="log-out" class="sidebar-icon-xs"></i>
+          <span>Go Out</span>
+        </button>
+      </aside>
+
+      <div class="main-area">
+        <header class="topbar"></header>
+
+        <div class="content">
+          <div class="content-header">
+            <div>
+              <h2 class="content-title">Advance Settings</h2>
+              <p class="content-subtitle">ตั้งค่าขั้นสูงของระบบ</p>
+            </div>
+            <span class="save-msg" id="saveMsg">บันทึกแล้ว</span>
+          </div>
+
+          <!-- Warehouse Settings -->
+          <div class="setting-card">
+            <h3 class="setting-card-title">Warehouse</h3>
+            <p class="setting-card-desc">ตั้งค่าโครงสร้างคลังสินค้า</p>
+
+            <div class="setting-row">
+              <div>
+                <p class="setting-label">เปิดใช้ Branch (สาขา)</p>
+                <p class="setting-hint">เปิด = 3 ชั้น (ประเทศ > สาขา > คลัง) / ปิด = 2 ชั้น (ประเทศ > คลัง)</p>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" id="toggleBranch" />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Multi-Currency Settings -->
+          <div class="setting-card">
+            <h3 class="setting-card-title">Multi-Currency</h3>
+            <p class="setting-card-desc">ตั้งค่าสกุลเงิน</p>
+
+            <div class="setting-row">
+              <div>
+                <p class="setting-label">เปิดใช้หลายสกุลเงิน</p>
+                <p class="setting-hint">แสดงราคาสินค้าในหลายสกุลเงิน (ต้องเชื่อม Exchange Rate API)</p>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" id="toggleMultiCurrency" />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Tax Settings -->
+          <div class="setting-card">
+            <h3 class="setting-card-title">Tax</h3>
+            <p class="setting-card-desc">ตั้งค่าภาษี</p>
+
+            <div class="setting-row">
+              <div>
+                <p class="setting-label">เปิดใช้ภาษีมูลค่าเพิ่ม (VAT)</p>
+                <p class="setting-hint">คำนวณ VAT 7% อัตโนมัติในใบแจ้งหนี้</p>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" id="toggleVAT" />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div class="setting-row">
+              <div>
+                <p class="setting-label">เปิดใช้ภาษีหัก ณ ที่จ่าย</p>
+                <p class="setting-hint">คำนวณ WHT อัตโนมัติ</p>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" id="toggleWHT" />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Notification Settings -->
+          <div class="setting-card">
+            <h3 class="setting-card-title">Notifications</h3>
+            <p class="setting-card-desc">ตั้งค่าการแจ้งเตือน</p>
+
+            <div class="setting-row">
+              <div>
+                <p class="setting-label">แจ้งเตือนสินค้าใกล้หมด (Low Stock)</p>
+                <p class="setting-hint">แจ้งเตือนเมื่อ stock ต่ำกว่าที่กำหนด</p>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" id="toggleLowStock" checked />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div class="setting-row">
+              <div>
+                <p class="setting-label">แจ้งเตือน Invoice เกินกำหนด</p>
+                <p class="setting-hint">แจ้งเตือนเมื่อ invoice เกิน due date</p>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" id="toggleOverdueInv" checked />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+
+        </div>
+
+        <footer class="footer">
+          <p class="footer-text">&copy; 2026 Pathara. All rights reserved.</p>
+          <nav class="footer-nav">
+            <a href="#" class="footer-link">Privacy Policy</a>
+            <a href="#" class="footer-link">Terms of Service</a>
+            <a href="#" class="footer-link">Support</a>
+          </nav>
+        </footer>
+      </div>
+    </div>
+
+    <script src="../assets/js/table.js"></script>
+    <script src="../assets/js/modal.js"></script>
+    <script src="../assets/js/sidebar-menu.js"></script>
+    <script>renderSidebarMenu();</script>
+    <script src="/assets/js/topbar.js"></script>
+    <script>renderTopbar({ group: "Settings", page: "Advance Settings" });</script>
+    <script>
+      // ============ Load/Save Settings to localStorage ============
+      var settingKeys = [
+        "toggleBranch", "toggleMultiCurrency", "toggleVAT", "toggleWHT",
+        "toggleLowStock", "toggleOverdueInv"
+      ];
+
+      // Load
+      settingKeys.forEach(function(key) {
+        var el = document.getElementById(key);
+        if (!el) return;
+        var saved = localStorage.getItem("pathara_" + key);
+        if (saved !== null) el.checked = saved === "true";
+      });
+
+      // Save on change
+      settingKeys.forEach(function(key) {
+        var el = document.getElementById(key);
+        if (!el) return;
+        el.addEventListener("change", function() {
+          localStorage.setItem("pathara_" + key, this.checked);
+          // Show saved message
+          var msg = document.getElementById("saveMsg");
+          msg.classList.add("show");
+          setTimeout(function() { msg.classList.remove("show"); }, 1500);
+        });
+      });
+
+      lucide.createIcons();
+    </script>
+  </body>
+</html>

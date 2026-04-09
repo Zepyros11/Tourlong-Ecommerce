@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ข้อมูลส่วนตัว - Tour Long</title>
+    <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body { margin: 0; font-family: "Plus Jakarta Sans", sans-serif; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const { useState } = React;
+
+      const App = () => {
+        const [form, setForm] = useState({
+          name: "คุณสมศรี จันทร์ดี",
+          email: "somsri@email.com",
+          phone: "081-234-5678",
+          address: "123/45 ซ.สุขุมวิท 55 แขวงคลองตันเหนือ เขตวัฒนา กรุงเทพฯ 10110",
+        });
+
+        const [passwords, setPasswords] = useState({
+          current: "",
+          newPass: "",
+          confirm: "",
+        });
+
+        const handleFormChange = (field, value) => {
+          setForm(prev => ({ ...prev, [field]: value }));
+        };
+
+        const handlePasswordChange = (field, value) => {
+          setPasswords(prev => ({ ...prev, [field]: value }));
+        };
+
+        return (
+          <div className="min-h-screen bg-[#0a0a0a] text-white font-sans">
+            {/* Navbar */}
+            <header className="relative z-50 flex items-center justify-between px-6 py-4 md:px-16 border-b border-white/5 bg-black/20 backdrop-blur-md">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center font-black text-xs">TL</div>
+                <div>
+                  <span className="font-black tracking-tighter text-lg block leading-none">TOUR LONG</span>
+                  <span className="text-[9px] text-gray-500 tracking-widest uppercase">น้ำพริกทัวร์ลง</span>
+                </div>
+              </div>
+              <nav className="hidden lg:flex items-center gap-8 text-sm font-medium uppercase tracking-widest text-gray-400">
+                <a href="../home-page/home-page.html" className="hover:text-red-500 transition-colors">หน้าแรก</a>
+                <a href="products.html" className="hover:text-red-500 transition-colors">สินค้า</a>
+                <a href="about.html" className="hover:text-red-500 transition-colors">เกี่ยวกับเรา</a>
+                <a href="contact.html" className="hover:text-red-500 transition-colors">ติดต่อเรา</a>
+              </nav>
+              <div className="flex items-center gap-4">
+                <button className="relative bg-white/5 hover:bg-white/10 p-3 rounded-xl border border-white/10 transition-colors">
+                  🛒
+                </button>
+                <button className="lg:hidden text-white text-2xl">☰</button>
+              </div>
+            </header>
+
+            {/* Content */}
+            <main className="max-w-3xl mx-auto px-6 py-16">
+              <h1 className="text-4xl font-black mb-2 text-center">ข้อมูลส่วนตัว</h1>
+              <p className="text-gray-500 text-sm text-center mb-12">จัดการข้อมูลบัญชีของคุณ</p>
+
+              {/* Profile Card */}
+              <div className="bg-[#121212] border border-white/5 rounded-3xl p-6 md:p-8 mb-8 flex flex-col sm:flex-row items-center gap-6">
+                <div className="w-24 h-24 bg-red-600/10 border-2 border-red-600/30 rounded-full flex items-center justify-center text-4xl shrink-0">
+                  👤
+                </div>
+                <div className="text-center sm:text-left">
+                  <h2 className="text-xl font-black mb-1">คุณสมศรี จันทร์ดี</h2>
+                  <p className="text-gray-400 text-sm mb-2">somsri@email.com</p>
+                  <span className="inline-block bg-red-600/10 text-red-500 text-xs font-bold px-4 py-1.5 rounded-full">
+                    สมาชิกตั้งแต่ มกราคม 2026
+                  </span>
+                </div>
+              </div>
+
+              {/* Edit Form */}
+              <div className="bg-[#121212] border border-white/5 rounded-3xl p-6 md:p-8 mb-8">
+                <h3 className="text-lg font-black mb-6">แก้ไขข้อมูล</h3>
+                <div className="space-y-5">
+                  <div>
+                    <label className="block text-xs text-gray-500 font-medium mb-2">ชื่อ-นามสกุล</label>
+                    <input
+                      type="text"
+                      value={form.name}
+                      onChange={(e) => handleFormChange("name", e.target.value)}
+                      className="w-full bg-[#121212] border border-white/10 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-red-600 transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 font-medium mb-2">อีเมล</label>
+                    <input
+                      type="email"
+                      value={form.email}
+                      onChange={(e) => handleFormChange("email", e.target.value)}
+                      className="w-full bg-[#121212] border border-white/10 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-red-600 transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 font-medium mb-2">เบอร์โทรศัพท์</label>
+                    <input
+                      type="tel"
+                      value={form.phone}
+                      onChange={(e) => handleFormChange("phone", e.target.value)}
+                      className="w-full bg-[#121212] border border-white/10 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-red-600 transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 font-medium mb-2">ที่อยู่</label>
+                    <textarea
+                      rows="3"
+                      value={form.address}
+                      onChange={(e) => handleFormChange("address", e.target.value)}
+                      className="w-full bg-[#121212] border border-white/10 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-red-600 transition-colors resize-none"
+                    ></textarea>
+                  </div>
+                </div>
+              </div>
+
+              {/* Change Password */}
+              <div className="bg-[#121212] border border-white/5 rounded-3xl p-6 md:p-8 mb-8">
+                <h3 className="text-lg font-black mb-6">เปลี่ยนรหัสผ่าน</h3>
+                <div className="space-y-5">
+                  <div>
+                    <label className="block text-xs text-gray-500 font-medium mb-2">รหัสผ่านปัจจุบัน</label>
+                    <input
+                      type="password"
+                      value={passwords.current}
+                      onChange={(e) => handlePasswordChange("current", e.target.value)}
+                      placeholder="กรอกรหัสผ่านปัจจุบัน"
+                      className="w-full bg-[#121212] border border-white/10 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-red-600 transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 font-medium mb-2">รหัสผ่านใหม่</label>
+                    <input
+                      type="password"
+                      value={passwords.newPass}
+                      onChange={(e) => handlePasswordChange("newPass", e.target.value)}
+                      placeholder="กรอกรหัสผ่านใหม่"
+                      className="w-full bg-[#121212] border border-white/10 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-red-600 transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 font-medium mb-2">ยืนยันรหัสผ่านใหม่</label>
+                    <input
+                      type="password"
+                      value={passwords.confirm}
+                      onChange={(e) => handlePasswordChange("confirm", e.target.value)}
+                      placeholder="กรอกรหัสผ่านใหม่อีกครั้ง"
+                      className="w-full bg-[#121212] border border-white/10 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-red-600 transition-colors"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Save Button */}
+              <div className="flex justify-center">
+                <button className="bg-red-600 hover:bg-red-700 text-white px-12 py-4 rounded-full font-bold transition-transform hover:scale-105 active:scale-95">
+                  บันทึกข้อมูล
+                </button>
+              </div>
+            </main>
+
+            {/* Footer */}
+            <footer className="bg-black py-16 border-t border-white/5">
+              <div className="container mx-auto px-6 text-center">
+                <div className="flex justify-center items-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center font-black text-xs">TL</div>
+                  <span className="font-black text-lg">TOUR LONG</span>
+                </div>
+                <p className="text-gray-500 text-sm mb-6 max-w-md mx-auto">
+                  น้ำพริกทัวร์ลง อร่อยเข้มข้น สูตรหวานน้อย ไม่ใส่ผงชูรส
+                  ผลิตจากวัตถุดิบคุณภาพ ส่งตรงถึงบ้านคุณ
+                </p>
+                <div className="flex justify-center gap-6 text-gray-400 text-sm">
+                  <a href="#" className="hover:text-white transition-colors">Facebook</a>
+                  <a href="#" className="hover:text-white transition-colors">Instagram</a>
+                  <a href="#" className="hover:text-white transition-colors">TikTok</a>
+                  <a href="#" className="hover:text-white transition-colors">Shopee</a>
+                  <a href="#" className="hover:text-white transition-colors">Lazada</a>
+                </div>
+                <div className="mt-10 pt-10 border-t border-white/5 text-[10px] uppercase tracking-widest text-gray-700">
+                  &copy; 2026 TOUR LONG. น้ำพริกทัวร์ลง — All rights reserved.
+                </div>
+              </div>
+            </footer>
+          </div>
+        );
+      };
+
+      ReactDOM.render(<App />, document.getElementById("root"));
+    </script>
+  </body>
+</html>

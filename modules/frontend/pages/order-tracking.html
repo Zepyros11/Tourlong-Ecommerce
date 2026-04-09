@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ติดตามคำสั่งซื้อ - Tour Long</title>
+    <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body { margin: 0; font-family: "Plus Jakarta Sans", sans-serif; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const { useState } = React;
+
+      const App = () => {
+        const [orderNumber, setOrderNumber] = useState("");
+        const [showResult, setShowResult] = useState(true);
+
+        const handleSearch = (e) => {
+          e.preventDefault();
+          setShowResult(true);
+        };
+
+        const steps = [
+          { label: "สั่งซื้อ", done: true, date: "1 เม.ย. 2026, 14:30" },
+          { label: "ชำระเงิน", done: true, date: "1 เม.ย. 2026, 14:35" },
+          { label: "จัดส่ง", done: true, date: "2 เม.ย. 2026, 09:00" },
+          { label: "กำลังจัดส่ง", done: false, active: true, date: "3 เม.ย. 2026, 10:15" },
+          { label: "ส่งสำเร็จ", done: false, date: "" },
+        ];
+
+        const orderItems = [
+          { name: "น้ำพริกน้ำย้อย เห็ดกรอบ", qty: 2, price: 69 },
+          { name: "น้ำพริกน้ำย้อย เผ็ดจี๊ด", qty: 1, price: 69 },
+          { name: "เซ็ต 3 ซอง สุดคุ้ม", qty: 1, price: 198 },
+        ];
+
+        const totalPrice = orderItems.reduce((sum, item) => sum + item.price * item.qty, 0);
+
+        return (
+          <div className="min-h-screen bg-[#0a0a0a] text-white font-sans">
+            {/* Navbar */}
+            <header className="relative z-50 flex items-center justify-between px-6 py-4 md:px-16 border-b border-white/5 bg-black/20 backdrop-blur-md">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center font-black text-xs">TL</div>
+                <div>
+                  <span className="font-black tracking-tighter text-lg block leading-none">TOUR LONG</span>
+                  <span className="text-[9px] text-gray-500 tracking-widest uppercase">น้ำพริกทัวร์ลง</span>
+                </div>
+              </div>
+              <nav className="hidden lg:flex items-center gap-8 text-sm font-medium uppercase tracking-widest text-gray-400">
+                <a href="../home-page/home-page.html" className="hover:text-red-500 transition-colors">หน้าแรก</a>
+                <a href="products.html" className="hover:text-red-500 transition-colors">สินค้า</a>
+                <a href="about.html" className="hover:text-red-500 transition-colors">เกี่ยวกับเรา</a>
+                <a href="contact.html" className="hover:text-red-500 transition-colors">ติดต่อเรา</a>
+              </nav>
+              <div className="flex items-center gap-4">
+                <button className="relative bg-white/5 hover:bg-white/10 p-3 rounded-xl border border-white/10 transition-colors">
+                  🛒
+                </button>
+                <button className="lg:hidden text-white text-2xl">☰</button>
+              </div>
+            </header>
+
+            {/* Content */}
+            <main className="max-w-4xl mx-auto px-6 py-16">
+              <h1 className="text-4xl font-black mb-2 text-center">ติดตามคำสั่งซื้อ</h1>
+              <p className="text-gray-500 text-sm text-center mb-12">กรอกหมายเลขคำสั่งซื้อเพื่อตรวจสอบสถานะ</p>
+
+              {/* Search */}
+              <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-4 mb-16 max-w-xl mx-auto">
+                <input
+                  type="text"
+                  placeholder="หมายเลขคำสั่งซื้อ เช่น SO-2026-156"
+                  value={orderNumber}
+                  onChange={(e) => setOrderNumber(e.target.value)}
+                  className="flex-1 bg-[#121212] border border-white/10 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-red-600 transition-colors"
+                />
+                <button
+                  type="submit"
+                  className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-full font-bold transition-colors"
+                >
+                  ค้นหา
+                </button>
+              </form>
+
+              {showResult && (
+                <div className="space-y-8">
+                  {/* Order Header */}
+                  <div className="bg-[#121212] border border-white/5 rounded-3xl p-6 md:p-8">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+                      <div>
+                        <h2 className="text-xl font-black mb-1">คำสั่งซื้อ #SO-2026-156</h2>
+                        <p className="text-gray-500 text-sm">สั่งซื้อเมื่อ 1 เมษายน 2026</p>
+                      </div>
+                      <span className="mt-3 md:mt-0 inline-block bg-yellow-500/10 text-yellow-500 text-xs font-bold px-4 py-2 rounded-full">
+                        กำลังจัดส่ง
+                      </span>
+                    </div>
+
+                    {/* Timeline */}
+                    <div className="flex items-start justify-between relative mb-4">
+                      {/* Line */}
+                      <div className="absolute top-5 left-0 right-0 h-0.5 bg-white/10"></div>
+                      <div className="absolute top-5 left-0 h-0.5 bg-red-600" style={{ width: "70%" }}></div>
+
+                      {steps.map((step, i) => (
+                        <div key={i} className="relative flex flex-col items-center text-center z-10" style={{ width: "20%" }}>
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold border-2 ${
+                            step.done
+                              ? "bg-red-600 border-red-600 text-white"
+                              : step.active
+                              ? "bg-yellow-500 border-yellow-500 text-black animate-pulse"
+                              : "bg-[#1a1a1a] border-white/10 text-gray-600"
+                          }`}>
+                            {step.done ? "✓" : step.active ? "●" : (i + 1)}
+                          </div>
+                          <p className={`mt-2 text-xs font-bold ${step.done ? "text-white" : step.active ? "text-yellow-500" : "text-gray-600"}`}>
+                            {step.label}
+                          </p>
+                          {step.date && (
+                            <p className="text-[10px] text-gray-600 mt-1">{step.date}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Order Items */}
+                  <div className="bg-[#121212] border border-white/5 rounded-3xl p-6 md:p-8">
+                    <h3 className="text-lg font-black mb-6">รายการสินค้า</h3>
+                    <div className="space-y-4">
+                      {orderItems.map((item, i) => (
+                        <div key={i} className="flex items-center justify-between py-3 border-b border-white/5 last:border-0">
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center text-xl">🌶️</div>
+                            <div>
+                              <p className="text-sm font-bold">{item.name}</p>
+                              <p className="text-xs text-gray-500">จำนวน: {item.qty}</p>
+                            </div>
+                          </div>
+                          <span className="text-sm font-bold">฿{(item.price * item.qty).toLocaleString()}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex justify-between items-center mt-6 pt-6 border-t border-white/10">
+                      <span className="text-gray-400 text-sm">ยอดรวมทั้งสิ้น</span>
+                      <span className="text-xl font-black text-red-500">฿{totalPrice.toLocaleString()}</span>
+                    </div>
+                  </div>
+
+                  {/* Shipping Info */}
+                  <div className="bg-[#121212] border border-white/5 rounded-3xl p-6 md:p-8">
+                    <h3 className="text-lg font-black mb-6">ข้อมูลการจัดส่ง</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">ขนส่ง</p>
+                        <p className="text-sm font-bold">Kerry Express</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">หมายเลขพัสดุ</p>
+                        <p className="text-sm font-bold text-red-500">KEX1234567890</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">วันที่คาดว่าจะได้รับ</p>
+                        <p className="text-sm font-bold">5 เมษายน 2026</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">ที่อยู่จัดส่ง</p>
+                        <p className="text-sm font-bold">123/45 ซ.สุขุมวิท 55 แขวงคลองตันเหนือ เขตวัฒนา กรุงเทพฯ 10110</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </main>
+
+            {/* Footer */}
+            <footer className="bg-black py-16 border-t border-white/5">
+              <div className="container mx-auto px-6 text-center">
+                <div className="flex justify-center items-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center font-black text-xs">TL</div>
+                  <span className="font-black text-lg">TOUR LONG</span>
+                </div>
+                <p className="text-gray-500 text-sm mb-6 max-w-md mx-auto">
+                  น้ำพริกทัวร์ลง อร่อยเข้มข้น สูตรหวานน้อย ไม่ใส่ผงชูรส
+                  ผลิตจากวัตถุดิบคุณภาพ ส่งตรงถึงบ้านคุณ
+                </p>
+                <div className="flex justify-center gap-6 text-gray-400 text-sm">
+                  <a href="#" className="hover:text-white transition-colors">Facebook</a>
+                  <a href="#" className="hover:text-white transition-colors">Instagram</a>
+                  <a href="#" className="hover:text-white transition-colors">TikTok</a>
+                  <a href="#" className="hover:text-white transition-colors">Shopee</a>
+                  <a href="#" className="hover:text-white transition-colors">Lazada</a>
+                </div>
+                <div className="mt-10 pt-10 border-t border-white/5 text-[10px] uppercase tracking-widest text-gray-700">
+                  &copy; 2026 TOUR LONG. น้ำพริกทัวร์ลง — All rights reserved.
+                </div>
+              </div>
+            </footer>
+          </div>
+        );
+      };
+
+      ReactDOM.render(<App />, document.getElementById("root"));
+    </script>
+  </body>
+</html>

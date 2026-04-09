@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pathara - Profit & Loss</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../assets/backend.css" />
+    <style>
+      .filter-date {
+        padding: 5px 10px;
+        width: 130px;
+        font-family: "Plus Jakarta Sans", sans-serif;
+        font-size: 10px;
+        color: #334155;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        outline: none;
+      }
+      .filter-date:focus {
+        border-color: #47b8b4;
+        box-shadow: 0 0 0 3px rgba(71, 184, 180, 0.15);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-logo">
+          <div class="sidebar-logo-icon">
+            <i data-lucide="zap" class="sidebar-icon-sm"></i>
+          </div>
+          <h1 class="sidebar-logo-text">Pathara</h1>
+        </div>
+
+        <nav class="sidebar-nav">
+          <!-- render จาก sidebar-menu.js -->
+        </nav>
+
+        <button class="sidebar-logout">
+          <i data-lucide="log-out" class="sidebar-icon-xs"></i>
+          <span>Go Out</span>
+        </button>
+      </aside>
+
+      <!-- Main Area -->
+      <div class="main-area">
+        <!-- Topbar -->
+        <header class="topbar">
+          <!-- render จาก topbar.js -->
+        </header>
+
+        <!-- Content -->
+        <div class="content">
+          <div class="content-header">
+            <div>
+              <h2 class="content-title">Profit & Loss</h2>
+              <p class="content-subtitle">รายงานกำไร-ขาดทุน</p>
+            </div>
+            <div class="content-header-actions">
+              <button class="btn-outline" onclick="alert('coming soon')">
+                <i data-lucide="file-text" class="btn-icon"></i>
+                Export PDF
+              </button>
+              <button class="btn-outline" onclick="alert('coming soon')">
+                <i data-lucide="download" class="btn-icon"></i>
+                Export Excel
+              </button>
+            </div>
+          </div>
+
+          <!-- Status Cards -->
+          <div class="stat-cards">
+            <div class="stat-card">
+              <div class="stat-card-icon stat-card-icon-active" id="statRevenue">
+                <i data-lucide="trending-up" class="stat-icon"></i>
+              </div>
+              <div>
+                <p class="stat-card-label">Revenue</p>
+                <p class="stat-card-value">฿1,245,800</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-icon stat-card-icon-inactive" id="statExpenses">
+                <i data-lucide="trending-down" class="stat-icon"></i>
+              </div>
+              <div>
+                <p class="stat-card-label">Expenses</p>
+                <p class="stat-card-value">฿445,500</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-icon" style="background-color:#ecfdf5;color:#10b981;" id="statProfit">
+                <i data-lucide="banknote" class="stat-icon"></i>
+              </div>
+              <div>
+                <p class="stat-card-label">Net Profit</p>
+                <p class="stat-card-value">฿800,300</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-icon" style="background-color:#fef3c7;color:#f59e0b;" id="statMargin">
+                <i data-lucide="percent" class="stat-icon"></i>
+              </div>
+              <div>
+                <p class="stat-card-label">Margin</p>
+                <p class="stat-card-value">64.2%</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filter Bar -->
+          <div class="filter-bar">
+            <div class="filter-group">
+              <input type="date" class="form-input filter-date" id="dateFrom" />
+              <input type="date" class="form-input filter-date" id="dateTo" />
+            </div>
+            <div class="filter-group">
+              <select class="form-select filter-sort" id="sortSelect">
+                <option value="default">Sort by</option>
+                <option value="date-desc">Date: Newest</option>
+                <option value="date-asc">Date: Oldest</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Profit & Loss Table -->
+          <div class="table-container">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th data-sort="month">Month</th>
+                  <th data-sort="revenue" data-sort-type="number">Revenue</th>
+                  <th data-sort="cogs" data-sort-type="number">Cost of Goods</th>
+                  <th data-sort="gross" data-sort-type="number">Gross Profit</th>
+                  <th data-sort="expenses" data-sort-type="number">Expenses</th>
+                  <th data-sort="net" data-sort-type="number">Net Profit</th>
+                </tr>
+              </thead>
+              <tbody id="reportTableBody">
+                <!-- render จาก JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+          <p class="footer-text">&copy; 2026 Pathara. All rights reserved.</p>
+          <nav class="footer-nav">
+            <a href="#" class="footer-link">Privacy Policy</a>
+            <a href="#" class="footer-link">Terms of Service</a>
+            <a href="#" class="footer-link">Support</a>
+          </nav>
+        </footer>
+      </div>
+    </div>
+
+    <script src="../assets/js/table.js"></script>
+    <script src="../assets/js/modal.js"></script>
+    <script src="../assets/js/sidebar-menu.js"></script>
+    <script>renderSidebarMenu();</script>
+    <script src="/assets/js/topbar.js"></script>
+    <script>renderTopbar({ group: "Reports", page: "กำไร-ขาดทุน" });</script>
+    <script src="profit-loss.js"></script>
+  </body>
+</html>

@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pathara - Page Management</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../../backend/assets/backend.css" />
+    <link rel="stylesheet" href="assets/page-management.css" />
+  </head>
+  <body>
+    <div class="layout">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-logo">
+          <div class="sidebar-logo-icon">
+            <i data-lucide="palette" class="sidebar-icon-sm"></i>
+          </div>
+          <h1 class="sidebar-logo-text">Frontend</h1>
+        </div>
+        <nav class="sidebar-nav"></nav>
+        <button class="sidebar-logout">
+          <i data-lucide="log-out" class="sidebar-icon-xs"></i>
+          <span>Go Out</span>
+        </button>
+      </aside>
+
+      <!-- Main Area -->
+      <div class="main-area">
+        <!-- Topbar -->
+        <header class="topbar"></header>
+
+        <!-- Editor Content (เป็นหน้าหลักเลย) -->
+        <div class="content" id="editorView" style="padding:0;">
+
+          <!-- Editor Topbar -->
+          <div class="editor-topbar">
+            <div class="editor-topbar-left">
+              <!-- Page Selector Dropdown -->
+              <div class="page-selector" id="pageSelector">
+                <button class="page-selector-btn" id="pageSelectorBtn">
+                  <i data-lucide="file-text" style="width:14px;height:14px;color:#6366f1;"></i>
+                  <span class="page-selector-name" id="pageSelectorName">Home Page</span>
+                  <span class="page-selector-status" id="pageSelectorStatus">Published</span>
+                  <i data-lucide="chevron-down" class="page-selector-chevron"></i>
+                </button>
+                <div class="page-selector-dropdown" id="pageSelectorDropdown">
+                  <div class="page-selector-dropdown-header">
+                    <span>Switch Page</span>
+                    <button class="page-selector-new-btn" id="newPageBtnInline" title="New Page">
+                      <i data-lucide="plus" style="width:12px;height:12px;"></i>
+                    </button>
+                  </div>
+                  <div class="page-selector-dropdown-list" id="pageSelectorList">
+                    <!-- render จาก JS -->
+                  </div>
+                </div>
+              </div>
+
+              <div class="editor-page-info">
+                <input type="text" class="editor-page-title-input" id="editorPageTitle" placeholder="Page Title..." />
+                <span class="editor-page-slug" id="editorPageSlug">/home-page</span>
+              </div>
+            </div>
+            <div class="editor-topbar-right">
+              <button class="btn-outline btn-sm" id="pageSettingsBtn" title="Page Settings">
+                <i data-lucide="settings" style="width:12px;height:12px;"></i>
+              </button>
+              <button class="btn-outline btn-sm" id="previewBtn">
+                <i data-lucide="eye" style="width:12px;height:12px;"></i>
+                Preview
+              </button>
+              <button class="btn-outline btn-sm" id="saveDraftBtn">
+                <i data-lucide="save" style="width:12px;height:12px;"></i>
+                Save Draft
+              </button>
+              <button class="btn-primary btn-sm" id="publishBtn">
+                <i data-lucide="globe" class="btn-icon"></i>
+                Publish
+              </button>
+            </div>
+          </div>
+
+          <!-- Editor Main Layout -->
+          <div class="editor-layout">
+
+            <!-- Left: Block Library -->
+            <div class="editor-sidebar-left" id="blockLibrary">
+              <div class="editor-sidebar-header">
+                <h3 class="editor-sidebar-title">
+                  <i data-lucide="layout-grid"></i>
+                  Blocks
+                </h3>
+              </div>
+              <div class="editor-sidebar-body" id="blockLibraryList">
+                <!-- render จาก JS -->
+              </div>
+            </div>
+
+            <!-- Center: Canvas -->
+            <div class="editor-canvas-wrapper">
+              <div class="editor-canvas" id="editorCanvas">
+                <div class="editor-canvas-empty" id="canvasEmpty">
+                  <i data-lucide="mouse-pointer-click" class="canvas-empty-icon"></i>
+                  <p class="canvas-empty-title">Start building your page</p>
+                  <p class="canvas-empty-text">Drag blocks from the left panel or click to add</p>
+                </div>
+                <div id="canvasBlocks">
+                  <!-- render จาก JS -->
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Block Settings -->
+            <div class="editor-sidebar-right" id="blockSettings">
+              <div class="editor-sidebar-header">
+                <h3 class="editor-sidebar-title">
+                  <i data-lucide="settings"></i>
+                  Settings
+                </h3>
+              </div>
+              <div class="editor-sidebar-body" id="blockSettingsContent">
+                <div class="settings-empty">
+                  <i data-lucide="mouse-pointer" class="settings-empty-icon"></i>
+                  <p>Select a block to edit settings</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: New Page -->
+    <div class="modal-overlay" id="newPageModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title">New Page</h3>
+          <button class="modal-close"><i data-lucide="x"></i></button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Page Name</label>
+            <input type="text" class="form-input" id="inputPageName" placeholder="e.g. About Us" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Slug (URL Path)</label>
+            <div class="input-prefix-group">
+              <span class="input-prefix">/pages/</span>
+              <input type="text" class="form-input" id="inputPageSlug" placeholder="about-us" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Template</label>
+            <select class="form-select" id="inputPageTemplate">
+              <option value="blank">Blank Page</option>
+              <option value="landing">Landing Page</option>
+              <option value="product">Product Showcase</option>
+              <option value="content">Content Page</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea class="form-input" id="inputPageDesc" rows="3" placeholder="Short description for SEO..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" onclick="closeModalById('newPageModal')">Cancel</button>
+          <button class="btn-primary" onclick="createNewPage()">Create & Edit</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Page Settings -->
+    <div class="modal-overlay" id="pageSettingsModal">
+      <div class="modal" style="max-width:500px;">
+        <div class="modal-header">
+          <h3 class="modal-title">Page Settings</h3>
+          <button class="modal-close"><i data-lucide="x"></i></button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Page Title</label>
+            <input type="text" class="form-input" id="settingsPageTitle" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Slug</label>
+            <input type="text" class="form-input" id="settingsPageSlug" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Meta Description (SEO)</label>
+            <textarea class="form-input" id="settingsMetaDesc" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <div class="status-toggle">
+              <label class="toggle">
+                <input type="checkbox" id="settingsStatus" checked />
+                <span class="toggle-slider"></span>
+              </label>
+              <span class="status-toggle-label active-label" id="settingsStatusLabel">Published</span>
+            </div>
+          </div>
+          <hr style="border:none;border-top:1px solid #f1f5f9;margin:12px 0;" />
+          <div class="form-group">
+            <button class="btn-outline" style="color:#ef4444;border-color:#fecaca;width:100%;justify-content:center;" onclick="deleteCurrentPage()">
+              <i data-lucide="trash-2" style="width:12px;height:12px;"></i>
+              Delete This Page
+            </button>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" onclick="closeModalById('pageSettingsModal')">Cancel</button>
+          <button class="btn-primary" onclick="savePageSettings()">Save Settings</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div class="modal-overlay" id="confirmModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title" id="confirmTitle">Confirm</h3>
+          <button class="modal-close"><i data-lucide="x"></i></button>
+        </div>
+        <div class="modal-body">
+          <p id="confirmMessage" style="font-size:12px;color:#64748b;"></p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" id="confirmCancelBtn">Cancel</button>
+          <button class="btn-primary" id="confirmOkBtn">OK</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Preview Modal -->
+    <div class="modal-overlay" id="previewModal">
+      <div class="modal" style="max-width:90vw;width:1100px;height:85vh;">
+        <div class="modal-header">
+          <h3 class="modal-title">
+            <i data-lucide="eye" style="width:14px;height:14px;display:inline;"></i>
+            Page Preview
+          </h3>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <button class="btn-outline btn-sm preview-device active" data-device="desktop" title="Desktop">
+              <i data-lucide="monitor" style="width:12px;height:12px;"></i>
+            </button>
+            <button class="btn-outline btn-sm preview-device" data-device="tablet" title="Tablet">
+              <i data-lucide="tablet" style="width:12px;height:12px;"></i>
+            </button>
+            <button class="btn-outline btn-sm preview-device" data-device="mobile" title="Mobile">
+              <i data-lucide="smartphone" style="width:12px;height:12px;"></i>
+            </button>
+            <button class="modal-close"><i data-lucide="x"></i></button>
+          </div>
+        </div>
+        <div class="modal-body" style="padding:0;flex:1;overflow:hidden;">
+          <div class="preview-frame-wrapper" id="previewFrameWrapper">
+            <iframe id="previewFrame" class="preview-frame"></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast-notification">
+      <div class="toast-icon-wrapper">
+        <i data-lucide="check" class="toast-icon"></i>
+      </div>
+      <div>
+        <p class="toast-title" id="toastTitle">Success!</p>
+        <p class="toast-message" id="toastMsg"></p>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../../backend/assets/js/modal.js"></script>
+    <script src="../../backend/assets/js/confirm.js"></script>
+    <script src="component/sidebar-menu.js"></script>
+    <script>renderSidebarMenu();</script>
+    <script src="/assets/js/topbar.js"></script>
+    <script>renderTopbar({ group: "Page Builder", page: "Page Management" });</script>
+    <script src="component/block-templates.js"></script>
+    <script src="assets/page-management.js"></script>
+  </body>
+</html>

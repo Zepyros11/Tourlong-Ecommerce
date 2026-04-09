@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pathara - Purchase Report</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../assets/backend.css" />
+    <style>
+      .filter-date {
+        padding: 5px 10px;
+        width: 130px;
+        font-family: "Plus Jakarta Sans", sans-serif;
+        font-size: 10px;
+        color: #334155;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        outline: none;
+      }
+      .filter-date:focus {
+        border-color: #47b8b4;
+        box-shadow: 0 0 0 3px rgba(71, 184, 180, 0.15);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-logo">
+          <div class="sidebar-logo-icon">
+            <i data-lucide="zap" class="sidebar-icon-sm"></i>
+          </div>
+          <h1 class="sidebar-logo-text">Pathara</h1>
+        </div>
+
+        <nav class="sidebar-nav">
+          <!-- render จาก sidebar-menu.js -->
+        </nav>
+
+        <button class="sidebar-logout">
+          <i data-lucide="log-out" class="sidebar-icon-xs"></i>
+          <span>Go Out</span>
+        </button>
+      </aside>
+
+      <!-- Main Area -->
+      <div class="main-area">
+        <!-- Topbar -->
+        <header class="topbar">
+          <!-- render จาก topbar.js -->
+        </header>
+
+        <!-- Content -->
+        <div class="content">
+          <div class="content-header">
+            <div>
+              <h2 class="content-title">Purchase Report</h2>
+              <p class="content-subtitle">รายงานการจัดซื้อ</p>
+            </div>
+            <div class="content-header-actions">
+              <button class="btn-outline" onclick="alert('coming soon')">
+                <i data-lucide="file-text" class="btn-icon"></i>
+                Export PDF
+              </button>
+              <button class="btn-outline" onclick="alert('coming soon')">
+                <i data-lucide="download" class="btn-icon"></i>
+                Export Excel
+              </button>
+            </div>
+          </div>
+
+          <!-- Status Cards -->
+          <div class="stat-cards">
+            <div class="stat-card">
+              <div class="stat-card-icon stat-card-icon-all" id="statTotal">
+                <i data-lucide="banknote" class="stat-icon"></i>
+              </div>
+              <div>
+                <p class="stat-card-label">Total Purchase</p>
+                <p class="stat-card-value">฿445,500</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-icon stat-card-icon-active" id="statPOs">
+                <i data-lucide="file-text" class="stat-icon"></i>
+              </div>
+              <div>
+                <p class="stat-card-label">PO Count</p>
+                <p class="stat-card-value">8</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-icon" style="background-color:#fef3c7;color:#f59e0b;" id="statSuppliers">
+                <i data-lucide="store" class="stat-icon"></i>
+              </div>
+              <div>
+                <p class="stat-card-label">Suppliers</p>
+                <p class="stat-card-value">6</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-icon stat-card-icon-inactive" id="statReturns">
+                <i data-lucide="undo-2" class="stat-icon"></i>
+              </div>
+              <div>
+                <p class="stat-card-label">Returns</p>
+                <p class="stat-card-value">2</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filter Bar -->
+          <div class="filter-bar">
+            <div class="filter-group">
+              <div class="filter-search">
+                <i data-lucide="search" class="filter-search-icon"></i>
+                <input type="text" placeholder="Search..." class="filter-search-input" />
+              </div>
+              <input type="date" class="form-input filter-date" id="dateFrom" />
+              <input type="date" class="form-input filter-date" id="dateTo" />
+            </div>
+            <div class="filter-group">
+              <select class="form-select filter-sort" id="sortSelect">
+                <option value="default">Sort by</option>
+                <option value="date-desc">Date: Newest</option>
+                <option value="date-asc">Date: Oldest</option>
+                <option value="amount-desc">Amount: High-Low</option>
+                <option value="amount-asc">Amount: Low-High</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Purchase Report Table -->
+          <div class="table-container">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th data-sort="date" data-sort-type="date">Date</th>
+                  <th data-sort="po">PO Number</th>
+                  <th data-sort="supplier">Supplier</th>
+                  <th data-sort="items" data-sort-type="number">Items</th>
+                  <th data-sort="amount" data-sort-type="number">Amount</th>
+                  <th data-sort="status">Status</th>
+                </tr>
+              </thead>
+              <tbody id="reportTableBody">
+                <!-- render จาก JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+          <p class="footer-text">&copy; 2026 Pathara. All rights reserved.</p>
+          <nav class="footer-nav">
+            <a href="#" class="footer-link">Privacy Policy</a>
+            <a href="#" class="footer-link">Terms of Service</a>
+            <a href="#" class="footer-link">Support</a>
+          </nav>
+        </footer>
+      </div>
+    </div>
+
+    <script src="../assets/js/table.js"></script>
+    <script src="../assets/js/modal.js"></script>
+    <script src="../assets/js/sidebar-menu.js"></script>
+    <script>renderSidebarMenu();</script>
+    <script src="/assets/js/topbar.js"></script>
+    <script>renderTopbar({ group: "Reports", page: "รายงานการจัดซื้อ" });</script>
+    <script src="purchase-report.js"></script>
+  </body>
+</html>

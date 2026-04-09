@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pathara - Products Initial Stock</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../../assets/backend.css" />
+  </head>
+  <body>
+    <div class="layout">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-logo">
+          <div class="sidebar-logo-icon">
+            <i data-lucide="zap" class="sidebar-icon-sm"></i>
+          </div>
+          <h1 class="sidebar-logo-text">Pathara</h1>
+        </div>
+
+        <nav class="sidebar-nav">
+          <!-- render จาก sidebar-menu.js -->
+        </nav>
+
+        <button class="sidebar-logout">
+          <i data-lucide="log-out" class="sidebar-icon-xs"></i>
+          <span>Go Out</span>
+        </button>
+      </aside>
+
+      <!-- Main Area -->
+      <div class="main-area">
+        <!-- Topbar -->
+        <header class="topbar">
+          <!-- render จาก topbar.js -->
+        </header>
+
+        <!-- Content -->
+        <div class="content">
+          <div class="content-header">
+            <div>
+              <h2 class="content-title">Initial Stock</h2>
+              <p class="content-subtitle">ตั้งจำนวนสินค้าเริ่มต้นในแต่ละคลัง</p>
+            </div>
+            <button class="btn-primary" id="addInitialBtn">
+              <i data-lucide="plus" class="btn-icon"></i>
+              Add Initial Stock
+            </button>
+          </div>
+
+          <!-- Status Cards -->
+          <div class="stat-cards">
+            <div class="stat-card">
+              <div class="stat-card-icon stat-card-icon-all">
+                <i data-lucide="clipboard-list" class="stat-icon"></i>
+              </div>
+              <div>
+                <p class="stat-card-label">Total Records</p>
+                <p class="stat-card-value" id="statAll">0</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-icon stat-card-icon-active">
+                <i data-lucide="package-check" class="stat-icon"></i>
+              </div>
+              <div>
+                <p class="stat-card-label">Total Units</p>
+                <p class="stat-card-value" id="statTotalUnits">0</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-icon" style="background-color: #fef3c7; color: #f59e0b;">
+                <i data-lucide="warehouse" class="stat-icon"></i>
+              </div>
+              <div>
+                <p class="stat-card-label">Warehouses</p>
+                <p class="stat-card-value" id="statWarehouses">0</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filter Bar -->
+          <div class="filter-bar">
+            <div class="filter-group">
+              <select class="form-select filter-sort" id="filterWarehouse">
+                <option value="all">All Warehouses</option>
+                <option value="คลังกลาง กรุงเทพ">คลังกลาง กรุงเทพ</option>
+                <option value="คลังภาคเหนือ">คลังภาคเหนือ</option>
+                <option value="คลังภาคใต้">คลังภาคใต้</option>
+                <option value="คลังออนไลน์">คลังออนไลน์</option>
+              </select>
+              <div class="filter-search">
+                <i data-lucide="search" class="filter-search-icon"></i>
+                <input type="text" placeholder="Search product..." class="filter-search-input" />
+              </div>
+            </div>
+            <div class="filter-group">
+              <select class="form-select filter-sort" id="sortSelect">
+                <option value="default">Sort by</option>
+                <option value="product-asc">Product A-Z</option>
+                <option value="product-desc">Product Z-A</option>
+                <option value="qty-desc">Qty: High-Low</option>
+                <option value="qty-asc">Qty: Low-High</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Table -->
+          <div class="table-container">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th data-sort="product">Product Name</th>
+                  <th data-sort="warehouse">Warehouse</th>
+                  <th data-sort="qty" data-sort-type="number">Initial Qty</th>
+                  <th data-sort="cost" data-sort-type="number">Cost/Unit</th>
+                  <th data-sort="total" data-sort-type="number">Total Cost</th>
+                  <th data-sort="date" data-sort-type="date">Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="initialTableBody">
+                <!-- render จาก JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+          <p class="footer-text">&copy; 2026 Pathara. All rights reserved.</p>
+          <nav class="footer-nav">
+            <a href="#" class="footer-link">Privacy Policy</a>
+            <a href="#" class="footer-link">Terms of Service</a>
+            <a href="#" class="footer-link">Support</a>
+          </nav>
+        </footer>
+      </div>
+    </div>
+
+    <!-- Modal Add/Edit Initial Stock -->
+    <div class="modal-overlay" id="initialModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title" id="modalTitle">Add Initial Stock</h3>
+          <button class="modal-close"><i data-lucide="x"></i></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="editId" />
+          <div class="form-group">
+            <label class="form-label">Product</label>
+            <select class="form-select" id="inputProduct">
+              <option value="Wireless Headphones">Wireless Headphones</option>
+              <option value="Running Shoes">Running Shoes</option>
+              <option value="Cotton T-Shirt">Cotton T-Shirt</option>
+              <option value="Yoga Mat">Yoga Mat</option>
+              <option value="Protein Powder">Protein Powder</option>
+              <option value="Smart Watch">Smart Watch</option>
+              <option value="Leather Wallet">Leather Wallet</option>
+              <option value="Face Serum">Face Serum</option>
+              <option value="Desk Lamp">Desk Lamp</option>
+              <option value="JavaScript Handbook">JavaScript Handbook</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Warehouse</label>
+            <select class="form-select" id="inputWarehouse">
+              <option value="คลังกลาง กรุงเทพ">คลังกลาง กรุงเทพ</option>
+              <option value="คลังภาคเหนือ">คลังภาคเหนือ</option>
+              <option value="คลังภาคใต้">คลังภาคใต้</option>
+              <option value="คลังออนไลน์">คลังออนไลน์</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Initial Quantity</label>
+            <input type="number" class="form-input" id="inputQty" placeholder="0" min="0" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Cost per Unit (฿)</label>
+            <input type="number" class="form-input" id="inputCost" placeholder="0.00" min="0" step="0.01" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" onclick="closeModalById('initialModal')">Cancel</button>
+          <button class="btn-primary" onclick="saveInitial()">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div class="modal-overlay" id="confirmModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title" id="confirmTitle">Confirm</h3>
+          <button class="modal-close"><i data-lucide="x"></i></button>
+        </div>
+        <div class="modal-body">
+          <p id="confirmMessage" style="font-size: 12px; color: #64748b;"></p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" id="confirmCancelBtn">Cancel</button>
+          <button class="btn-primary" id="confirmOkBtn">OK</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="../../assets/js/table.js"></script>
+    <script src="../../assets/js/modal.js"></script>
+    <script src="../../assets/js/confirm.js"></script>
+    <script src="../../assets/js/sidebar-menu.js"></script>
+    <script>renderSidebarMenu("products-initial.html");</script>
+    <script src="/assets/js/topbar.js"></script>
+    <script>renderTopbar({ group: "Inventory", page: "สต็อกเริ่มต้น" });</script>
+    <script src="products-initial.js"></script>
+  </body>
+</html>
