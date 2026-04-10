@@ -1,13 +1,10 @@
 RewriteEngine On
 
-# Redirect root to homepage (dynamic from Supabase)
-RewriteRule ^$ /modules/frontend/page.html?slug=home-page [L,R=302]
+# Root -> page.html (โหลดหน้าแรกจาก Supabase อัตโนมัติ)
+RewriteRule ^$ /modules/frontend/page.html [L,R=302]
 
 # Clean URL: /p/slug-name -> page.html?slug=slug-name
 RewriteRule ^p/([a-zA-Z0-9_-]+)$ /modules/frontend/page.html?slug=$1 [L,QSA]
-
-# Clean URL: /homepage -> dynamic page
-RewriteRule ^homepage$ /modules/frontend/page.html?slug=home-page [L]
 
 # Clean URL: /page-management -> editor
 RewriteRule ^page-management$ /modules/frontend/page-management/main-page.html [L]

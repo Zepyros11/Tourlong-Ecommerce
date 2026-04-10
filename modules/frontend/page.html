@@ -29,33 +29,65 @@
 
     // Get slug from URL
     var params = new URLSearchParams(window.location.search);
-    var slug = params.get("slug") || "home-page";
+    var slug = params.get("slug");
 
-    // Update page title
-    document.title = "Tour Long — " + slug;
+    if (slug) {
+      // มี slug → โหลดหน้าตาม slug
+      loadPageBySlug(slug);
+    } else {
+      // ไม่มี slug → โหลดหน้าแรกที่ published (เรียงตาม id)
+      loadFirstPage();
+    }
 
-    // Load page from Supabase
-    fetch(SUPABASE_URL + "/rest/v1/pages?slug=eq." + slug + "&select=*", { headers: headers })
-      .then(function (res) { return res.json(); })
-      .then(function (pages) {
-        if (!pages || pages.length === 0) {
-          showError("Page not found", slug);
-          return;
-        }
-        var page = pages[0];
-        document.title = page.name + " — Tour Long";
+    function loadFirstPage() {
+      fetch(SUPABASE_URL + "/rest/v1/pages?status=eq.published&select=*&order=id.asc&limit=1", { headers: headers })
+        .then(function (res) { return res.json(); })
+        .then(function (pages) {
+          if (!pages || pages.length === 0) {
+            // ไม่มี published page → ลองโหลด draft
+            return fetch(SUPABASE_URL + "/rest/v1/pages?select=*&order=id.asc&limit=1", { headers: headers })
+              .then(function (res) { return res.json(); });
+          }
+          return pages;
+        })
+        .then(function (pages) {
+          if (!pages || pages.length === 0) {
+            showError("No pages", "ยังไม่มีหน้าเว็บ กรุณาสร้างหน้าใหม่ใน Page Builder");
+            return;
+          }
+          loadPageData(pages[0]);
+        })
+        .catch(function (err) {
+          console.error(err);
+          showError("Error", err.message);
+        });
+    }
 
-        // Load blocks
-        return fetch(SUPABASE_URL + "/rest/v1/blocks?page_id=eq." + page.id + "&select=*&order=sort_order.asc", { headers: headers })
-          .then(function (res) { return res.json(); })
-          .then(function (blocks) {
-            renderPage(blocks);
-          });
-      })
-      .catch(function (err) {
-        console.error(err);
-        showError("Error loading page", err.message);
-      });
+    function loadPageBySlug(pageSlug) {
+      document.title = "Tour Long — " + pageSlug;
+      fetch(SUPABASE_URL + "/rest/v1/pages?slug=eq." + pageSlug + "&select=*", { headers: headers })
+        .then(function (res) { return res.json(); })
+        .then(function (pages) {
+          if (!pages || pages.length === 0) {
+            showError("Page not found", pageSlug);
+            return;
+          }
+          loadPageData(pages[0]);
+        })
+        .catch(function (err) {
+          console.error(err);
+          showError("Error", err.message);
+        });
+    }
+
+    function loadPageData(page) {
+      document.title = page.name + " — Tour Long";
+      fetch(SUPABASE_URL + "/rest/v1/blocks?page_id=eq." + page.id + "&select=*&order=sort_order.asc", { headers: headers })
+        .then(function (res) { return res.json(); })
+        .then(function (blocks) {
+          renderPage(blocks);
+        });
+    }
 
     function showError(title, message) {
       document.getElementById("pageContent").innerHTML =
