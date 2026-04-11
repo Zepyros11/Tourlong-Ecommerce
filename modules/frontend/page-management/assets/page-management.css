@@ -1153,7 +1153,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 400px;
+  min-height: 120px;
   border: 2px dashed #e2e8f0;
   border-radius: 16px;
   background: #fff;
@@ -1163,21 +1163,21 @@
 }
 
 .canvas-empty-icon {
-  width: 40px;
-  height: 40px;
-  margin-bottom: 12px;
+  width: 24px;
+  height: 24px;
+  margin-bottom: 6px;
   color: #cbd5e1;
 }
 
 .canvas-empty-title {
-  font-size: 14px;
+  font-size: 11px;
   font-weight: 700;
   color: #64748b;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .canvas-empty-text {
-  font-size: 11px;
+  font-size: 9px;
   color: #94a3b8;
 }
 
