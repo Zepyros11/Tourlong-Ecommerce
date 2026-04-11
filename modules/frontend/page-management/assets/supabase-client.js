@@ -108,6 +108,22 @@ function uploadFileToStorage(file, folder) {
   });
 }
 
+// ===================== Products & Categories =====================
+
+/** โหลด categories ทั้งหมด */
+function fetchCategories() {
+  return fetch(SUPABASE_URL + "/rest/v1/categories?select=*&order=id.asc", {
+    headers: supabaseHeaders,
+  }).then(function (res) { return res.json(); });
+}
+
+/** โหลด products ทั้งหมด (join category name) */
+function fetchProducts() {
+  return fetch(SUPABASE_URL + "/rest/v1/products?select=*,categories(name)&status=eq.active&order=id.asc", {
+    headers: supabaseHeaders,
+  }).then(function (res) { return res.json(); });
+}
+
 /** เพิ่ม block เดียว */
 function insertBlockDB(pageId, block, sortOrder) {
   return fetch(SUPABASE_URL + "/rest/v1/blocks", {

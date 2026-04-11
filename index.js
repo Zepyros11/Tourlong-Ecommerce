@@ -12,7 +12,7 @@ app.use("/assets", express.static(path.join(__dirname, "assets")));
 // Serve the home page from the home-page folder
 app.get("/homepage", (req, res) => {
   res.sendFile(
-    path.join(__dirname, "modules", "frontend", "home-page", "home-page.html"),
+    path.join(__dirname, "modules", "frontend", "page.html"),
     (err) => {
       if (err) {
         console.error("Failed to send home-page.html:", err);

@@ -15,7 +15,7 @@
   <body>
     <div class="layout">
       <!-- Sidebar -->
-      <aside class="sidebar">
+      <aside class="sidebar" id="mainSidebar">
         <div class="sidebar-logo">
           <div class="sidebar-logo-icon">
             <i data-lucide="palette" class="sidebar-icon-sm"></i>
@@ -27,12 +27,51 @@
           <i data-lucide="log-out" class="sidebar-icon-xs"></i>
           <span>Go Out</span>
         </button>
+        <button class="sidebar-collapse-btn" id="sidebarCollapseBtn" title="ซ่อน Sidebar">
+          <i data-lucide="chevrons-left" style="width:14px;height:14px;"></i>
+        </button>
       </aside>
 
       <!-- Main Area -->
       <div class="main-area">
         <!-- Topbar -->
         <header class="topbar"></header>
+
+        <!-- Editor Topbar -->
+        <div class="editor-topbar" id="editorTopbarInner" style="display:none;">
+          <div class="editor-topbar-left">
+            <div class="editor-page-info">
+              <input type="text" class="editor-page-title-input" id="editorPageTitle" placeholder="Page Title..." />
+              <span class="editor-page-slug" id="editorPageSlug">/home-page</span>
+              <button class="btn-icon-only" id="pageSettingsBtn" title="Page Settings">
+                <i data-lucide="settings" style="width:14px;height:14px;"></i>
+              </button>
+            </div>
+          </div>
+          <div class="editor-topbar-center">
+            <button class="btn-outline btn-sm" id="previewBtn">
+              <i data-lucide="eye" style="width:12px;height:12px;"></i>
+              Preview
+            </button>
+            <button class="btn-outline btn-sm" id="saveDraftBtn">
+              <i data-lucide="save" style="width:12px;height:12px;"></i>
+              Save Draft
+            </button>
+            <button class="btn-primary btn-sm" id="publishBtn">
+              <i data-lucide="globe" class="btn-icon"></i>
+              Publish
+            </button>
+          </div>
+          <div class="editor-topbar-right">
+            <div class="editor-user-menu" id="editorUserMenu">
+              <div class="editor-user-avatar">ส</div>
+              <div class="editor-user-info">
+                <span class="editor-user-name">สมชาย</span>
+                <span class="editor-user-role">Admin</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <!-- Welcome Screen (แสดงเมื่อไม่มี page) -->
         <div class="content" id="welcomeView" style="display:none;">
@@ -101,33 +140,6 @@
         <!-- Editor Content -->
         <div class="content" id="editorView" style="padding:0;display:none;">
 
-          <!-- Editor Topbar -->
-          <div class="editor-topbar">
-            <div class="editor-topbar-left">
-              <div class="editor-page-info">
-                <input type="text" class="editor-page-title-input" id="editorPageTitle" placeholder="Page Title..." />
-                <span class="editor-page-slug" id="editorPageSlug">/home-page</span>
-              </div>
-            </div>
-            <div class="editor-topbar-right">
-              <button class="btn-outline btn-sm" id="pageSettingsBtn" title="Page Settings">
-                <i data-lucide="settings" style="width:12px;height:12px;"></i>
-              </button>
-              <button class="btn-outline btn-sm" id="previewBtn">
-                <i data-lucide="eye" style="width:12px;height:12px;"></i>
-                Preview
-              </button>
-              <button class="btn-outline btn-sm" id="saveDraftBtn">
-                <i data-lucide="save" style="width:12px;height:12px;"></i>
-                Save Draft
-              </button>
-              <button class="btn-primary btn-sm" id="publishBtn">
-                <i data-lucide="globe" class="btn-icon"></i>
-                Publish
-              </button>
-            </div>
-          </div>
-
           <!-- Editor Main Layout -->
           <div class="editor-layout">
 
@@ -139,6 +151,7 @@
                   Blocks
                 </h3>
               </div>
+              <div id="pageBgSettings"></div>
               <div class="editor-sidebar-body" id="blockLibraryList">
                 <!-- render จาก JS -->
               </div>
