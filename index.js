@@ -28,9 +28,19 @@ app.get("/homepage", (req, res) => {
   );
 });
 
+// Short route to Page Builder
+app.get("/admin", (req, res) => {
+  res.sendFile(path.join(__dirname, "modules", "frontend", "page-management", "main-page.html"));
+});
+
 // Redirect old dashboard route to homepage
 app.get("/dashboard", (req, res) => {
   res.redirect("/homepage");
+});
+
+// Dynamic page route: /p/home-page, /p/promotion etc.
+app.get("/p/:slug", (req, res) => {
+  res.sendFile(path.join(__dirname, "modules", "frontend", "page.html"));
 });
 
 // Fallback route to homepage

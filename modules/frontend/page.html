@@ -27,9 +27,15 @@
     var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkZXhpYmVsamZ3dHJuZmdxaG1wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MzgwNzEsImV4cCI6MjA5MTMxNDA3MX0.Xlw0tLsv7meuIBdSoGIwlcJ24vZy5djufhUB38cBWd4";
     var headers = { "apikey": SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY };
 
-    // Get slug from URL
-    var params = new URLSearchParams(window.location.search);
-    var slug = params.get("slug");
+    // Get slug from URL - support both /p/slug and ?slug=xxx
+    var slug = null;
+    var pathMatch = window.location.pathname.match(/\/p\/([^\/]+)/);
+    if (pathMatch) {
+      slug = pathMatch[1];
+    } else {
+      var params = new URLSearchParams(window.location.search);
+      slug = params.get("slug");
+    }
 
     if (slug) {
       // มี slug → โหลดหน้าตาม slug
