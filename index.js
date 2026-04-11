@@ -6,8 +6,14 @@ const port = 3000;
 
 // Serve static files
 app.use(express.static(path.join(__dirname, "modules", "frontend")));
-app.use("/modules/frontend", express.static(path.join(__dirname, "modules", "frontend")));
-app.use("/modules/backend", express.static(path.join(__dirname, "modules", "backend")));
+app.use(
+  "/modules/frontend",
+  express.static(path.join(__dirname, "modules", "frontend")),
+);
+app.use(
+  "/modules/backend",
+  express.static(path.join(__dirname, "modules", "backend")),
+);
 app.use("/assets", express.static(path.join(__dirname, "assets")));
 // Serve the home page from the home-page folder
 app.get("/homepage", (req, res) => {
