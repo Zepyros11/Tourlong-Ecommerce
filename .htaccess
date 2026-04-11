@@ -6,6 +6,9 @@ RewriteRule ^$ /modules/frontend/page.html [L,R=302]
 # Clean URL: /p/slug-name -> page.html?slug=slug-name
 RewriteRule ^p/([a-zA-Z0-9_-]+)$ /modules/frontend/page.html?slug=$1 [L,QSA]
 
+# Clean URL: /admin -> editor
+RewriteRule ^admin$ /modules/frontend/page-management/main-page.html [L]
+
 # Clean URL: /page-management -> editor
 RewriteRule ^page-management$ /modules/frontend/page-management/main-page.html [L]
 
