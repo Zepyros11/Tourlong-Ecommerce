@@ -306,25 +306,32 @@ function applyCanvasBg() {
   var page = getCurrentPage();
   if (!page) return;
   var canvas = document.getElementById("editorCanvas");
+  var wrapper = canvas ? canvas.parentElement : null;
   if (!canvas) return;
   var bg = page.bgSettings || {};
   var bgType = bg.type || "color";
 
+  var bgVal = "";
   if (bgType === "color") {
-    canvas.style.background = bg.color || "#0a0a0a";
+    bgVal = bg.color || "#0a0a0a";
   } else if (bgType === "gradient") {
     var gColors = (bg.gradient || "#0a0a0a,#1e293b").split(",");
-    canvas.style.background = "linear-gradient(" + (bg.gradientDir || "135deg") + "," + gColors[0] + "," + (gColors[1] || "#1e293b") + ")";
+    bgVal = "linear-gradient(" + (bg.gradientDir || "135deg") + "," + gColors[0] + "," + (gColors[1] || "#1e293b") + ")";
   } else if (bgType === "image") {
     var mode = bg.mode || "scroll";
     var imgUrl = bg.image || "";
     if (imgUrl) {
       var attachment = mode === "fixed" ? "fixed" : mode === "parallax" ? "fixed" : "scroll";
-      canvas.style.background = "url('" + imgUrl + "') center/cover no-repeat " + attachment;
+      bgVal = "url('" + imgUrl + "') center/cover no-repeat " + attachment;
     } else {
-      canvas.style.background = bg.color || "#0a0a0a";
+      bgVal = bg.color || "#0a0a0a";
     }
+  } else {
+    bgVal = "#0a0a0a";
   }
+
+  canvas.style.background = bgVal;
+  if (wrapper) wrapper.style.background = bgVal;
 }
 
 function clearPageBgImage() {

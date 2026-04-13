@@ -88,11 +88,40 @@
 
     function loadPageData(page) {
       document.title = page.name + " — Tour Long";
+      applyPageBg(page.bg_settings);
       fetch(SUPABASE_URL + "/rest/v1/blocks?page_id=eq." + page.id + "&select=*&order=sort_order.asc", { headers: headers })
         .then(function (res) { return res.json(); })
         .then(function (blocks) {
           renderPage(blocks);
         });
+    }
+
+    function applyPageBg(bg) {
+      bg = bg || {};
+      var bgType = bg.type || "color";
+      var body = document.body;
+      if (bgType === "color") {
+        body.style.background = bg.color || "#0a0a0a";
+      } else if (bgType === "gradient") {
+        var gColors = (bg.gradient || "#0a0a0a,#1e293b").split(",");
+        body.style.background = "linear-gradient(" + (bg.gradientDir || "135deg") + "," + gColors[0] + "," + (gColors[1] || "#1e293b") + ")";
+        body.style.minHeight = "100vh";
+      } else if (bgType === "image" && bg.image) {
+        var mode = bg.mode || "scroll";
+        var attachment = (mode === "fixed" || mode === "parallax") ? "fixed" : "scroll";
+        body.style.background = "url('" + bg.image + "') center/cover no-repeat " + attachment;
+        body.style.minHeight = "100vh";
+        var ov = bg.overlay !== undefined ? bg.overlay : 0.5;
+        if (ov > 0) {
+          var overlay = document.createElement("div");
+          overlay.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0," + ov + ");pointer-events:none;z-index:0;";
+          document.body.appendChild(overlay);
+          document.getElementById("pageContent").style.position = "relative";
+          document.getElementById("pageContent").style.zIndex = "1";
+        }
+      } else {
+        body.style.background = "#0a0a0a";
+      }
     }
 
     function showError(title, message) {
@@ -134,40 +163,49 @@
           var pageLogo = d.logoImage
             ? '<img src="' + escapeHtml(d.logoImage) + '" style="height:' + lh + 'px;border-radius:8px;" />'
             : '<div style="width:' + lh + 'px;height:' + lh + 'px;background:#ef4444;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;">TL</div>';
-          return '<header style="display:flex;align-items:center;justify-content:space-between;padding:20px 40px;background:#0a0a0a;">' +
-            '<a href="/modules/frontend/page.html?slug=home-page" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:#fff;">' +
+          var hFontColor = d.fontColor || '#ffffff';
+          return '<header style="display:flex;align-items:center;justify-content:space-between;padding:20px 40px;background:' + (d.bgColor || '#0a0a0a') + ';color:' + hFontColor + ';">' +
+            '<a href="/modules/frontend/page.html?slug=home-page" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:' + hFontColor + ';">' +
             pageLogo +
             '<span style="font-weight:800;font-size:18px;">' + escapeHtml(d.logoText || "LOGO") + '</span>' +
             '</a>' +
-            '<nav style="display:flex;gap:24px;">' + navLinks + '</nav>' +
+            '<nav style="display:flex;gap:24px;">' + navLinks.replace(/color:rgba\(255,255,255,0\.7\)/g, 'color:' + hFontColor) + '</nav>' +
             '</header>';
 
         case "hero":
+          var heroFontColor = d.fontColor || '#fff';
+          var heroSubColor = d.subColor || heroFontColor;
           return '<section style="background:' + (d.bgColor || '#0a0a0a') + ';padding:80px 40px;text-align:' + (d.textAlign || 'center') + ';">' +
-            '<h1 style="font-size:48px;font-weight:800;margin-bottom:16px;">' + escapeHtml(d.title || "") + '</h1>' +
-            '<p style="font-size:18px;color:rgba(255,255,255,0.7);margin-bottom:24px;max-width:600px;' + (d.textAlign === 'center' ? 'margin-left:auto;margin-right:auto;' : '') + '">' + escapeHtml(d.subtitle || "") + '</p>' +
-            '<a href="#" style="display:inline-block;background:#ef4444;color:#fff;padding:14px 36px;border-radius:999px;font-weight:700;text-decoration:none;">' + escapeHtml(d.buttonText || "Button") + '</a>' +
+            '<h1 style="font-size:48px;font-weight:800;margin-bottom:16px;color:' + heroFontColor + ';">' + escapeHtml(d.title || "") + '</h1>' +
+            '<p style="font-size:18px;color:' + heroSubColor + ';opacity:0.7;margin-bottom:24px;max-width:600px;' + (d.textAlign === 'center' ? 'margin-left:auto;margin-right:auto;' : '') + '">' + escapeHtml(d.subtitle || "") + '</p>' +
+            '<a href="#" style="display:inline-block;background:' + (d.btnColor || '#ef4444') + ';color:' + (d.btnFontColor || '#fff') + ';padding:14px 36px;border-radius:999px;font-weight:700;text-decoration:none;">' + escapeHtml(d.buttonText || "Button") + '</a>' +
             '</section>';
 
         case "text":
           var fs = d.headingSize === "large" ? "36px" : d.headingSize === "small" ? "20px" : "28px";
+          var tFontColor = d.fontColor || '#ffffff';
+          var tContentColor = d.contentColor || tFontColor;
           return '<section style="padding:60px 40px;text-align:' + (d.textAlign || 'left') + ';">' +
-            (d.heading ? '<h2 style="font-size:' + fs + ';font-weight:800;margin-bottom:16px;">' + escapeHtml(d.heading) + '</h2>' : '') +
-            '<p style="font-size:16px;color:rgba(255,255,255,0.7);line-height:1.8;max-width:800px;' + (d.textAlign === 'center' ? 'margin:0 auto;' : '') + '">' + escapeHtml(d.content || "") + '</p>' +
+            (d.heading ? '<h2 style="font-size:' + fs + ';font-weight:800;margin-bottom:16px;color:' + tFontColor + ';">' + escapeHtml(d.heading) + '</h2>' : '') +
+            '<p style="font-size:16px;color:' + tContentColor + ';opacity:0.7;line-height:1.8;max-width:800px;' + (d.textAlign === 'center' ? 'margin:0 auto;' : '') + '">' + escapeHtml(d.content || "") + '</p>' +
             '</section>';
 
         case "products":
           var pCols = d.columns || 3;
+          var pCardBg = d.cardBg || "#111";
+          var pCardRad = d.cardRadius || 16;
+          var pImgH = d.imgHeight || 120;
+          var pPriceColor = d.priceColor || "#ef4444";
           var pCards = "";
           for (var i = 0; i < Math.min(pCols, d.limit || 6); i++) {
-            pCards += '<div style="background:#111;border-radius:16px;padding:16px;text-align:center;">' +
-              '<div style="width:100%;height:120px;background:#1a1a2e;border-radius:12px;margin-bottom:12px;"></div>' +
-              '<p style="font-weight:700;font-size:14px;">Product ' + (i + 1) + '</p>' +
-              '<p style="color:#ef4444;font-weight:800;font-size:16px;margin-top:4px;">฿69</p>' +
+            pCards += '<div style="background:' + pCardBg + ';border-radius:' + pCardRad + 'px;padding:16px;text-align:center;">' +
+              '<div style="width:100%;height:' + pImgH + 'px;background:#1a1a2e;border-radius:' + Math.max(pCardRad - 4, 0) + 'px;margin-bottom:12px;"></div>' +
+              '<p style="font-weight:700;font-size:14px;color:' + (d.titleColor || '#fff') + ';">Product ' + (i + 1) + '</p>' +
+              '<p style="color:' + pPriceColor + ';font-weight:800;font-size:16px;margin-top:4px;">฿69</p>' +
               '</div>';
           }
           return '<section style="padding:60px 40px;">' +
-            '<h2 style="font-size:28px;font-weight:800;text-align:center;margin-bottom:32px;">' + escapeHtml(d.title || "Products") + '</h2>' +
+            '<h2 style="font-size:28px;font-weight:800;text-align:center;margin-bottom:32px;color:' + (d.titleColor || '#14b8a6') + ';">' + escapeHtml(d.title || "Products") + '</h2>' +
             '<div style="display:grid;grid-template-columns:repeat(' + pCols + ',1fr);gap:20px;max-width:900px;margin:0 auto;">' + pCards + '</div>' +
             '</section>';
 
@@ -184,24 +222,39 @@
             '</section>';
 
         case "contact":
+          var ctCardBg = d.cardBg || "#111";
+          var ctIconColor = d.iconColor || "#14b8a6";
+          var ctTextColor = d.textColor || "#fff";
+          var ctTitleColor = d.titleColor || "#fff";
+          var ctItems = [];
+          if (d.phone) ctItems.push({ icon: "📞", label: "Phone", value: d.phone });
+          if (d.line) ctItems.push({ icon: "💬", label: "Line", value: d.line });
+          if (d.email) ctItems.push({ icon: "📧", label: "Email", value: d.email });
+          if (d.address) ctItems.push({ icon: "📍", label: "Address", value: d.address });
+          if (d.website) ctItems.push({ icon: "🌐", label: "Website", value: d.website });
+          if (d.facebook) ctItems.push({ icon: "📘", label: "Facebook", value: d.facebook });
+          if (ctItems.length === 0) ctItems = [
+            { icon: "📞", label: "Phone", value: d.phone || "-" },
+            { icon: "💬", label: "Line", value: d.line || "-" },
+            { icon: "📧", label: "Email", value: d.email || "-" },
+          ];
+          var ctCardsHtml = ctItems.map(function (ci) {
+            return '<div style="background:' + ctCardBg + ';border-radius:16px;padding:24px;"><p style="font-size:24px;margin-bottom:8px;">' + ci.icon + '</p><p style="font-size:12px;color:' + ctTextColor + ';opacity:0.5;margin-bottom:4px;">' + ci.label + '</p><p style="font-weight:700;color:' + ctTextColor + ';">' + escapeHtml(ci.value) + '</p></div>';
+          }).join("");
           return '<section style="padding:60px 40px;text-align:center;">' +
-            '<h2 style="font-size:28px;font-weight:800;margin-bottom:32px;">' + escapeHtml(d.title || "Contact") + '</h2>' +
-            '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:700px;margin:0 auto;">' +
-            '<div style="background:#111;border-radius:16px;padding:24px;"><p style="font-size:24px;margin-bottom:8px;">📞</p><p style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:4px;">Phone</p><p style="font-weight:700;">' + escapeHtml(d.phone || "-") + '</p></div>' +
-            '<div style="background:#111;border-radius:16px;padding:24px;"><p style="font-size:24px;margin-bottom:8px;">💬</p><p style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:4px;">Line</p><p style="font-weight:700;">' + escapeHtml(d.line || "-") + '</p></div>' +
-            '<div style="background:#111;border-radius:16px;padding:24px;"><p style="font-size:24px;margin-bottom:8px;">📧</p><p style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:4px;">Email</p><p style="font-weight:700;">' + escapeHtml(d.email || "-") + '</p></div>' +
-            '</div></section>';
+            '<h2 style="font-size:28px;font-weight:800;margin-bottom:32px;color:' + ctTitleColor + ';">' + escapeHtml(d.title || "Contact") + '</h2>' +
+            '<div style="display:grid;grid-template-columns:repeat(' + Math.min(ctItems.length, 3) + ',1fr);gap:20px;max-width:700px;margin:0 auto;">' + ctCardsHtml + '</div></section>';
 
         case "cta":
-          return '<section style="padding:60px 40px;text-align:center;background:linear-gradient(135deg,#0f172a,#1e293b);">' +
-            '<h2 style="font-size:32px;font-weight:800;margin-bottom:12px;">' + escapeHtml(d.heading || "CTA") + '</h2>' +
-            '<p style="font-size:16px;color:rgba(255,255,255,0.7);margin-bottom:24px;">' + escapeHtml(d.description || "") + '</p>' +
-            '<a href="' + escapeHtml(d.buttonLink || "#") + '" style="display:inline-block;background:#14b8a6;color:#fff;padding:14px 36px;border-radius:999px;font-weight:700;text-decoration:none;">' + escapeHtml(d.buttonText || "Button") + '</a>' +
+          return '<section style="padding:60px 40px;text-align:center;background:' + (d.bgColor || '#0f172a') + ';">' +
+            '<h2 style="font-size:32px;font-weight:800;margin-bottom:12px;color:' + (d.fontColor || '#fff') + ';">' + escapeHtml(d.heading || "CTA") + '</h2>' +
+            '<p style="font-size:16px;color:' + (d.descColor || d.fontColor || '#fff') + ';opacity:0.7;margin-bottom:24px;">' + escapeHtml(d.description || "") + '</p>' +
+            '<a href="' + escapeHtml(d.buttonLink || "#") + '" style="display:inline-block;background:' + (d.btnColor || '#14b8a6') + ';color:' + (d.btnFontColor || '#fff') + ';padding:14px 36px;border-radius:999px;font-weight:700;text-decoration:none;">' + escapeHtml(d.buttonText || "Button") + '</a>' +
             '</section>';
 
         case "footer":
-          return '<footer style="padding:32px 40px;background:#0a0a0a;text-align:center;border-top:1px solid #1e293b;">' +
-            '<p style="color:rgba(255,255,255,0.5);font-size:13px;">' + escapeHtml(d.text || "") + '</p>' +
+          return '<footer style="padding:32px 40px;background:' + (d.bgColor || '#0a0a0a') + ';text-align:center;border-top:1px solid #1e293b;">' +
+            '<p style="color:' + (d.fontColor || 'rgba(255,255,255,0.5)') + ';font-size:13px;">' + escapeHtml(d.text || "") + '</p>' +
             '</footer>';
 
         case "spacer":
@@ -229,15 +282,24 @@
 
         case "cards":
           var ccCols = d.columns || 3;
+          var ccBg = d.cardBg || "#111";
+          var ccTitleC = d.titleColor || "#fff";
+          var ccDescC = d.descColor || "#94a3b8";
+          var ccBtnC = d.btnColor || "#6366f1";
+          var ccRad = d.cardRadius || 16;
+          var ccImgH = d.imgHeight || 140;
           var ccCards = (d.cards || []).map(function (card) {
             var cImg = card.image
-              ? '<img src="' + escapeHtml(card.image) + '" style="width:100%;height:140px;object-fit:cover;border-radius:12px;margin-bottom:12px;" />'
-              : '<div style="width:100%;height:140px;background:#1a1a2e;border-radius:12px;margin-bottom:12px;"></div>';
+              ? '<img src="' + escapeHtml(card.image) + '" style="width:100%;height:' + ccImgH + 'px;object-fit:cover;" />'
+              : '<div style="width:100%;height:' + ccImgH + 'px;background:linear-gradient(135deg,#1a1a2e,#0f172a);"></div>';
             var cLink = card.link && card.link !== "#" ? "/modules/frontend/page.html?slug=" + card.link : "#";
-            return '<div style="background:#111;border-radius:16px;padding:20px;text-align:center;">' + cImg +
-              '<p style="font-weight:700;font-size:16px;margin-bottom:4px;">' + escapeHtml(card.title) + '</p>' +
-              '<p style="font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:12px;">' + escapeHtml(card.desc) + '</p>' +
-              '<a href="' + cLink + '" style="display:inline-block;background:#6366f1;color:#fff;padding:8px 20px;border-radius:999px;font-size:12px;font-weight:700;text-decoration:none;">Read More</a></div>';
+            return '<div style="background:' + ccBg + ';border-radius:' + ccRad + 'px;overflow:hidden;text-align:center;border:1px solid rgba(255,255,255,0.05);">' +
+              cImg +
+              '<div style="padding:20px;">' +
+              '<p style="font-weight:700;font-size:16px;margin-bottom:6px;color:' + ccTitleC + ';">' + escapeHtml(card.title) + '</p>' +
+              '<p style="font-size:13px;color:' + ccDescC + ';margin-bottom:14px;line-height:1.5;">' + escapeHtml(card.desc) + '</p>' +
+              '<a href="' + cLink + '" style="display:inline-block;background:' + ccBtnC + ';color:#fff;padding:10px 24px;border-radius:999px;font-size:12px;font-weight:700;text-decoration:none;">Read More</a>' +
+              '</div></div>';
           }).join("");
           return '<section style="padding:60px 40px;"><div style="display:grid;grid-template-columns:repeat(' + ccCols + ',1fr);gap:20px;max-width:1000px;margin:0 auto;">' + ccCards + '</div></section>';
 
