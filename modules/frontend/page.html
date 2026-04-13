@@ -299,6 +299,17 @@
             '<div style="display:grid;grid-template-columns:repeat(' + gCols + ',1fr);gap:12px;max-width:900px;margin:0 auto;">' + gItems + '</div>' +
             '</section>';
 
+        case "image":
+          if (!d.src) return '';
+          var imgMaxW = d.size === "small" ? "400px" : d.size === "medium" ? "600px" : "100%";
+          var pImgBg = d.bgColor && d.bgColor !== "transparent" ? "background:" + d.bgColor + ";" : "";
+          var pImgAuto = d.autoHeight !== false;
+          var pImgObjPos = d.bgImagePos === "top" ? "center top" : d.bgImagePos === "bottom" ? "center bottom" : "center center";
+          var pImgHStyle = pImgAuto ? "height:auto;" : "height:" + (parseInt(d.height) || 400) + "px;object-fit:cover;object-position:" + pImgObjPos + ";";
+          return '<section style="padding:40px;text-align:' + (d.align || "center") + ';' + pImgBg + '">' +
+            '<img src="' + escapeHtml(d.src) + '" alt="' + escapeHtml(d.alt || "") + '" style="max-width:' + imgMaxW + ';width:100%;border-radius:' + (d.borderRadius || "10") + 'px;' + pImgHStyle + (d.align === "center" ? "margin:0 auto;display:block;" : "") + '" />' +
+            '</section>';
+
         case "video":
           return '<section style="padding:60px 40px;text-align:center;">' +
             '<div style="max-width:800px;margin:0 auto;height:400px;background:#111;border-radius:16px;display:flex;align-items:center;justify-content:center;">' +
@@ -335,6 +346,45 @@
             '<div style="display:flex;gap:40px;align-items:center;max-width:1000px;margin:0 auto;' + itDir + '">' +
             '<div style="flex:1;min-width:0;">' + itImg + '</div>' +
             '<div style="flex:1;min-width:0;">' + itText + '</div>' +
+            '</div></section>';
+
+        case "promo":
+          var prmH = parseInt(d.height) || 240;
+          var prmSide = d.textSide || "left";
+          var prmOvColor = d.overlayColor || "#000000";
+          var prmOvOp = d.overlayOpacity !== undefined ? d.overlayOpacity : 0.7;
+          var prmOvRgba = hexToRgba(prmOvColor, prmOvOp);
+          var prmOvTrans = hexToRgba(prmOvColor, 0);
+          var prmOvGrad;
+          if (prmSide === "left") prmOvGrad = 'linear-gradient(90deg, ' + prmOvRgba + ' 0%, ' + prmOvRgba + ' 40%, ' + prmOvTrans + ' 100%)';
+          else if (prmSide === "right") prmOvGrad = 'linear-gradient(90deg, ' + prmOvTrans + ' 0%, ' + prmOvRgba + ' 60%, ' + prmOvRgba + ' 100%)';
+          else prmOvGrad = prmOvRgba;
+          var prmLink = d.buttonLink && d.buttonLink !== "#" ? "/modules/frontend/page.html?slug=" + d.buttonLink : "#";
+          var prmAlign = prmSide === "right" ? "flex-end" : prmSide === "center" ? "center" : "flex-start";
+          var prmTextAlign = prmSide === "center" ? "center" : prmSide === "right" ? "right" : "left";
+          var prmTextWidth = prmSide === "center" ? "80%" : "50%";
+          var prmVAlign = d.textAlignY === "top" ? "flex-start" : d.textAlignY === "bottom" ? "flex-end" : "center";
+          var prmInner = '<div style="width:' + prmTextWidth + ';padding:40px 48px;text-align:' + prmTextAlign + ';">' +
+            '<div style="font-size:12px;letter-spacing:3px;font-weight:700;color:' + (d.labelColor || '#f59e0b') + ';margin-bottom:12px;">' + escapeHtml((d.label || "").toUpperCase()) + '</div>' +
+            '<h2 style="font-size:40px;line-height:1.1;font-weight:800;color:' + (d.titleColor || '#fff') + ';margin-bottom:24px;">' + escapeHtml(d.title || "") + '</h2>' +
+            '<div><a href="' + prmLink + '" style="display:inline-block;background:' + (d.btnColor || '#f59e0b') + ';color:' + (d.btnFontColor || '#fff') + ';padding:12px 28px;border-radius:3px;font-size:12px;font-weight:700;letter-spacing:2px;text-decoration:none;">' + escapeHtml((d.buttonText || "VIEW MORE").toUpperCase()) + '</a></div>' +
+            '</div>';
+          if (d.autoHeight && d.image) {
+            return '<section style="padding:40px;max-width:1100px;margin:0 auto;">' +
+              '<div style="position:relative;border-radius:12px;overflow:hidden;">' +
+              '<img src="' + escapeHtml(d.image) + '" style="width:100%;height:auto;display:block;" />' +
+              '<div style="position:absolute;inset:0;background:' + prmOvGrad + ';"></div>' +
+              '<div style="position:absolute;inset:0;display:flex;align-items:' + prmVAlign + ';justify-content:' + prmAlign + ';">' + prmInner + '</div>' +
+              '</div></section>';
+          }
+          var prmBgPos = d.bgImagePos === "top" ? "center top" : d.bgImagePos === "bottom" ? "center bottom" : "center center";
+          var prmBgStyle = d.image
+            ? "background-image:url('" + String(d.image).replace(/'/g, "\\'") + "');background-size:cover;background-position:" + prmBgPos + ";background-repeat:no-repeat;"
+            : 'background:linear-gradient(135deg,#fbbf24,#f59e0b);';
+          return '<section style="padding:40px;max-width:1100px;margin:0 auto;">' +
+            '<div style="position:relative;border-radius:12px;overflow:hidden;height:' + prmH + 'px;' + prmBgStyle + '">' +
+            '<div style="position:absolute;inset:0;background:' + prmOvGrad + ';"></div>' +
+            '<div style="position:relative;height:100%;display:flex;align-items:' + prmVAlign + ';justify-content:' + prmAlign + ';">' + prmInner + '</div>' +
             '</div></section>';
 
         case "cards":
@@ -395,6 +445,17 @@
     function escapeHtml(str) {
       if (!str) return "";
       return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    function hexToRgba(hex, alpha) {
+      if (!hex) return "rgba(0,0,0," + alpha + ")";
+      var h = hex.replace("#", "");
+      if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+      var r = parseInt(h.substr(0, 2), 16);
+      var g = parseInt(h.substr(2, 2), 16);
+      var b = parseInt(h.substr(4, 2), 16);
+      if (isNaN(r) || isNaN(g) || isNaN(b)) return "rgba(0,0,0," + alpha + ")";
+      return "rgba(" + r + "," + g + "," + b + "," + alpha + ")";
     }
   </script>
 </body>

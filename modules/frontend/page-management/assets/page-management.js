@@ -189,10 +189,15 @@ function renderBlockLibrary() {
     groups[block.group].push(block);
   });
 
+  var groupIdx = 0;
   Object.keys(groups).forEach(function (groupName) {
+    var gid = "block-lib-group-" + (groupIdx++);
     html += '<div class="block-library-group">';
-    html += '<div class="block-library-group-title">' + groupName + '</div>';
-    html += '<div class="block-library-grid">';
+    html += '<div class="block-library-group-title collapsible" data-target="' + gid + '">';
+    html += '<span>' + groupName + '</span>';
+    html += '<i data-lucide="chevron-up" class="block-library-group-chevron" style="width:12px;height:12px;"></i>';
+    html += '</div>';
+    html += '<div class="block-library-grid" id="' + gid + '">';
     groups[groupName].forEach(function (block) {
       html += '<div class="block-library-item" draggable="true" data-block-type="' + block.type + '">';
       if (block.preview) {
@@ -217,6 +222,24 @@ function renderBlockLibrary() {
 
   container.innerHTML = html;
   if (typeof lucide !== "undefined") lucide.createIcons();
+
+  // Collapsible group headers
+  container.querySelectorAll(".block-library-group-title.collapsible").forEach(function (header) {
+    header.addEventListener("click", function () {
+      var targetId = this.dataset.target;
+      var body = document.getElementById(targetId);
+      var chevron = this.querySelector(".block-library-group-chevron");
+      if (!body) return;
+      var collapsed = body.style.display === "none";
+      if (collapsed) {
+        body.style.display = "";
+        if (chevron) chevron.style.transform = "rotate(0deg)";
+      } else {
+        body.style.display = "none";
+        if (chevron) chevron.style.transform = "rotate(180deg)";
+      }
+    });
+  });
 
   // Bind drag events on library items
   container.querySelectorAll(".block-library-item").forEach(function (item) {
@@ -786,6 +809,9 @@ function renderBlockSettings() {
   var container = document.getElementById("blockSettingsContent");
   if (!container) return;
 
+  // Reset section counter so IDs restart each render
+  _settingsSectionCounter = 0;
+
   if (!selectedBlockId) {
     container.innerHTML = '<div class="settings-empty">' +
       '<i data-lucide="mouse-pointer" class="settings-empty-icon"></i>' +
@@ -900,6 +926,13 @@ function generateSettingsFields(block) {
         settingsSelectField("Size", "setting-size", data.size || "full", ["small", "medium", "full"]),
         settingsSelectField("Alignment", "setting-align", data.align || "center", ["left", "center", "right"]),
         settingsField("Border Radius (px)", "text", "setting-borderRadius", data.borderRadius || "10"),
+        '<div class="settings-field"><label class="settings-label" style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" id="setting-autoHeight"' + (data.autoHeight !== false ? ' checked' : '') + ' style="width:14px;height:14px;" /> Auto Height (ปรับตามสัดส่วนภาพ)</label></div>',
+        settingsField("Height (px)", "text", "setting-height", String(data.height || 400)),
+        settingsSelectField("ตำแหน่งภาพ (Image Position)", "setting-bgImagePos", data.bgImagePos || "middle", [
+          { value: "top", label: "บน (Top)" },
+          { value: "middle", label: "กลาง (Middle)" },
+          { value: "bottom", label: "ล่าง (Bottom)" },
+        ]),
       ]);
       break;
 
@@ -938,6 +971,45 @@ function generateSettingsFields(block) {
         settingsPageLinkField("Link", "setting-btn2Link", data.btn2Link || "#"),
         settingsColorField("Button Color", "setting-btn2Color", data.btn2Color || "#222222"),
         settingsColorField("Font Color", "setting-btn2FontColor", data.btn2FontColor || "#ffffff"),
+      ]);
+      break;
+
+    case "promo":
+      html += settingsSection("Background Image", [
+        settingsImageUpload("Upload Image", "setting-image", data.image || ""),
+        '<div class="settings-field"><label class="settings-label" style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" id="setting-autoHeight"' + (data.autoHeight ? ' checked' : '') + ' style="width:14px;height:14px;" /> Auto Height (ปรับตามเนื้อหา)</label></div>',
+        settingsField("Height (px)", "text", "setting-height", String(data.height || 240)),
+        settingsSelectField("ตำแหน่งภาพ (Image Position)", "setting-bgImagePos", data.bgImagePos || "middle", [
+          { value: "top", label: "บน (Top)" },
+          { value: "middle", label: "กลาง (Middle)" },
+          { value: "bottom", label: "ล่าง (Bottom)" },
+        ]),
+      ]);
+      html += settingsSection("Layout & Overlay", [
+        settingsSelectField("ตำแหน่งแนวนอน", "setting-textSide", data.textSide || "left", [
+          { value: "left", label: "ข้อความซ้าย" },
+          { value: "right", label: "ข้อความขวา" },
+          { value: "center", label: "ข้อความกลาง (overlay เต็ม)" },
+        ]),
+        settingsSelectField("ตำแหน่งแนวตั้ง", "setting-textAlignY", data.textAlignY || "middle", [
+          { value: "top", label: "บน (Top)" },
+          { value: "middle", label: "กลาง (Middle)" },
+          { value: "bottom", label: "ล่าง (Bottom)" },
+        ]),
+        settingsColorField("Overlay Color", "setting-overlayColor", data.overlayColor || "#000000"),
+        '<div class="settings-field"><label class="settings-label">Overlay Opacity</label><input type="range" class="settings-input" id="setting-overlayOpacity" min="0" max="1" step="0.05" value="' + (data.overlayOpacity !== undefined ? data.overlayOpacity : 0.7) + '" /></div>',
+      ]);
+      html += settingsSection("Text", [
+        settingsField("Label", "text", "setting-label", data.label || ""),
+        settingsColorField("Label Color", "setting-labelColor", data.labelColor || "#f59e0b"),
+        settingsField("Title", "text", "setting-title", data.title || ""),
+        settingsColorField("Title Color", "setting-titleColor", data.titleColor || "#ffffff"),
+      ]);
+      html += settingsSection("Button", [
+        settingsField("Button Text", "text", "setting-buttonText", data.buttonText || "View More"),
+        settingsPageLinkField("Link", "setting-buttonLink", data.buttonLink || "#"),
+        settingsColorField("Button Color", "setting-btnColor", data.btnColor || "#f59e0b"),
+        settingsColorField("Button Font", "setting-btnFontColor", data.btnFontColor || "#ffffff"),
       ]);
       break;
 
@@ -1266,11 +1338,18 @@ function generateSettingsFields(block) {
 }
 
 // Settings field helpers
+var _settingsSectionCounter = 0;
 function settingsSection(title, fieldsHtml) {
+  _settingsSectionCounter++;
+  var sid = "settings-sec-" + _settingsSectionCounter;
   return '<div class="settings-section">' +
-    '<div class="settings-section-title">' + title + '</div>' +
+    '<div class="settings-section-title collapsible" data-target="' + sid + '">' +
+    '<span>' + title + '</span>' +
+    '<i data-lucide="chevron-up" class="settings-section-chevron" style="width:12px;height:12px;"></i>' +
+    '</div>' +
+    '<div class="settings-section-body" id="' + sid + '">' +
     fieldsHtml.join("") +
-    '</div>';
+    '</div></div>';
 }
 
 function settingsField(label, type, id, value) {
@@ -1361,6 +1440,24 @@ function settingsColorField(label, id, value) {
 function bindSettingsEvents(block) {
   var page = getCurrentPage();
   if (!page || !block) return;
+
+  // Collapsible section headers
+  document.querySelectorAll("#blockSettingsContent .settings-section-title.collapsible").forEach(function (header) {
+    header.addEventListener("click", function () {
+      var targetId = this.dataset.target;
+      var body = document.getElementById(targetId);
+      var chevron = this.querySelector(".settings-section-chevron");
+      if (!body) return;
+      var collapsed = body.style.display === "none";
+      if (collapsed) {
+        body.style.display = "";
+        if (chevron) chevron.style.transform = "rotate(0deg)";
+      } else {
+        body.style.display = "none";
+        if (chevron) chevron.style.transform = "rotate(180deg)";
+      }
+    });
+  });
 
   // Generic input/textarea/select change handler
   document.querySelectorAll("#blockSettingsContent .settings-input, #blockSettingsContent .settings-textarea, #blockSettingsContent .settings-select, #blockSettingsContent input[type='color']").forEach(function (el) {
@@ -1702,6 +1799,10 @@ function updateBlockData(block) {
       data.size = getVal("setting-size") || data.size;
       data.align = getVal("setting-align") || data.align;
       data.borderRadius = getVal("setting-borderRadius") || data.borderRadius;
+      var imgAhCb = document.getElementById("setting-autoHeight");
+      data.autoHeight = imgAhCb ? imgAhCb.checked : true;
+      data.height = getVal("setting-height") || data.height || "400";
+      data.bgImagePos = getVal("setting-bgImagePos") || data.bgImagePos || "middle";
       break;
     case "imagetext":
       data.image = getVal("setting-image");
@@ -1726,6 +1827,26 @@ function updateBlockData(block) {
       data.btn2Link = getVal("setting-btn2Link") || data.btn2Link || "#";
       data.btn2Color = getVal("setting-btn2Color") || data.btn2Color || "#222222";
       data.btn2FontColor = getVal("setting-btn2FontColor") || data.btn2FontColor || "#ffffff";
+      break;
+    case "promo":
+      data.image = getVal("setting-image") || "";
+      data.textSide = getVal("setting-textSide") || data.textSide || "left";
+      data.textAlignY = getVal("setting-textAlignY") || data.textAlignY || "middle";
+      data.overlayColor = getVal("setting-overlayColor") || data.overlayColor || "#000000";
+      var ovOp = getVal("setting-overlayOpacity");
+      data.overlayOpacity = ovOp !== "" && ovOp !== undefined ? parseFloat(ovOp) : (data.overlayOpacity !== undefined ? data.overlayOpacity : 0.7);
+      data.label = getVal("setting-label");
+      data.title = getVal("setting-title");
+      data.buttonText = getVal("setting-buttonText") || data.buttonText || "View More";
+      data.buttonLink = getVal("setting-buttonLink") || data.buttonLink || "#";
+      data.labelColor = getVal("setting-labelColor") || data.labelColor || "#f59e0b";
+      data.titleColor = getVal("setting-titleColor") || data.titleColor || "#ffffff";
+      data.btnColor = getVal("setting-btnColor") || data.btnColor || "#f59e0b";
+      data.btnFontColor = getVal("setting-btnFontColor") || data.btnFontColor || "#ffffff";
+      data.height = getVal("setting-height") || data.height || "240";
+      var ahCb = document.getElementById("setting-autoHeight");
+      data.autoHeight = ahCb ? ahCb.checked : false;
+      data.bgImagePos = getVal("setting-bgImagePos") || data.bgImagePos || "middle";
       break;
     case "products":
       data.title = getVal("setting-title");
@@ -1958,8 +2079,12 @@ function generateBlockPreview(block) {
     case "image":
       var imgBg = d.bgColor && d.bgColor !== "transparent" ? 'background:' + d.bgColor + ';' : '';
       if (d.src) {
+        var imgMaxW = d.size === 'small' ? '50%' : d.size === 'medium' ? '75%' : '100%';
+        var imgAuto = d.autoHeight !== false;
+        var imgObjPos = d.bgImagePos === "top" ? "center top" : d.bgImagePos === "bottom" ? "center bottom" : "center center";
+        var imgHStyle = imgAuto ? 'height:auto;' : 'height:' + ((parseInt(d.height) || 400) / 2) + 'px;object-fit:cover;object-position:' + imgObjPos + ';';
         return '<div class="block-preview-image" style="text-align:' + (d.align || 'center') + ';' + imgBg + 'padding:16px;border-radius:8px;">' +
-          '<img src="' + escapeHtml(d.src) + '" alt="' + escapeHtml(d.alt || '') + '" style="border-radius:' + (d.borderRadius || 10) + 'px;max-width:' + (d.size === 'small' ? '50%' : d.size === 'medium' ? '75%' : '100%') + ';" />' +
+          '<img src="' + escapeHtml(d.src) + '" alt="' + escapeHtml(d.alt || '') + '" style="border-radius:' + (d.borderRadius || 10) + 'px;max-width:' + imgMaxW + ';width:' + imgMaxW + ';' + imgHStyle + '" />' +
           '</div>';
       }
       return '<div class="block-preview-image" style="' + imgBg + '"><div class="img-placeholder"><i data-lucide="image"></i></div></div>';
@@ -1991,6 +2116,43 @@ function generateBlockPreview(block) {
       return '<div style="display:flex;gap:12px;padding:16px;align-items:center;' + itFlexDir + itBg + '">' +
         '<div style="flex:1;min-width:0;">' + itImg + '</div>' +
         '<div style="flex:1;min-width:0;">' + itText + '</div>' +
+        '</div>';
+
+    case "promo":
+      var prH = parseInt(d.height) || 240;
+      var prSide = d.textSide || "left";
+      var prOvColor = d.overlayColor || "#000000";
+      var prOvOp = d.overlayOpacity !== undefined ? d.overlayOpacity : 0.7;
+      var prOvRgba = hexToRgba(prOvColor, prOvOp);
+      var prOvTrans = hexToRgba(prOvColor, 0);
+      var prOvGrad;
+      if (prSide === "left") prOvGrad = 'linear-gradient(90deg, ' + prOvRgba + ' 0%, ' + prOvRgba + ' 50%, ' + prOvTrans + ' 100%)';
+      else if (prSide === "right") prOvGrad = 'linear-gradient(90deg, ' + prOvTrans + ' 0%, ' + prOvRgba + ' 50%, ' + prOvRgba + ' 100%)';
+      else prOvGrad = prOvRgba;
+      var prAlign = prSide === "right" ? "flex-end" : prSide === "center" ? "center" : "flex-start";
+      var prTextAlign = prSide === "center" ? "center" : prSide === "right" ? "right" : "left";
+      var prTextWidth = prSide === "center" ? "80%" : "55%";
+      var prVAlign = d.textAlignY === "top" ? "flex-start" : d.textAlignY === "bottom" ? "flex-end" : "center";
+      var prInner = '<div style="width:' + prTextWidth + ';padding:12px 16px;text-align:' + prTextAlign + ';">' +
+        '<div style="font-size:8px;letter-spacing:2px;font-weight:700;color:' + (d.labelColor || '#f59e0b') + ';margin-bottom:4px;">' + escapeHtml((d.label || "").toUpperCase()) + '</div>' +
+        '<div style="font-size:16px;line-height:1.1;font-weight:800;color:' + (d.titleColor || '#fff') + ';margin-bottom:8px;">' + escapeHtml(d.title || "Title") + '</div>' +
+        '<div><span style="display:inline-block;background:' + (d.btnColor || '#f59e0b') + ';color:' + (d.btnFontColor || '#fff') + ';padding:3px 10px;border-radius:2px;font-size:7px;font-weight:700;letter-spacing:1px;">' + escapeHtml((d.buttonText || "VIEW MORE").toUpperCase()) + '</span></div>' +
+        '</div>';
+      // Auto height = use <img> (height = image aspect ratio) | Fixed = use CSS bg-image with height
+      if (d.autoHeight && d.image) {
+        return '<div style="position:relative;border-radius:8px;overflow:hidden;">' +
+          '<img src="' + escapeHtml(d.image) + '" style="width:100%;height:auto;display:block;" />' +
+          '<div style="position:absolute;inset:0;background:' + prOvGrad + ';"></div>' +
+          '<div style="position:absolute;inset:0;display:flex;align-items:' + prVAlign + ';justify-content:' + prAlign + ';">' + prInner + '</div>' +
+          '</div>';
+      }
+      var prBgPos = d.bgImagePos === "top" ? "center top" : d.bgImagePos === "bottom" ? "center bottom" : "center center";
+      var prBgStyle = d.image
+        ? "background-image:url('" + String(d.image).replace(/'/g, "\\'") + "');background-size:cover;background-position:" + prBgPos + ";background-repeat:no-repeat;"
+        : 'background:linear-gradient(135deg,#fbbf24,#f59e0b);';
+      return '<div style="position:relative;border-radius:8px;overflow:hidden;height:' + (prH / 2) + 'px;' + prBgStyle + '">' +
+        '<div style="position:absolute;inset:0;background:' + prOvGrad + ';"></div>' +
+        '<div style="position:relative;height:100%;display:flex;align-items:' + prVAlign + ';justify-content:' + prAlign + ';">' + prInner + '</div>' +
         '</div>';
 
     case "products":
@@ -2661,8 +2823,11 @@ function generatePreviewBlock(block) {
       if (d.src) {
         var imgMaxW = d.size === "small" ? "400px" : d.size === "medium" ? "600px" : "100%";
         var pImgBg = d.bgColor && d.bgColor !== "transparent" ? 'background:' + d.bgColor + ';' : '';
+        var pImgAuto = d.autoHeight !== false;
+        var pImgObjPos = d.bgImagePos === "top" ? "center top" : d.bgImagePos === "bottom" ? "center bottom" : "center center";
+        var pImgHStyle = pImgAuto ? 'height:auto;' : 'height:' + (parseInt(d.height) || 400) + 'px;object-fit:cover;object-position:' + pImgObjPos + ';';
         return '<section style="padding:40px;text-align:' + (d.align || 'center') + ';' + pImgBg + '">' +
-          '<img src="' + escapeHtml(d.src) + '" alt="' + escapeHtml(d.alt || '') + '" style="max-width:' + imgMaxW + ';width:100%;border-radius:' + (d.borderRadius || '10') + 'px;' + (d.align === 'center' ? 'margin:0 auto;display:block;' : '') + '" />' +
+          '<img src="' + escapeHtml(d.src) + '" alt="' + escapeHtml(d.alt || '') + '" style="max-width:' + imgMaxW + ';width:100%;border-radius:' + (d.borderRadius || '10') + 'px;' + pImgHStyle + (d.align === 'center' ? 'margin:0 auto;display:block;' : '') + '" />' +
           '</section>';
       }
       return '';
@@ -2697,6 +2862,45 @@ function generatePreviewBlock(block) {
         '<div style="display:flex;gap:40px;align-items:center;max-width:1000px;margin:0 auto;' + pitDir + '">' +
         '<div style="flex:1;min-width:0;">' + pitImg + '</div>' +
         '<div style="flex:1;min-width:0;">' + pitText + '</div>' +
+        '</div></section>';
+
+    case "promo":
+      var prmH = parseInt(d.height) || 240;
+      var prmSide = d.textSide || "left";
+      var prmOvColor = d.overlayColor || "#000000";
+      var prmOvOp = d.overlayOpacity !== undefined ? d.overlayOpacity : 0.7;
+      var prmOvRgba = hexToRgba(prmOvColor, prmOvOp);
+      var prmOvTrans = hexToRgba(prmOvColor, 0);
+      var prmOvGrad;
+      if (prmSide === "left") prmOvGrad = 'linear-gradient(90deg, ' + prmOvRgba + ' 0%, ' + prmOvRgba + ' 40%, ' + prmOvTrans + ' 100%)';
+      else if (prmSide === "right") prmOvGrad = 'linear-gradient(90deg, ' + prmOvTrans + ' 0%, ' + prmOvRgba + ' 60%, ' + prmOvRgba + ' 100%)';
+      else prmOvGrad = prmOvRgba;
+      var prmLink = d.buttonLink && d.buttonLink !== "#" ? "/modules/frontend/page.html?slug=" + d.buttonLink : "#";
+      var prmAlign = prmSide === "right" ? "flex-end" : prmSide === "center" ? "center" : "flex-start";
+      var prmTextAlign = prmSide === "center" ? "center" : prmSide === "right" ? "right" : "left";
+      var prmTextWidth = prmSide === "center" ? "80%" : "50%";
+      var prmVAlign = d.textAlignY === "top" ? "flex-start" : d.textAlignY === "bottom" ? "flex-end" : "center";
+      var prmInner = '<div style="width:' + prmTextWidth + ';padding:40px 48px;text-align:' + prmTextAlign + ';">' +
+        '<div style="font-size:12px;letter-spacing:3px;font-weight:700;color:' + (d.labelColor || '#f59e0b') + ';margin-bottom:12px;">' + escapeHtml((d.label || "").toUpperCase()) + '</div>' +
+        '<h2 style="font-size:40px;line-height:1.1;font-weight:800;color:' + (d.titleColor || '#fff') + ';margin-bottom:24px;">' + escapeHtml(d.title || "") + '</h2>' +
+        '<div><a href="' + prmLink + '" style="display:inline-block;background:' + (d.btnColor || '#f59e0b') + ';color:' + (d.btnFontColor || '#fff') + ';padding:12px 28px;border-radius:3px;font-size:12px;font-weight:700;letter-spacing:2px;text-decoration:none;">' + escapeHtml((d.buttonText || "VIEW MORE").toUpperCase()) + '</a></div>' +
+        '</div>';
+      if (d.autoHeight && d.image) {
+        return '<section style="padding:40px;max-width:1100px;margin:0 auto;">' +
+          '<div style="position:relative;border-radius:12px;overflow:hidden;">' +
+          '<img src="' + escapeHtml(d.image) + '" style="width:100%;height:auto;display:block;" />' +
+          '<div style="position:absolute;inset:0;background:' + prmOvGrad + ';"></div>' +
+          '<div style="position:absolute;inset:0;display:flex;align-items:' + prmVAlign + ';justify-content:' + prmAlign + ';">' + prmInner + '</div>' +
+          '</div></section>';
+      }
+      var prmBgPos = d.bgImagePos === "top" ? "center top" : d.bgImagePos === "bottom" ? "center bottom" : "center center";
+      var prmBgStyle = d.image
+        ? "background-image:url('" + String(d.image).replace(/'/g, "\\'") + "');background-size:cover;background-position:" + prmBgPos + ";background-repeat:no-repeat;"
+        : 'background:linear-gradient(135deg,#fbbf24,#f59e0b);';
+      return '<section style="padding:40px;max-width:1100px;margin:0 auto;">' +
+        '<div style="position:relative;border-radius:12px;overflow:hidden;height:' + prmH + 'px;' + prmBgStyle + '">' +
+        '<div style="position:absolute;inset:0;background:' + prmOvGrad + ';"></div>' +
+        '<div style="position:relative;height:100%;display:flex;align-items:' + prmVAlign + ';justify-content:' + prmAlign + ';">' + prmInner + '</div>' +
         '</div></section>';
 
     case "gallery":
@@ -3001,6 +3205,17 @@ function getYouTubeEmbedUrl(url) {
 function escapeHtml(str) {
   if (!str) return "";
   return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function hexToRgba(hex, alpha) {
+  if (!hex) return "rgba(0,0,0," + alpha + ")";
+  var h = hex.replace("#", "");
+  if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+  var r = parseInt(h.substr(0, 2), 16);
+  var g = parseInt(h.substr(2, 2), 16);
+  var b = parseInt(h.substr(4, 2), 16);
+  if (isNaN(r) || isNaN(g) || isNaN(b)) return "rgba(0,0,0," + alpha + ")";
+  return "rgba(" + r + "," + g + "," + b + "," + alpha + ")";
 }
 
 function showToast(title, msg) {

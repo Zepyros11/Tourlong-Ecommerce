@@ -165,6 +165,37 @@ var blockTemplates = [
     },
   },
   {
+    type: "promo",
+    name: "การ์ดโปรโมท",
+    desc: "การ์ดโปรโมทพร้อมรูปพื้นหลังและปุ่ม CTA",
+    tip: "การ์ดโปรโมท เหมาะสำหรับแสดงสินค้า/เมนู/บริการเด่น รูปเป็นพื้นหลังเต็มการ์ด มี gradient overlay ให้ข้อความอ่านง่าย",
+    icon: "badge-percent",
+    iconBg: "bg-amber",
+    group: "เนื้อหา",
+    preview: '<div style="position:relative;background:linear-gradient(135deg,#1a1a2e,#f59e0b);border-radius:4px;overflow:hidden;height:44px;">'
+      + '<div style="position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,0.85) 0%,rgba(0,0,0,0.5) 50%,transparent 100%);"></div>'
+      + '<div style="position:relative;padding:6px 8px;width:55%;">'
+      + '<div style="font-size:4px;color:#f59e0b;letter-spacing:0.5px;font-weight:700;margin-bottom:2px;">LABEL</div>'
+      + '<div style="font-size:6px;color:#fff;font-weight:800;line-height:1.1;margin-bottom:3px;">Big Title</div>'
+      + '<div style="background:#f59e0b;color:#fff;font-size:4px;border-radius:2px;display:inline-block;padding:1px 5px;font-weight:700;">BTN</div>'
+      + '</div></div>',
+    defaultData: {
+      label: "RECIPES",
+      title: "Your Big Title",
+      buttonText: "View More",
+      buttonLink: "#",
+      image: "",
+      textSide: "left",
+      overlayColor: "#000000",
+      overlayOpacity: 0.7,
+      labelColor: "#f59e0b",
+      titleColor: "#ffffff",
+      btnColor: "#f59e0b",
+      btnFontColor: "#ffffff",
+      height: 240,
+    },
+  },
+  {
     type: "cta",
     name: "ปุ่มกระตุ้น",
     desc: "บล็อกกระตุ้นการคลิกพร้อมปุ่ม",
