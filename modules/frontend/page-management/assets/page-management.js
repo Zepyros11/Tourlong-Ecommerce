@@ -2175,8 +2175,8 @@ function publishPage() {
   ]).then(function () {
     updatePageSelector();
 
-    // Open preview modal to show published page
-    openPreview();
+    // Open live site in new tab
+    window.open("https://tour-long.com", "_blank");
     markClean();
     showToast("Page Published!", page.name + " is now live");
   }).catch(function (err) {
