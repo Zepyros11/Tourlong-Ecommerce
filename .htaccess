@@ -1,7 +1,7 @@
 RewriteEngine On
 
 # Root -> page.html (โหลดหน้าแรกจาก Supabase อัตโนมัติ)
-RewriteRule ^$ /modules/frontend/page.html [L,R=302]
+RewriteRule ^$ /modules/frontend/page.html [L]
 
 # Clean URL: /p/slug-name -> page.html?slug=slug-name
 RewriteRule ^p/([a-zA-Z0-9_-]+)$ /modules/frontend/page.html?slug=$1 [L,QSA]
