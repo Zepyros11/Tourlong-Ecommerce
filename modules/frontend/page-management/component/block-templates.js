@@ -136,6 +136,35 @@ var blockTemplates = [
     },
   },
   {
+    type: "imagetext",
+    name: "ภาพ + เนื้อหา",
+    desc: "รูปภาพคู่กับหัวข้อและเนื้อหา",
+    tip: "แสดงรูปภาพคู่กับข้อความ เลือกวางตำแหน่งเนื้อหาได้ (ซ้าย/ขวา/กลาง) เหมาะสำหรับแนะนำสินค้า บริการ หรือเรื่องราว",
+    icon: "image-plus",
+    iconBg: "bg-blue",
+    group: "เนื้อหา",
+    preview: '<div style="display:flex;gap:4px;padding:4px;">'
+      + '<div style="flex:1;background:#dbeafe;border-radius:3px;height:32px;display:flex;align-items:center;justify-content:center;">'
+      + '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>'
+      + '</div>'
+      + '<div style="flex:1;padding:2px;">'
+      + '<div style="font-size:5px;font-weight:700;color:#1e293b;margin-bottom:2px;">Title</div>'
+      + '<div style="background:#e2e8f0;border-radius:1px;height:2px;width:90%;margin-bottom:1px;"></div>'
+      + '<div style="background:#e2e8f0;border-radius:1px;height:2px;width:70%;"></div>'
+      + '</div></div>',
+    defaultData: {
+      title: "หัวข้อ",
+      content: "รายละเอียดเนื้อหาที่ต้องการแสดง",
+      image: "",
+      layout: "image-left",
+      titleColor: "#ffffff",
+      contentColor: "#94a3b8",
+      bgColor: "transparent",
+      imgRadius: 16,
+      imgHeight: 300,
+    },
+  },
+  {
     type: "cta",
     name: "ปุ่มกระตุ้น",
     desc: "บล็อกกระตุ้นการคลิกพร้อมปุ่ม",

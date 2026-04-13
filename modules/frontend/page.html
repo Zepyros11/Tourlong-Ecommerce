@@ -185,10 +185,35 @@
           var fs = d.headingSize === "large" ? "36px" : d.headingSize === "small" ? "20px" : "28px";
           var tFontColor = d.fontColor || '#ffffff';
           var tContentColor = d.contentColor || tFontColor;
-          return '<section style="padding:60px 40px;text-align:' + (d.textAlign || 'left') + ';">' +
-            (d.heading ? '<h2 style="font-size:' + fs + ';font-weight:800;margin-bottom:16px;color:' + tFontColor + ';">' + escapeHtml(d.heading) + '</h2>' : '') +
-            '<p style="font-size:16px;color:' + tContentColor + ';opacity:0.7;line-height:1.8;max-width:800px;' + (d.textAlign === 'center' ? 'margin:0 auto;' : '') + '">' + escapeHtml(d.content || "") + '</p>' +
-            '</section>';
+          var tBtns = "";
+          if (d.btn1Show) {
+            var tb1Link = escapeHtml(d.btn1Link || "#");
+            tBtns += '<a href="' + tb1Link + '" style="display:inline-block;background:' + (d.btn1Color || '#ef4444') + ';color:' + (d.btn1FontColor || '#fff') + ';padding:12px 28px;border-radius:999px;font-weight:700;font-size:14px;text-decoration:none;">' + escapeHtml(d.btn1Text || 'Button') + '</a> ';
+          }
+          if (d.btn2Show) {
+            var tb2Link = escapeHtml(d.btn2Link || "#");
+            tBtns += '<a href="' + tb2Link + '" style="display:inline-block;background:' + (d.btn2Color || '#222') + ';color:' + (d.btn2FontColor || '#fff') + ';padding:12px 28px;border-radius:999px;font-weight:700;font-size:14px;text-decoration:none;border:2px solid ' + (d.btn2FontColor || '#fff') + ';">' + escapeHtml(d.btn2Text || 'Button') + '</a>';
+          }
+          if (tBtns) tBtns = '<div style="margin-top:24px;">' + tBtns + '</div>';
+          var tImgPos = d.imagePos || "none";
+          var tImgHtml = "";
+          if (d.image && tImgPos !== "none") {
+            tImgHtml = '<img src="' + escapeHtml(d.image) + '" style="width:100%;border-radius:12px;object-fit:cover;max-height:400px;" />';
+          }
+          var tTextHtml = (d.heading ? '<h2 style="font-size:' + fs + ';font-weight:800;margin-bottom:16px;color:' + tFontColor + ';">' + escapeHtml(d.heading) + '</h2>' : '') +
+            '<p style="font-size:16px;color:' + tContentColor + ';opacity:0.7;line-height:1.8;max-width:800px;' + (d.textAlign === 'center' ? 'margin:0 auto;' : '') + '">' + escapeHtml(d.content || "") + '</p>' + tBtns;
+          if (tImgHtml && tImgPos === "top") {
+            return '<section style="padding:60px 40px;text-align:' + (d.textAlign || 'left') + ';">' +
+              tImgHtml + '<div style="margin-top:24px;">' + tTextHtml + '</div></section>';
+          }
+          if (tImgHtml && (tImgPos === "left" || tImgPos === "right")) {
+            var tDir = tImgPos === "right" ? "flex-direction:row-reverse;" : "";
+            return '<section style="padding:60px 40px;"><div style="display:flex;gap:40px;align-items:center;max-width:1000px;margin:0 auto;' + tDir + '">' +
+              '<div style="flex:1;min-width:0;">' + tImgHtml + '</div>' +
+              '<div style="flex:1;min-width:0;text-align:' + (d.textAlign || 'left') + ';">' + tTextHtml + '</div>' +
+              '</div></section>';
+          }
+          return '<section style="padding:60px 40px;text-align:' + (d.textAlign || 'left') + ';">' + tTextHtml + '</section>';
 
         case "products":
           var pCols = d.columns || 3;
@@ -278,6 +303,38 @@
           return '<section style="padding:60px 40px;text-align:center;">' +
             '<div style="max-width:800px;margin:0 auto;height:400px;background:#111;border-radius:16px;display:flex;align-items:center;justify-content:center;">' +
             '<span style="font-size:48px;opacity:0.3;">▶</span>' +
+            '</div></section>';
+
+        case "imagetext":
+          var itLayout = d.layout || "image-left";
+          var itBg = d.bgColor && d.bgColor !== "transparent" ? "background:" + d.bgColor + ";" : "";
+          var itRad = d.imgRadius || 16;
+          var itImgH = d.imgHeight || 300;
+          var itBtns = "";
+          if (d.btn1Show) {
+            var itB1Link = d.btn1Link && d.btn1Link !== "#" ? "/modules/frontend/page.html?slug=" + d.btn1Link : "#";
+            itBtns += '<a href="' + itB1Link + '" style="display:inline-block;background:' + (d.btn1Color || '#ef4444') + ';color:' + (d.btn1FontColor || '#fff') + ';padding:12px 28px;border-radius:999px;font-weight:700;font-size:14px;text-decoration:none;">' + escapeHtml(d.btn1Text || 'Button') + '</a> ';
+          }
+          if (d.btn2Show) {
+            var itB2Link = d.btn2Link && d.btn2Link !== "#" ? "/modules/frontend/page.html?slug=" + d.btn2Link : "#";
+            itBtns += '<a href="' + itB2Link + '" style="display:inline-block;background:' + (d.btn2Color || '#222') + ';color:' + (d.btn2FontColor || '#fff') + ';padding:12px 28px;border-radius:999px;font-weight:700;font-size:14px;text-decoration:none;border:2px solid ' + (d.btn2FontColor || '#fff') + ';">' + escapeHtml(d.btn2Text || 'Button') + '</a>';
+          }
+          if (itBtns) itBtns = '<div style="margin-top:24px;">' + itBtns + '</div>';
+          var itImg = d.image
+            ? '<img src="' + escapeHtml(d.image) + '" style="width:100%;height:' + itImgH + 'px;object-fit:cover;border-radius:' + itRad + 'px;" />'
+            : '<div style="width:100%;height:' + itImgH + 'px;background:linear-gradient(135deg,#1a1a2e,#0f172a);border-radius:' + itRad + 'px;"></div>';
+          var itText = '<div style="' + (itLayout === "image-top" ? "text-align:center;" : "") + '">' +
+            '<h2 style="font-size:28px;font-weight:800;margin-bottom:12px;color:' + (d.titleColor || "#fff") + ';">' + escapeHtml(d.title || "") + '</h2>' +
+            '<p style="font-size:16px;line-height:1.8;color:' + (d.contentColor || "#94a3b8") + ';">' + escapeHtml(d.content || "") + '</p>' +
+            itBtns + '</div>';
+          if (itLayout === "image-top") {
+            return '<section style="padding:60px 40px;max-width:800px;margin:0 auto;' + itBg + '">' + itImg + '<div style="margin-top:24px;">' + itText + '</div></section>';
+          }
+          var itDir = itLayout === "image-right" ? "flex-direction:row-reverse;" : "";
+          return '<section style="padding:60px 40px;' + itBg + '">' +
+            '<div style="display:flex;gap:40px;align-items:center;max-width:1000px;margin:0 auto;' + itDir + '">' +
+            '<div style="flex:1;min-width:0;">' + itImg + '</div>' +
+            '<div style="flex:1;min-width:0;">' + itText + '</div>' +
             '</div></section>';
 
         case "cards":

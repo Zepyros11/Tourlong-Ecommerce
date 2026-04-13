@@ -14,22 +14,87 @@ var allProducts = []; // โหลดจาก Supabase
 var allCategories = []; // โหลดจาก Supabase
 var nextBlockId = 100;
 var isDirty = false; // track unsaved changes
+var autoSaveTimer = null;
+var isAutoSaving = false;
+var AUTO_SAVE_DELAY = 2000; // 2 seconds after last change
 
 function markDirty() {
-  if (isDirty) return;
-  isDirty = true;
-  var saveBtn = document.getElementById("saveDraftBtn");
-  var pubBtn = document.getElementById("publishBtn");
-  if (saveBtn) saveBtn.classList.add("unsaved");
-  if (pubBtn) pubBtn.classList.add("unsaved");
+  if (!isDirty) {
+    isDirty = true;
+    var saveBtn = document.getElementById("saveDraftBtn");
+    var pubBtn = document.getElementById("publishBtn");
+    if (saveBtn) saveBtn.classList.add("unsaved");
+    if (pubBtn) pubBtn.classList.add("unsaved");
+  }
+  // Debounced auto-save
+  if (autoSaveTimer) clearTimeout(autoSaveTimer);
+  autoSaveTimer = setTimeout(function () {
+    autoSaveDraft();
+  }, AUTO_SAVE_DELAY);
 }
 
 function markClean() {
   isDirty = false;
+  if (autoSaveTimer) { clearTimeout(autoSaveTimer); autoSaveTimer = null; }
   var saveBtn = document.getElementById("saveDraftBtn");
   var pubBtn = document.getElementById("publishBtn");
   if (saveBtn) saveBtn.classList.remove("unsaved");
   if (pubBtn) pubBtn.classList.remove("unsaved");
+  updateAutoSaveStatus("saved");
+}
+
+function updateAutoSaveStatus(status) {
+  var el = document.getElementById("autoSaveStatus");
+  if (!el) return;
+  if (status === "saving") {
+    el.textContent = "กำลังบันทึก...";
+    el.style.color = "#f59e0b";
+  } else if (status === "saved") {
+    el.textContent = "บันทึกแล้ว";
+    el.style.color = "#10b981";
+    setTimeout(function () {
+      if (el.textContent === "บันทึกแล้ว") el.textContent = "";
+    }, 2000);
+  } else if (status === "error") {
+    el.textContent = "บันทึกไม่สำเร็จ";
+    el.style.color = "#ef4444";
+  } else {
+    el.textContent = "";
+  }
+}
+
+function autoSaveDraft() {
+  if (!isDirty || isAutoSaving) return;
+  var page = getCurrentPage();
+  if (!page) return;
+
+  isAutoSaving = true;
+  updateAutoSaveStatus("saving");
+
+  page.name = document.getElementById("editorPageTitle").value.trim() || page.name;
+  var today = new Date().toISOString().split("T")[0];
+  page.lastModified = today;
+
+  var bgToSave = Object.assign({}, page.bgSettings || {});
+  delete bgToSave._open;
+
+  Promise.all([
+    updatePageDB(page.id, { name: page.name, last_modified: today, bg_settings: bgToSave }),
+    saveBlocksDB(page.id, page.blocks),
+  ]).then(function () {
+    updatePageSelector();
+    isDirty = false;
+    var saveBtn = document.getElementById("saveDraftBtn");
+    var pubBtn = document.getElementById("publishBtn");
+    if (saveBtn) saveBtn.classList.remove("unsaved");
+    if (pubBtn) pubBtn.classList.remove("unsaved");
+    updateAutoSaveStatus("saved");
+  }).catch(function (err) {
+    console.error("Auto-save error:", err);
+    updateAutoSaveStatus("error");
+  }).then(function () {
+    isAutoSaving = false;
+  });
 }
 
 // ===================== Init =====================
@@ -788,6 +853,15 @@ function generateSettingsFields(block) {
       break;
 
     case "text":
+      html += settingsSection("Image (optional)", [
+        settingsImageUpload("Upload Image", "setting-image", data.image || ""),
+        settingsSelectField("ตำแหน่งภาพ", "setting-imagePos", data.imagePos || "none", [
+          { value: "none", label: "ไม่แสดงภาพ" },
+          { value: "top", label: "ภาพด้านบน" },
+          { value: "left", label: "ภาพซ้าย" },
+          { value: "right", label: "ภาพขวา" },
+        ]),
+      ]);
       html += settingsSection("Heading", [
         settingsField("Heading", "text", "setting-heading", data.heading || ""),
         settingsColorField("Heading Color", "setting-fontColor", data.fontColor || "#ffffff"),
@@ -798,6 +872,22 @@ function generateSettingsFields(block) {
         settingsColorField("Content Color", "setting-contentColor", data.contentColor || "#ffffff"),
         settingsSelectField("Text Align", "setting-textAlign", data.textAlign || "left", ["left", "center", "right"]),
       ]);
+      var btn1Fields = [
+        '<div class="settings-field"><label class="settings-label" style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" id="setting-btn1Show"' + (data.btn1Show ? ' checked' : '') + ' style="width:14px;height:14px;" /> แสดงปุ่ม 1</label></div>',
+        settingsField("Text", "text", "setting-btn1Text", data.btn1Text || "Learn More"),
+        settingsField("Link URL", "text", "setting-btn1Link", data.btn1Link || "#"),
+        settingsColorField("Button Color", "setting-btn1Color", data.btn1Color || "#ef4444"),
+        settingsColorField("Font Color", "setting-btn1FontColor", data.btn1FontColor || "#ffffff"),
+      ];
+      html += settingsSection("Button 1", btn1Fields);
+      var btn2Fields = [
+        '<div class="settings-field"><label class="settings-label" style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" id="setting-btn2Show"' + (data.btn2Show ? ' checked' : '') + ' style="width:14px;height:14px;" /> แสดงปุ่ม 2</label></div>',
+        settingsField("Text", "text", "setting-btn2Text", data.btn2Text || "Contact"),
+        settingsField("Link URL", "text", "setting-btn2Link", data.btn2Link || "#"),
+        settingsColorField("Button Color", "setting-btn2Color", data.btn2Color || "#222222"),
+        settingsColorField("Font Color", "setting-btn2FontColor", data.btn2FontColor || "#ffffff"),
+      ];
+      html += settingsSection("Button 2", btn2Fields);
       break;
 
     case "image":
@@ -810,6 +900,44 @@ function generateSettingsFields(block) {
         settingsSelectField("Size", "setting-size", data.size || "full", ["small", "medium", "full"]),
         settingsSelectField("Alignment", "setting-align", data.align || "center", ["left", "center", "right"]),
         settingsField("Border Radius (px)", "text", "setting-borderRadius", data.borderRadius || "10"),
+      ]);
+      break;
+
+    case "imagetext":
+      html += settingsSection("Image", [
+        settingsImageUpload("Upload Image", "setting-image", data.image || ""),
+        settingsField("Image Radius (px)", "text", "setting-imgRadius", String(data.imgRadius || 16)),
+        settingsField("Image Height (px)", "text", "setting-imgHeight", String(data.imgHeight || 300)),
+      ]);
+      html += settingsSection("Layout", [
+        settingsSelectField("ตำแหน่งเนื้อหา", "setting-layout", data.layout || "image-left", [
+          { value: "image-left", label: "ภาพซ้าย / เนื้อหาขวา" },
+          { value: "image-right", label: "ภาพขวา / เนื้อหาซ้าย" },
+          { value: "image-top", label: "ภาพบน / เนื้อหาล่าง (กลาง)" },
+        ]),
+      ]);
+      html += settingsSection("Text", [
+        settingsField("Title", "text", "setting-title", data.title || ""),
+        settingsField("Content", "textarea", "setting-content", data.content || ""),
+      ]);
+      html += settingsSection("Colors", [
+        settingsColorField("Title Color", "setting-titleColor", data.titleColor || "#ffffff"),
+        settingsColorField("Content Color", "setting-contentColor", data.contentColor || "#94a3b8"),
+        settingsColorFieldWithTransparent("Background", "setting-bgColor", data.bgColor || "transparent"),
+      ]);
+      html += settingsSection("Button 1", [
+        '<div class="settings-field"><label class="settings-label" style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" id="setting-btn1Show"' + (data.btn1Show ? ' checked' : '') + ' style="width:14px;height:14px;" /> แสดงปุ่ม 1</label></div>',
+        settingsField("Text", "text", "setting-btn1Text", data.btn1Text || "Learn More"),
+        settingsPageLinkField("Link", "setting-btn1Link", data.btn1Link || "#"),
+        settingsColorField("Button Color", "setting-btn1Color", data.btn1Color || "#ef4444"),
+        settingsColorField("Font Color", "setting-btn1FontColor", data.btn1FontColor || "#ffffff"),
+      ]);
+      html += settingsSection("Button 2", [
+        '<div class="settings-field"><label class="settings-label" style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" id="setting-btn2Show"' + (data.btn2Show ? ' checked' : '') + ' style="width:14px;height:14px;" /> แสดงปุ่ม 2</label></div>',
+        settingsField("Text", "text", "setting-btn2Text", data.btn2Text || "Contact"),
+        settingsPageLinkField("Link", "setting-btn2Link", data.btn2Link || "#"),
+        settingsColorField("Button Color", "setting-btn2Color", data.btn2Color || "#222222"),
+        settingsColorField("Font Color", "setting-btn2FontColor", data.btn2FontColor || "#ffffff"),
       ]);
       break;
 
@@ -1178,7 +1306,9 @@ function settingsImageUpload(label, id, value) {
 
 function settingsSelectField(label, id, value, options) {
   var optionsHtml = options.map(function (opt) {
-    return '<option value="' + opt + '"' + (opt === value ? ' selected' : '') + '>' + opt.charAt(0).toUpperCase() + opt.slice(1) + '</option>';
+    var optVal = typeof opt === "object" ? opt.value : opt;
+    var optLabel = typeof opt === "object" ? opt.label : opt.charAt(0).toUpperCase() + opt.slice(1);
+    return '<option value="' + optVal + '"' + (optVal === value ? ' selected' : '') + '>' + optLabel + '</option>';
   }).join("");
   return '<div class="settings-field">' +
     '<label class="settings-label">' + label + '</label>' +
@@ -1276,6 +1406,16 @@ function bindSettingsEvents(block) {
     cb.addEventListener("change", function () {
       var label = this.closest(".product-picker-item");
       if (this.checked) { label.classList.add("checked"); } else { label.classList.remove("checked"); }
+      updateBlockData(block);
+      renderCanvasBlocks();
+    });
+  });
+
+  // Generic settings checkboxes (btn1Show, btn2Show, etc.) — excludes color transparent toggles
+  document.querySelectorAll("#blockSettingsContent input[type='checkbox']").forEach(function (cb) {
+    if (cb.id && cb.id.indexOf("-transparent") !== -1) return;
+    if (cb.closest(".product-picker-item")) return;
+    cb.addEventListener("change", function () {
       updateBlockData(block);
       renderCanvasBlocks();
     });
@@ -1539,6 +1679,20 @@ function updateBlockData(block) {
       data.contentColor = getVal("setting-contentColor") || data.contentColor || "#ffffff";
       data.headingSize = getVal("setting-headingSize") || data.headingSize;
       data.textAlign = getVal("setting-textAlign") || data.textAlign;
+      data.image = getVal("setting-image") || "";
+      data.imagePos = getVal("setting-imagePos") || "none";
+      var b1cb = document.getElementById("setting-btn1Show");
+      data.btn1Show = b1cb ? b1cb.checked : false;
+      data.btn1Text = getVal("setting-btn1Text") || data.btn1Text || "Learn More";
+      data.btn1Link = getVal("setting-btn1Link") || data.btn1Link || "#";
+      data.btn1Color = getVal("setting-btn1Color") || data.btn1Color || "#ef4444";
+      data.btn1FontColor = getVal("setting-btn1FontColor") || data.btn1FontColor || "#ffffff";
+      var b2cb = document.getElementById("setting-btn2Show");
+      data.btn2Show = b2cb ? b2cb.checked : false;
+      data.btn2Text = getVal("setting-btn2Text") || data.btn2Text || "Contact";
+      data.btn2Link = getVal("setting-btn2Link") || data.btn2Link || "#";
+      data.btn2Color = getVal("setting-btn2Color") || data.btn2Color || "#222222";
+      data.btn2FontColor = getVal("setting-btn2FontColor") || data.btn2FontColor || "#ffffff";
       break;
     case "image":
       data.src = getVal("setting-src");
@@ -1548,6 +1702,30 @@ function updateBlockData(block) {
       data.size = getVal("setting-size") || data.size;
       data.align = getVal("setting-align") || data.align;
       data.borderRadius = getVal("setting-borderRadius") || data.borderRadius;
+      break;
+    case "imagetext":
+      data.image = getVal("setting-image");
+      data.title = getVal("setting-title");
+      data.content = getVal("setting-content");
+      data.layout = getVal("setting-layout") || data.layout || "image-left";
+      data.titleColor = getVal("setting-titleColor") || data.titleColor || "#ffffff";
+      data.contentColor = getVal("setting-contentColor") || data.contentColor || "#94a3b8";
+      var itTransCb = document.getElementById("setting-bgColor-transparent");
+      data.bgColor = (itTransCb && itTransCb.checked) ? "transparent" : (getVal("setting-bgColor") || data.bgColor);
+      data.imgRadius = getVal("setting-imgRadius") || data.imgRadius || "16";
+      data.imgHeight = getVal("setting-imgHeight") || data.imgHeight || "300";
+      var itB1 = document.getElementById("setting-btn1Show");
+      data.btn1Show = itB1 ? itB1.checked : false;
+      data.btn1Text = getVal("setting-btn1Text") || data.btn1Text || "Learn More";
+      data.btn1Link = getVal("setting-btn1Link") || data.btn1Link || "#";
+      data.btn1Color = getVal("setting-btn1Color") || data.btn1Color || "#ef4444";
+      data.btn1FontColor = getVal("setting-btn1FontColor") || data.btn1FontColor || "#ffffff";
+      var itB2 = document.getElementById("setting-btn2Show");
+      data.btn2Show = itB2 ? itB2.checked : false;
+      data.btn2Text = getVal("setting-btn2Text") || data.btn2Text || "Contact";
+      data.btn2Link = getVal("setting-btn2Link") || data.btn2Link || "#";
+      data.btn2Color = getVal("setting-btn2Color") || data.btn2Color || "#222222";
+      data.btn2FontColor = getVal("setting-btn2FontColor") || data.btn2FontColor || "#ffffff";
       break;
     case "products":
       data.title = getVal("setting-title");
@@ -1750,10 +1928,32 @@ function generateBlockPreview(block) {
       var hSize = d.headingSize === "large" ? "18px" : d.headingSize === "small" ? "12px" : "14px";
       var tFontColor = d.fontColor || '#ffffff';
       var tContentColor = d.contentColor || tFontColor;
-      return '<div class="block-preview-text" style="text-align:' + (d.textAlign || 'left') + ';">' +
-        (d.heading ? '<h3 style="font-size:' + hSize + ';color:' + tFontColor + ';">' + escapeHtml(d.heading) + '</h3>' : '') +
-        '<p style="color:' + tContentColor + ';opacity:0.7;">' + escapeHtml(d.content || "Text content here...") + '</p>' +
-        '</div>';
+      var tImgPos = d.imagePos || "none";
+      var tBtns = "";
+      if (d.btn1Show) {
+        tBtns += '<span style="display:inline-block;background:' + (d.btn1Color || '#ef4444') + ';color:' + (d.btn1FontColor || '#fff') + ';padding:4px 12px;border-radius:99px;font-size:8px;font-weight:700;">' + escapeHtml(d.btn1Text || 'Button') + '</span> ';
+      }
+      if (d.btn2Show) {
+        var b2bg = d.btn2Color === "transparent" ? "transparent" : (d.btn2Color || "transparent");
+        tBtns += '<span style="display:inline-block;background:' + b2bg + ';color:' + (d.btn2FontColor || '#fff') + ';padding:4px 12px;border-radius:99px;font-size:8px;font-weight:700;border:1px solid ' + (d.btn2FontColor || '#fff') + ';">' + escapeHtml(d.btn2Text || 'Button') + '</span>';
+      }
+      if (tBtns) tBtns = '<div style="margin-top:8px;">' + tBtns + '</div>';
+      var tImgHtml = "";
+      if (d.image && tImgPos !== "none") {
+        tImgHtml = '<img src="' + escapeHtml(d.image) + '" style="width:100%;height:auto;max-height:120px;object-fit:cover;border-radius:8px;" />';
+      }
+      var tInnerText = (d.heading ? '<h3 style="font-size:' + hSize + ';color:' + tFontColor + ';">' + escapeHtml(d.heading) + '</h3>' : '') +
+        '<p style="color:' + tContentColor + ';opacity:0.7;">' + escapeHtml(d.content || "Text content here...") + '</p>' + tBtns;
+      if (tImgHtml && tImgPos === "top") {
+        return '<div class="block-preview-text" style="padding:12px 16px;">' + tImgHtml + '<div style="margin-top:8px;text-align:' + (d.textAlign || 'left') + ';">' + tInnerText + '</div></div>';
+      }
+      if (tImgHtml && (tImgPos === "left" || tImgPos === "right")) {
+        var tFlexDir = tImgPos === "right" ? "flex-direction:row-reverse;" : "";
+        return '<div style="display:flex;gap:12px;padding:12px 16px;align-items:center;' + tFlexDir + '">' +
+          '<div style="flex:1;min-width:0;">' + tImgHtml + '</div>' +
+          '<div style="flex:1;min-width:0;text-align:' + (d.textAlign || 'left') + ';">' + tInnerText + '</div></div>';
+      }
+      return '<div class="block-preview-text" style="text-align:' + (d.textAlign || 'left') + ';">' + tInnerText + '</div>';
 
     case "image":
       var imgBg = d.bgColor && d.bgColor !== "transparent" ? 'background:' + d.bgColor + ';' : '';
@@ -1763,6 +1963,35 @@ function generateBlockPreview(block) {
           '</div>';
       }
       return '<div class="block-preview-image" style="' + imgBg + '"><div class="img-placeholder"><i data-lucide="image"></i></div></div>';
+
+    case "imagetext":
+      var itLayout = d.layout || "image-left";
+      var itBg = d.bgColor && d.bgColor !== "transparent" ? 'background:' + d.bgColor + ';' : '';
+      var itRad = d.imgRadius || 16;
+      var itImgH = d.imgHeight || 300;
+      var itBtns = "";
+      if (d.btn1Show) {
+        itBtns += '<span style="display:inline-block;background:' + (d.btn1Color || '#ef4444') + ';color:' + (d.btn1FontColor || '#fff') + ';padding:4px 12px;border-radius:99px;font-size:8px;font-weight:700;">' + escapeHtml(d.btn1Text || 'Button') + '</span> ';
+      }
+      if (d.btn2Show) {
+        itBtns += '<span style="display:inline-block;background:' + (d.btn2Color || '#222') + ';color:' + (d.btn2FontColor || '#fff') + ';padding:4px 12px;border-radius:99px;font-size:8px;font-weight:700;border:1px solid ' + (d.btn2FontColor || '#fff') + ';">' + escapeHtml(d.btn2Text || 'Button') + '</span>';
+      }
+      if (itBtns) itBtns = '<div style="margin-top:8px;">' + itBtns + '</div>';
+      var itImg = d.image
+        ? '<img src="' + escapeHtml(d.image) + '" style="width:100%;height:' + (itImgH / 2) + 'px;object-fit:cover;border-radius:' + itRad + 'px;" />'
+        : '<div style="width:100%;height:' + (itImgH / 2) + 'px;background:linear-gradient(135deg,#1a1a2e,#0f172a);border-radius:' + itRad + 'px;display:flex;align-items:center;justify-content:center;color:#334155;"><i data-lucide="image" style="width:24px;height:24px;"></i></div>';
+      var itText = '<div style="' + (itLayout === 'image-top' ? 'text-align:center;' : '') + '">' +
+        '<div style="font-size:12px;font-weight:800;color:' + (d.titleColor || '#fff') + ';margin-bottom:6px;">' + escapeHtml(d.title || "Title") + '</div>' +
+        '<div style="font-size:9px;color:' + (d.contentColor || '#94a3b8') + ';line-height:1.5;">' + escapeHtml(d.content || "Content here...") + '</div>' +
+        itBtns + '</div>';
+      if (itLayout === "image-top") {
+        return '<div style="padding:16px;' + itBg + '">' + itImg + '<div style="margin-top:12px;">' + itText + '</div></div>';
+      }
+      var itFlexDir = itLayout === "image-right" ? "flex-direction:row-reverse;" : "";
+      return '<div style="display:flex;gap:12px;padding:16px;align-items:center;' + itFlexDir + itBg + '">' +
+        '<div style="flex:1;min-width:0;">' + itImg + '</div>' +
+        '<div style="flex:1;min-width:0;">' + itText + '</div>' +
+        '</div>';
 
     case "products":
       var cols = d.columns || 3;
@@ -2286,10 +2515,35 @@ function generatePreviewBlock(block) {
       var fs = d.headingSize === "large" ? "36px" : d.headingSize === "small" ? "20px" : "28px";
       var tFC = d.fontColor || '#ffffff';
       var tCC = d.contentColor || tFC;
-      return '<section style="padding:60px 40px;text-align:' + (d.textAlign || 'left') + ';">' +
-        (d.heading ? '<h2 style="font-size:' + fs + ';font-weight:800;margin-bottom:16px;color:' + tFC + ';">' + escapeHtml(d.heading) + '</h2>' : '') +
-        '<p style="font-size:16px;color:' + tCC + ';opacity:0.7;line-height:1.8;max-width:800px;' + (d.textAlign === 'center' ? 'margin:0 auto;' : '') + '">' + escapeHtml(d.content || "") + '</p>' +
-        '</section>';
+      var ptBtns = "";
+      if (d.btn1Show) {
+        var pb1Link = escapeHtml(d.btn1Link || "#");
+        ptBtns += '<a href="' + pb1Link + '" style="display:inline-block;background:' + (d.btn1Color || '#ef4444') + ';color:' + (d.btn1FontColor || '#fff') + ';padding:12px 28px;border-radius:999px;font-weight:700;font-size:14px;text-decoration:none;">' + escapeHtml(d.btn1Text || 'Button') + '</a> ';
+      }
+      if (d.btn2Show) {
+        var pb2Link = escapeHtml(d.btn2Link || "#");
+        ptBtns += '<a href="' + pb2Link + '" style="display:inline-block;background:' + (d.btn2Color || '#222') + ';color:' + (d.btn2FontColor || '#fff') + ';padding:12px 28px;border-radius:999px;font-weight:700;font-size:14px;text-decoration:none;border:2px solid ' + (d.btn2FontColor || '#fff') + ';">' + escapeHtml(d.btn2Text || 'Button') + '</a>';
+      }
+      if (ptBtns) ptBtns = '<div style="margin-top:24px;">' + ptBtns + '</div>';
+      var ptImgPos = d.imagePos || "none";
+      var ptImgHtml = "";
+      if (d.image && ptImgPos !== "none") {
+        ptImgHtml = '<img src="' + escapeHtml(d.image) + '" style="width:100%;border-radius:12px;object-fit:cover;max-height:400px;" />';
+      }
+      var ptTextHtml = (d.heading ? '<h2 style="font-size:' + fs + ';font-weight:800;margin-bottom:16px;color:' + tFC + ';">' + escapeHtml(d.heading) + '</h2>' : '') +
+        '<p style="font-size:16px;color:' + tCC + ';opacity:0.7;line-height:1.8;max-width:800px;' + (d.textAlign === 'center' ? 'margin:0 auto;' : '') + '">' + escapeHtml(d.content || "") + '</p>' + ptBtns;
+      if (ptImgHtml && ptImgPos === "top") {
+        return '<section style="padding:60px 40px;text-align:' + (d.textAlign || 'left') + ';">' +
+          ptImgHtml + '<div style="margin-top:24px;">' + ptTextHtml + '</div></section>';
+      }
+      if (ptImgHtml && (ptImgPos === "left" || ptImgPos === "right")) {
+        var ptDir = ptImgPos === "right" ? "flex-direction:row-reverse;" : "";
+        return '<section style="padding:60px 40px;"><div style="display:flex;gap:40px;align-items:center;max-width:1000px;margin:0 auto;' + ptDir + '">' +
+          '<div style="flex:1;min-width:0;">' + ptImgHtml + '</div>' +
+          '<div style="flex:1;min-width:0;text-align:' + (d.textAlign || 'left') + ';">' + ptTextHtml + '</div>' +
+          '</div></section>';
+      }
+      return '<section style="padding:60px 40px;text-align:' + (d.textAlign || 'left') + ';">' + ptTextHtml + '</section>';
 
     case "products":
       var pCols = d.columns || 3;
@@ -2412,6 +2666,38 @@ function generatePreviewBlock(block) {
           '</section>';
       }
       return '';
+
+    case "imagetext":
+      var pitLayout = d.layout || "image-left";
+      var pitBg = d.bgColor && d.bgColor !== "transparent" ? 'background:' + d.bgColor + ';' : '';
+      var pitRad = d.imgRadius || 16;
+      var pitImgH = d.imgHeight || 300;
+      var pitBtns = "";
+      if (d.btn1Show) {
+        var pb1Link = d.btn1Link && d.btn1Link !== "#" ? "/modules/frontend/page.html?slug=" + d.btn1Link : "#";
+        pitBtns += '<a href="' + pb1Link + '" style="display:inline-block;background:' + (d.btn1Color || '#ef4444') + ';color:' + (d.btn1FontColor || '#fff') + ';padding:12px 28px;border-radius:999px;font-weight:700;font-size:14px;text-decoration:none;">' + escapeHtml(d.btn1Text || 'Button') + '</a> ';
+      }
+      if (d.btn2Show) {
+        var pb2Link = d.btn2Link && d.btn2Link !== "#" ? "/modules/frontend/page.html?slug=" + d.btn2Link : "#";
+        pitBtns += '<a href="' + pb2Link + '" style="display:inline-block;background:' + (d.btn2Color || '#222') + ';color:' + (d.btn2FontColor || '#fff') + ';padding:12px 28px;border-radius:999px;font-weight:700;font-size:14px;text-decoration:none;border:2px solid ' + (d.btn2FontColor || '#fff') + ';">' + escapeHtml(d.btn2Text || 'Button') + '</a>';
+      }
+      if (pitBtns) pitBtns = '<div style="margin-top:24px;">' + pitBtns + '</div>';
+      var pitImg = d.image
+        ? '<img src="' + escapeHtml(d.image) + '" style="width:100%;height:' + pitImgH + 'px;object-fit:cover;border-radius:' + pitRad + 'px;" />'
+        : '<div style="width:100%;height:' + pitImgH + 'px;background:linear-gradient(135deg,#1a1a2e,#0f172a);border-radius:' + pitRad + 'px;"></div>';
+      var pitText = '<div style="' + (pitLayout === 'image-top' ? 'text-align:center;' : '') + '">' +
+        '<h2 style="font-size:28px;font-weight:800;margin-bottom:12px;color:' + (d.titleColor || '#fff') + ';">' + escapeHtml(d.title || "") + '</h2>' +
+        '<p style="font-size:16px;line-height:1.8;color:' + (d.contentColor || '#94a3b8') + ';">' + escapeHtml(d.content || "") + '</p>' +
+        pitBtns + '</div>';
+      if (pitLayout === "image-top") {
+        return '<section style="padding:60px 40px;max-width:800px;margin:0 auto;' + pitBg + '">' + pitImg + '<div style="margin-top:24px;">' + pitText + '</div></section>';
+      }
+      var pitDir = pitLayout === "image-right" ? "flex-direction:row-reverse;" : "";
+      return '<section style="padding:60px 40px;' + pitBg + '">' +
+        '<div style="display:flex;gap:40px;align-items:center;max-width:1000px;margin:0 auto;' + pitDir + '">' +
+        '<div style="flex:1;min-width:0;">' + pitImg + '</div>' +
+        '<div style="flex:1;min-width:0;">' + pitText + '</div>' +
+        '</div></section>';
 
     case "gallery":
       var pgCols = d.columns || 4;
