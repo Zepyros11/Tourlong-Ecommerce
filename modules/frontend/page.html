@@ -453,8 +453,10 @@
           var ccInterval = (d.interval || 3) * 1000;
           var ccSlidesHtml = ccSlides.map(function (slide, idx) {
             var vis = idx === 0 ? '' : 'display:none;';
+            var ccFit = slide.fit || "cover";
+            var ccSlideBg = (ccFit === "contain" && slide.bg) ? slide.bg : "transparent";
             if (slide.image) {
-              return '<div class="pcs-slide" style="' + vis + '"><img src="' + escapeHtml(slide.image) + '" style="width:100%;height:' + ccH + 'px;object-fit:cover;border-radius:' + ccRad + 'px;" /></div>';
+              return '<div class="pcs-slide" style="' + vis + '"><div style="width:100%;height:' + ccH + 'px;background:' + ccSlideBg + ';border-radius:' + ccRad + 'px;overflow:hidden;display:flex;align-items:center;justify-content:center;"><img src="' + escapeHtml(slide.image) + '" style="width:100%;height:100%;object-fit:' + ccFit + ';" /></div></div>';
             }
             return '<div class="pcs-slide" style="' + vis + '"><div style="width:100%;height:' + ccH + 'px;background:linear-gradient(135deg,#1a1a2e,#0f172a);border-radius:' + ccRad + 'px;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;">' + escapeHtml(slide.caption || "Slide") + '</div></div>';
           }).join("");

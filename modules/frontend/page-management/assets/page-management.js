@@ -1271,6 +1271,12 @@ function generateSettingsFields(block) {
         html += settingsSection("Slide " + (si + 1), [
           settingsImageUpload("Image", "setting-slide-image-" + si, slides[si].image || ""),
           settingsField("Caption", "text", "setting-slide-caption-" + si, slides[si].caption || ""),
+          settingsSelectField("Image Fit", "setting-slide-fit-" + si, slides[si].fit || "cover", [
+            { value: "cover", label: "Cover (เต็มกรอบ ตัดส่วนเกิน)" },
+            { value: "contain", label: "Full Fit (แสดงทั้งภาพ มีขอบ)" },
+            { value: "fill", label: "Fill (ยืดเต็มกรอบ)" },
+          ]),
+          settingsColorField("BG (เมื่อ Full Fit)", "setting-slide-bg-" + si, slides[si].bg || "#000000"),
         ]);
       }
       html += '<div class="settings-section"><button class="btn-outline btn-sm" style="width:100%;justify-content:center;" onclick="addSlideItem()"><i data-lucide="plus" style="width:10px;height:10px;"></i> เพิ่ม Slide</button></div>';
@@ -1982,11 +1988,14 @@ function updateBlockData(block) {
       data.slideWidth = getVal("setting-slideWidth") || data.slideWidth || "100%";
       data.slideRadius = getVal("setting-slideRadius") || data.slideRadius || "10";
       var slideCount = (data.slides || []).length;
+      var oldSlides = data.slides || [];
       data.slides = [];
       for (var si = 0; si < slideCount; si++) {
         data.slides.push({
           image: getVal("setting-slide-image-" + si),
           caption: getVal("setting-slide-caption-" + si),
+          fit: getVal("setting-slide-fit-" + si) || (oldSlides[si] && oldSlides[si].fit) || "cover",
+          bg: getVal("setting-slide-bg-" + si) || (oldSlides[si] && oldSlides[si].bg) || "#000000",
         });
       }
       break;
@@ -2364,12 +2373,16 @@ function generateBlockPreview(block) {
       var csW = d.slideWidth || "100%";
       var csRad = d.slideRadius || 10;
       var csSlides = d.slides || [];
-      var csId = 'carousel-' + (block.id || Math.random().toString(36).substr(2, 5));
+      var csId = 'carousel-' + block.id;
+      var activeIdx = (window._canvasCarouselSlide && window._canvasCarouselSlide[csId] !== undefined) ? window._canvasCarouselSlide[csId] : 0;
+      if (activeIdx >= csSlides.length) activeIdx = 0;
       var slidesHtml = '';
       csSlides.forEach(function (slide, idx) {
-        var vis = idx === 0 ? '' : 'display:none;';
+        var vis = idx === activeIdx ? '' : 'display:none;';
+        var csFit = slide.fit || "cover";
+        var csSlideBg = (csFit === "contain" && slide.bg) ? slide.bg : "transparent";
         if (slide.image) {
-          slidesHtml += '<div class="carousel-slide" style="' + vis + '"><img src="' + escapeHtml(slide.image) + '" style="width:100%;height:' + csH + 'px;object-fit:cover;border-radius:' + csRad + 'px;" /></div>';
+          slidesHtml += '<div class="carousel-slide" style="' + vis + '"><div style="width:100%;height:' + csH + 'px;background:' + csSlideBg + ';border-radius:' + csRad + 'px;overflow:hidden;display:flex;align-items:center;justify-content:center;"><img src="' + escapeHtml(slide.image) + '" style="width:100%;height:100%;object-fit:' + csFit + ';" /></div></div>';
         } else {
           slidesHtml += '<div class="carousel-slide" style="' + vis + '"><div style="width:100%;height:' + csH + 'px;background:linear-gradient(135deg,#6366f1,#4338ca);border-radius:' + csRad + 'px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;">' + escapeHtml(slide.caption || 'Slide ' + (idx + 1)) + '</div></div>';
         }
@@ -2377,16 +2390,17 @@ function generateBlockPreview(block) {
       var dotCount = csSlides.length;
       var dotsHtml = '';
       for (var di = 0; di < dotCount; di++) {
-        dotsHtml += '<div class="carousel-dot" style="width:6px;height:6px;border-radius:50%;background:' + (di === 0 ? '#6366f1' : '#cbd5e1') + ';cursor:pointer;"></div>';
+        dotsHtml += '<div class="carousel-dot" data-idx="' + di + '" onclick="switchCanvasSlide(\'' + csId + '\',' + di + ');event.stopPropagation();" style="width:8px;height:8px;border-radius:50%;background:' + (di === activeIdx ? '#6366f1' : '#cbd5e1') + ';cursor:pointer;"></div>';
       }
-      var interval = (d.interval || 3) * 1000;
-      var autoPlayJs = d.autoPlay !== false
-        ? '<script>!function(){var c=document.getElementById("' + csId + '");if(!c)return;var s=c.querySelectorAll(".carousel-slide"),d=c.querySelectorAll(".carousel-dot"),i=0;function go(){s.forEach(function(e){e.style.display="none"});d.forEach(function(e){e.style.background="#cbd5e1"});i=(i+1)%s.length;s[i].style.display="";if(d[i])d[i].style.background="#6366f1";}setInterval(go,' + interval + ');}()<\/script>'
+      // Arrow navigation
+      var arrowsHtml = csSlides.length > 1
+        ? '<button type="button" onclick="switchCanvasSlide(\'' + csId + '\',-1,\'prev\');event.stopPropagation();" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);background:rgba(0,0,0,0.5);color:#fff;border:none;width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:14px;line-height:1;z-index:2;">‹</button>' +
+          '<button type="button" onclick="switchCanvasSlide(\'' + csId + '\',1,\'next\');event.stopPropagation();" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:rgba(0,0,0,0.5);color:#fff;border:none;width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:14px;line-height:1;z-index:2;">›</button>'
         : '';
       return '<div style="padding:16px;position:relative;width:' + csW + ';margin:0 auto;" id="' + csId + '">' +
-        slidesHtml +
-        '<div style="display:flex;justify-content:center;gap:4px;margin-top:8px;">' + dotsHtml + '</div>' +
-        '</div>' + autoPlayJs;
+        '<div style="position:relative;">' + slidesHtml + arrowsHtml + '</div>' +
+        '<div style="display:flex;justify-content:center;gap:6px;margin-top:8px;">' + dotsHtml + '</div>' +
+        '</div>';
 
     case "twocol":
       var ratioMap = { "50-50": ["1fr","1fr"], "60-40": ["3fr","2fr"], "40-60": ["2fr","3fr"], "70-30": ["7fr","3fr"], "30-70": ["3fr","7fr"] };
@@ -2999,8 +3013,10 @@ function generatePreviewBlock(block) {
       var pcsSlidesHtml = '';
       pcsSlides.forEach(function (slide, idx) {
         var vis = idx === 0 ? '' : 'display:none;';
+        var pcsFit = slide.fit || "cover";
+        var pcsSlideBg = (pcsFit === "contain" && slide.bg) ? slide.bg : "transparent";
         if (slide.image) {
-          pcsSlidesHtml += '<div class="pcs-slide" style="' + vis + '"><img src="' + escapeHtml(slide.image) + '" style="width:100%;height:' + pcsH + 'px;object-fit:cover;border-radius:' + pcsRad + 'px;" /></div>';
+          pcsSlidesHtml += '<div class="pcs-slide" style="' + vis + '"><div style="width:100%;height:' + pcsH + 'px;background:' + pcsSlideBg + ';border-radius:' + pcsRad + 'px;overflow:hidden;display:flex;align-items:center;justify-content:center;"><img src="' + escapeHtml(slide.image) + '" style="width:100%;height:100%;object-fit:' + pcsFit + ';" /></div></div>';
         } else {
           pcsSlidesHtml += '<div class="pcs-slide" style="' + vis + '"><div style="width:100%;height:' + pcsH + 'px;background:linear-gradient(135deg,#1a1a2e,#0f172a);border-radius:' + pcsRad + 'px;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;">' + escapeHtml(slide.caption || 'Slide') + '</div></div>';
         }
@@ -3231,6 +3247,28 @@ function escapeHtml(str) {
   if (!str) return "";
   return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
+
+// Remember active slide per carousel across re-renders
+window._canvasCarouselSlide = window._canvasCarouselSlide || {};
+
+// Switch carousel slide in canvas preview (called by inline onclick)
+window.switchCanvasSlide = function (carouselId, idxOrDir, mode) {
+  var c = document.getElementById(carouselId);
+  if (!c) return;
+  var slides = c.querySelectorAll(".carousel-slide");
+  var dots = c.querySelectorAll(".carousel-dot");
+  if (!slides.length) return;
+  var current = -1;
+  slides.forEach(function (s, k) { if (s.style.display !== "none") current = k; });
+  if (current === -1) current = 0;
+  var newIdx;
+  if (mode === "prev") newIdx = (current - 1 + slides.length) % slides.length;
+  else if (mode === "next") newIdx = (current + 1) % slides.length;
+  else newIdx = idxOrDir;
+  slides.forEach(function (s, k) { s.style.display = k === newIdx ? "" : "none"; });
+  dots.forEach(function (dot, k) { dot.style.background = k === newIdx ? "#6366f1" : "#cbd5e1"; });
+  window._canvasCarouselSlide[carouselId] = newIdx;
+};
 
 function hexToRgba(hex, alpha) {
   if (!hex) return "rgba(0,0,0," + alpha + ")";
