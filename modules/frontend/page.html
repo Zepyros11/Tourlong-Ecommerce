@@ -139,6 +139,29 @@
         html += renderBlock(block.type, block.data);
       });
       document.getElementById("pageContent").innerHTML = html;
+      initCarousels();
+    }
+
+    function initCarousels() {
+      document.querySelectorAll(".pcs-carousel").forEach(function (root) {
+        var slides = root.querySelectorAll(".pcs-slide");
+        var dots = root.querySelectorAll(".pcs-dot");
+        if (slides.length <= 1) return;
+        var i = 0;
+        var auto = root.dataset.auto === "true";
+        var intervalMs = parseInt(root.dataset.interval || "3000");
+        function show(idx) {
+          slides.forEach(function (s, k) { s.style.display = k === idx ? "" : "none"; });
+          dots.forEach(function (dot, k) { dot.style.background = k === idx ? "#fff" : "rgba(255,255,255,0.3)"; });
+          i = idx;
+        }
+        dots.forEach(function (dot, k) {
+          dot.addEventListener("click", function () { show(k); });
+        });
+        if (auto) {
+          setInterval(function () { show((i + 1) % slides.length); }, intervalMs);
+        }
+      });
     }
 
     function renderBlock(type, d) {
@@ -422,11 +445,27 @@
           return '<section style="padding:60px 40px;"><div style="display:grid;grid-template-columns:repeat(' + ccCols + ',1fr);gap:20px;max-width:1000px;margin:0 auto;">' + ccCards + '</div></section>';
 
         case "carousel":
-          var ccSlide = (d.slides && d.slides[0]) || {};
-          var ccImg = ccSlide.image
-            ? '<img src="' + escapeHtml(ccSlide.image) + '" style="width:100%;height:400px;object-fit:cover;border-radius:16px;" />'
-            : '<div style="width:100%;height:400px;background:linear-gradient(135deg,#1a1a2e,#0f172a);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;">' + escapeHtml(ccSlide.caption || "Slide") + '</div>';
-          return '<section style="padding:40px;max-width:900px;margin:0 auto;">' + ccImg + '</section>';
+          var ccSlides = d.slides || [];
+          var ccH = d.slideHeight ? (parseInt(d.slideHeight) * 2.5) : 400;
+          var ccRad = d.slideRadius || 16;
+          var ccW = d.slideWidth || "100%";
+          var ccAuto = d.autoPlay !== false;
+          var ccInterval = (d.interval || 3) * 1000;
+          var ccSlidesHtml = ccSlides.map(function (slide, idx) {
+            var vis = idx === 0 ? '' : 'display:none;';
+            if (slide.image) {
+              return '<div class="pcs-slide" style="' + vis + '"><img src="' + escapeHtml(slide.image) + '" style="width:100%;height:' + ccH + 'px;object-fit:cover;border-radius:' + ccRad + 'px;" /></div>';
+            }
+            return '<div class="pcs-slide" style="' + vis + '"><div style="width:100%;height:' + ccH + 'px;background:linear-gradient(135deg,#1a1a2e,#0f172a);border-radius:' + ccRad + 'px;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;">' + escapeHtml(slide.caption || "Slide") + '</div></div>';
+          }).join("");
+          var ccDotsHtml = "";
+          for (var cdi = 0; cdi < ccSlides.length; cdi++) {
+            ccDotsHtml += '<div class="pcs-dot" style="width:10px;height:10px;border-radius:50%;background:' + (cdi === 0 ? "#fff" : "rgba(255,255,255,0.3)") + ';cursor:pointer;"></div>';
+          }
+          return '<section class="pcs-carousel" data-auto="' + ccAuto + '" data-interval="' + ccInterval + '" style="padding:40px;width:' + ccW + ';max-width:900px;margin:0 auto;position:relative;">' +
+            ccSlidesHtml +
+            '<div style="display:flex;justify-content:center;gap:6px;margin-top:12px;">' + ccDotsHtml + '</div>' +
+            '</section>';
 
         case "twocol":
           var ccRatio = { "50-50": ["1fr","1fr"], "60-40": ["3fr","2fr"], "40-60": ["2fr","3fr"], "70-30": ["7fr","3fr"], "30-70": ["3fr","7fr"] };
