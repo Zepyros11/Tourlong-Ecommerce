@@ -602,12 +602,10 @@ function renderCanvasBlocks() {
     html += '<div class="block-toolbar">';
     html += '<span class="block-toolbar-label">' + (template ? template.name : block.type) + '</span>';
     html += '<div class="block-toolbar-divider"></div>';
-    if (idx > 0) {
-      html += '<button class="block-toolbar-btn" onclick="moveBlock(\'' + block.id + '\', -1)" title="Move Up"><i data-lucide="chevron-up"></i></button>';
-    }
-    if (idx < page.blocks.length - 1) {
-      html += '<button class="block-toolbar-btn" onclick="moveBlock(\'' + block.id + '\', 1)" title="Move Down"><i data-lucide="chevron-down"></i></button>';
-    }
+    var canUp = idx > 0;
+    var canDown = idx < page.blocks.length - 1;
+    html += '<button class="block-toolbar-btn"' + (canUp ? ' onclick="moveBlock(\'' + block.id + '\', -1)"' : ' disabled style="opacity:0.3;cursor:not-allowed;"') + ' title="Move Up"><i data-lucide="chevron-up"></i></button>';
+    html += '<button class="block-toolbar-btn"' + (canDown ? ' onclick="moveBlock(\'' + block.id + '\', 1)"' : ' disabled style="opacity:0.3;cursor:not-allowed;"') + ' title="Move Down"><i data-lucide="chevron-down"></i></button>';
     html += '<button class="block-toolbar-btn" onclick="duplicateBlock(\'' + block.id + '\')" title="Duplicate"><i data-lucide="copy"></i></button>';
     html += '<div class="block-toolbar-divider"></div>';
     html += '<button class="block-toolbar-btn danger" onclick="removeBlock(\'' + block.id + '\')" title="Remove"><i data-lucide="trash-2"></i></button>';
@@ -1328,6 +1326,17 @@ function generateSettingsFields(block) {
         settingsField("Video URL", "text", "setting-url", data.url || ""),
         settingsField("Title", "text", "setting-title", data.title || ""),
       ]);
+      html += settingsSection("Text Beside Video", [
+        '<div class="settings-field"><label class="settings-label" style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" id="setting-showText"' + (data.showText ? ' checked' : '') + ' style="width:14px;height:14px;" /> เพิ่มข้อความ (แบ่ง 2 คอลัมน์)</label></div>',
+        settingsSelectField("ตำแหน่งข้อความ", "setting-textSide", data.textSide || "right", [
+          { value: "left", label: "ข้อความซ้าย / วิดีโอขวา" },
+          { value: "right", label: "ข้อความขวา / วิดีโอซ้าย" },
+        ]),
+        settingsField("Heading", "text", "setting-heading", data.heading || ""),
+        settingsField("Content", "textarea", "setting-content", data.content || ""),
+        settingsColorField("Heading Color", "setting-headingColor", data.headingColor || "#ffffff"),
+        settingsColorField("Content Color", "setting-contentColor", data.contentColor || "#94a3b8"),
+      ]);
       break;
 
     default:
@@ -2017,6 +2026,13 @@ function updateBlockData(block) {
     case "video":
       data.url = getVal("setting-url");
       data.title = getVal("setting-title");
+      var vstCb = document.getElementById("setting-showText");
+      data.showText = vstCb ? vstCb.checked : false;
+      data.textSide = getVal("setting-textSide") || data.textSide || "right";
+      data.heading = getVal("setting-heading");
+      data.content = getVal("setting-content");
+      data.headingColor = getVal("setting-headingColor") || data.headingColor || "#ffffff";
+      data.contentColor = getVal("setting-contentColor") || data.contentColor || "#94a3b8";
       break;
   }
 
@@ -2307,14 +2323,19 @@ function generateBlockPreview(block) {
 
     case "video":
       var vidEmbed = getYouTubeEmbedUrl(d.url);
-      if (vidEmbed) {
-        return '<div class="block-preview-video">' +
-          '<iframe src="' + vidEmbed + '" style="width:100%;height:100%;border:none;border-radius:8px;" allowfullscreen></iframe>' +
-          '</div>';
+      var vidHtml = vidEmbed
+        ? '<iframe src="' + vidEmbed + '" style="width:100%;height:100%;border:none;border-radius:8px;" allowfullscreen></iframe>'
+        : '<div class="video-placeholder"><i data-lucide="play-circle"></i></div>';
+      if (d.showText) {
+        var vTextHtml = '<div style="flex:1;min-width:0;padding:8px 14px;">' +
+          (d.heading ? '<div style="font-size:12px;font-weight:800;color:' + (d.headingColor || '#fff') + ';margin-bottom:6px;">' + escapeHtml(d.heading) + '</div>' : '') +
+          '<div style="font-size:9px;color:' + (d.contentColor || '#94a3b8') + ';line-height:1.5;">' + escapeHtml(d.content || "") + '</div></div>';
+        var vDir = d.textSide === "left" ? "flex-direction:row-reverse;" : "";
+        return '<div style="display:flex;align-items:center;gap:12px;padding:12px;' + vDir + '">' +
+          '<div class="block-preview-video" style="flex:1;min-width:0;margin:0;">' + vidHtml + '</div>' +
+          vTextHtml + '</div>';
       }
-      return '<div class="block-preview-video">' +
-        '<div class="video-placeholder"><i data-lucide="play-circle"></i></div>' +
-        '</div>';
+      return '<div class="block-preview-video">' + vidHtml + '</div>';
 
     case "cards":
       var cCols = d.columns || 3;
@@ -2930,16 +2951,20 @@ function generatePreviewBlock(block) {
 
     case "video":
       var pVidEmbed = getYouTubeEmbedUrl(d.url);
-      if (pVidEmbed) {
-        return '<section style="padding:40px;">' +
-          '<div style="max-width:800px;margin:0 auto;border-radius:16px;overflow:hidden;aspect-ratio:16/9;">' +
-          '<iframe src="' + pVidEmbed + '" style="width:100%;height:100%;border:none;" allowfullscreen></iframe>' +
-          '</div></section>';
+      var pVidPlayer = pVidEmbed
+        ? '<div style="border-radius:16px;overflow:hidden;aspect-ratio:16/9;"><iframe src="' + pVidEmbed + '" style="width:100%;height:100%;border:none;" allowfullscreen></iframe></div>'
+        : '<div style="height:400px;background:#111;border-radius:16px;display:flex;align-items:center;justify-content:center;"><span style="font-size:48px;opacity:0.3;">▶</span></div>';
+      if (d.showText) {
+        var pvTextHtml = '<div style="flex:1;min-width:0;padding:0 20px;">' +
+          (d.heading ? '<h2 style="font-size:32px;font-weight:800;color:' + (d.headingColor || '#fff') + ';margin-bottom:16px;">' + escapeHtml(d.heading) + '</h2>' : '') +
+          '<p style="font-size:16px;line-height:1.8;color:' + (d.contentColor || '#94a3b8') + ';">' + escapeHtml(d.content || "") + '</p></div>';
+        var pvDir = d.textSide === "left" ? "flex-direction:row-reverse;" : "";
+        return '<section style="padding:60px 40px;">' +
+          '<div style="display:flex;align-items:center;gap:32px;max-width:1100px;margin:0 auto;' + pvDir + '">' +
+          '<div style="flex:1;min-width:0;">' + pVidPlayer + '</div>' +
+          pvTextHtml + '</div></section>';
       }
-      return '<section style="padding:60px 40px;text-align:center;">' +
-        '<div style="max-width:800px;margin:0 auto;height:400px;background:#111;border-radius:16px;display:flex;align-items:center;justify-content:center;">' +
-        '<span style="font-size:48px;opacity:0.3;">▶</span>' +
-        '</div></section>';
+      return '<section style="padding:40px;"><div style="max-width:800px;margin:0 auto;">' + pVidPlayer + '</div></section>';
 
     case "cards":
       var pcCols = d.columns || 3;

@@ -311,10 +311,21 @@
             '</section>';
 
         case "video":
-          return '<section style="padding:60px 40px;text-align:center;">' +
-            '<div style="max-width:800px;margin:0 auto;height:400px;background:#111;border-radius:16px;display:flex;align-items:center;justify-content:center;">' +
-            '<span style="font-size:48px;opacity:0.3;">▶</span>' +
-            '</div></section>';
+          var pVidEmbed = getYouTubeEmbedUrl(d.url);
+          var pVidPlayer = pVidEmbed
+            ? '<div style="border-radius:16px;overflow:hidden;aspect-ratio:16/9;"><iframe src="' + pVidEmbed + '" style="width:100%;height:100%;border:none;" allowfullscreen></iframe></div>'
+            : '<div style="height:400px;background:#111;border-radius:16px;display:flex;align-items:center;justify-content:center;"><span style="font-size:48px;opacity:0.3;">▶</span></div>';
+          if (d.showText) {
+            var pvTextHtml = '<div style="flex:1;min-width:0;padding:0 20px;">' +
+              (d.heading ? '<h2 style="font-size:32px;font-weight:800;color:' + (d.headingColor || "#fff") + ';margin-bottom:16px;">' + escapeHtml(d.heading) + '</h2>' : '') +
+              '<p style="font-size:16px;line-height:1.8;color:' + (d.contentColor || "#94a3b8") + ';">' + escapeHtml(d.content || "") + '</p></div>';
+            var pvDir = d.textSide === "left" ? "flex-direction:row-reverse;" : "";
+            return '<section style="padding:60px 40px;">' +
+              '<div style="display:flex;align-items:center;gap:32px;max-width:1100px;margin:0 auto;' + pvDir + '">' +
+              '<div style="flex:1;min-width:0;">' + pVidPlayer + '</div>' +
+              pvTextHtml + '</div></section>';
+          }
+          return '<section style="padding:40px;"><div style="max-width:800px;margin:0 auto;">' + pVidPlayer + '</div></section>';
 
         case "imagetext":
           var itLayout = d.layout || "image-left";
@@ -445,6 +456,14 @@
     function escapeHtml(str) {
       if (!str) return "";
       return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    function getYouTubeEmbedUrl(url) {
+      if (!url) return "";
+      var m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|v\/)|youtu\.be\/)([^&?\/\s]+)/);
+      if (m && m[1]) return "https://www.youtube.com/embed/" + m[1];
+      if (url.indexOf("youtube.com/embed/") !== -1) return url;
+      return url;
     }
 
     function hexToRgba(hex, alpha) {
