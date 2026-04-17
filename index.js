@@ -15,6 +15,11 @@ app.use(
   express.static(path.join(__dirname, "modules", "backend")),
 );
 app.use("/assets", express.static(path.join(__dirname, "assets")));
+
+// Favicon
+app.get("/favicon.ico", (req, res) => {
+  res.status(204).end();
+});
 // Serve the home page from the home-page folder
 app.get("/homepage", (req, res) => {
   res.sendFile(

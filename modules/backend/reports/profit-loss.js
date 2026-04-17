@@ -4,14 +4,7 @@
 // Mock data 6 months, render table, filter by date, sort, stats
 // ============================================================
 
-var profitLossData = [
-  { id: 1, month: "พ.ย. 2025", date: "2025-11-01", revenue: 185000, cogs: 92500,  grossProfit: 92500,  expenses: 38000, netProfit: 54500  },
-  { id: 2, month: "ธ.ค. 2025", date: "2025-12-01", revenue: 228000, cogs: 114000, grossProfit: 114000, expenses: 42000, netProfit: 72000  },
-  { id: 3, month: "ม.ค. 2026", date: "2026-01-01", revenue: 175000, cogs: 96250,  grossProfit: 78750,  expenses: 45000, netProfit: 33750  },
-  { id: 4, month: "ก.พ. 2026", date: "2026-02-01", revenue: 198000, cogs: 99000,  grossProfit: 99000,  expenses: 41500, netProfit: 57500  },
-  { id: 5, month: "มี.ค. 2026", date: "2026-03-01", revenue: 245800, cogs: 122900, grossProfit: 122900, expenses: 48000, netProfit: 74900 },
-  { id: 6, month: "เม.ย. 2026", date: "2026-04-01", revenue: 214000, cogs: 118700, grossProfit: 95300,  expenses: 51000, netProfit: 44300  },
-];
+var profitLossData = [];
 
 /**
  * Format number as Thai Baht currency

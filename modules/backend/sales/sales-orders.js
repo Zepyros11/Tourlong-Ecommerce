@@ -5,18 +5,7 @@
 // ============================================================
 
 // ============ Mock Database ============
-let salesOrders = [
-  { id: 1,  soNumber: "SO-2026-147", customer: "บ.เอบีซี จำกัด",       date: "2026-04-01", items: 5,  amount: 45000,  status: "completed" },
-  { id: 2,  soNumber: "SO-2026-148", customer: "คุณสมศรี จันทร์ดี",     date: "2026-04-02", items: 2,  amount: 5180,   status: "completed" },
-  { id: 3,  soNumber: "SO-2026-149", customer: "บ.XYZ เทรดดิ้ง",       date: "2026-04-03", items: 8,  amount: 92000,  status: "completed" },
-  { id: 4,  soNumber: "SO-2026-150", customer: "คุณธนา ใจงาม",         date: "2026-04-04", items: 3,  amount: 18750,  status: "completed" },
-  { id: 5,  soNumber: "SO-2026-151", customer: "คุณนภา รักดี",          date: "2026-04-05", items: 1,  amount: 3200,   status: "cancelled" },
-  { id: 6,  soNumber: "SO-2026-152", customer: "คุณธนา ใจงาม",         date: "2026-04-06", items: 4,  amount: 18750,  status: "completed" },
-  { id: 7,  soNumber: "SO-2026-153", customer: "คุณนภา รักดี",          date: "2026-04-07", items: 2,  amount: 3200,   status: "processing" },
-  { id: 8,  soNumber: "SO-2026-154", customer: "บ.เอบีซี จำกัด",       date: "2026-04-07", items: 10, amount: 45000,  status: "completed" },
-  { id: 9,  soNumber: "SO-2026-155", customer: "คุณวิชัย สุขสม",        date: "2026-04-08", items: 3,  amount: 8900,   status: "processing" },
-  { id: 10, soNumber: "SO-2026-156", customer: "คุณสมศรี จันทร์ดี",     date: "2026-04-08", items: 6,  amount: 12500,  status: "completed" },
-];
+let salesOrders = [];
 
 // ============ Update Stat Cards ============
 function updateStats() {

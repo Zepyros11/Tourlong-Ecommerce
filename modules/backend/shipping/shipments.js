@@ -5,16 +5,7 @@
 // ============================================================
 
 // ============ Mock Database ============
-let shipments = [
-  { id: 1, shipNo: "SHP-2026-001", soRef: "SO-2026-147", customer: "บ.เอบีซี จำกัด",       carrier: "Kerry Express",  tracking: "KEX1234567890",  date: "2026-04-02", status: "delivered" },
-  { id: 2, shipNo: "SHP-2026-002", soRef: "SO-2026-148", customer: "คุณสมศรี จันทร์ดี",     carrier: "Flash Express",  tracking: "FLE9876543210",  date: "2026-04-03", status: "delivered" },
-  { id: 3, shipNo: "SHP-2026-003", soRef: "SO-2026-149", customer: "บ.XYZ เทรดดิ้ง",       carrier: "DHL",            tracking: "DHL5551234567",  date: "2026-04-04", status: "delivered" },
-  { id: 4, shipNo: "SHP-2026-004", soRef: "SO-2026-150", customer: "คุณธนา ใจงาม",         carrier: "Thailand Post",  tracking: "THP7778889990",  date: "2026-04-05", status: "delivered" },
-  { id: 5, shipNo: "SHP-2026-005", soRef: "SO-2026-152", customer: "คุณธนา ใจงาม",         carrier: "J&T Express",    tracking: "JT12345678",     date: "2026-04-07", status: "transit" },
-  { id: 6, shipNo: "SHP-2026-006", soRef: "SO-2026-154", customer: "บ.เอบีซี จำกัด",       carrier: "Kerry Express",  tracking: "KEX9998887776",  date: "2026-04-07", status: "transit" },
-  { id: 7, shipNo: "SHP-2026-007", soRef: "SO-2026-155", customer: "คุณวิชัย สุขสม",       carrier: "Flash Express",  tracking: "",               date: "2026-04-08", status: "pending" },
-  { id: 8, shipNo: "SHP-2026-008", soRef: "SO-2026-156", customer: "คุณสมศรี จันทร์ดี",     carrier: "Kerry Express",  tracking: "",               date: "2026-04-08", status: "pending" },
-];
+let shipments = [];
 
 // ============ Update Stat Cards ============
 function updateStats() {

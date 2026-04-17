@@ -5,16 +5,7 @@
 // ============================================================
 
 // ============ Mock Database ============
-let payments = [
-  { id: 1, invoiceRef: "INV-2026-001", customer: "บ.เอบีซี จำกัด",       date: "2026-04-01", method: "โอนธนาคาร",  amount: 45000,  status: "completed" },
-  { id: 2, invoiceRef: "INV-2026-002", customer: "คุณสมศรี จันทร์ดี",     date: "2026-04-02", method: "เงินสด",      amount: 5180,   status: "completed" },
-  { id: 3, invoiceRef: "INV-2026-003", customer: "บ.XYZ เทรดดิ้ง",       date: "2026-04-03", method: "บัตรเครดิต",  amount: 92000,  status: "completed" },
-  { id: 4, invoiceRef: "INV-2026-004", customer: "คุณธนา ใจงาม",         date: "2026-04-04", method: "เช็ค",        amount: 18750,  status: "completed" },
-  { id: 5, invoiceRef: "INV-2026-005", customer: "คุณวิชัย สุขสม",       date: "2026-04-05", method: "โอนธนาคาร",  amount: 8900,   status: "pending" },
-  { id: 6, invoiceRef: "INV-2026-006", customer: "บ.เอบีซี จำกัด",       date: "2026-04-06", method: "บัตรเครดิต",  amount: 45000,  status: "pending" },
-  { id: 7, invoiceRef: "INV-2026-007", customer: "คุณสมศรี จันทร์ดี",     date: "2026-04-07", method: "เงินสด",      amount: 12500,  status: "pending" },
-  { id: 8, invoiceRef: "INV-2026-008", customer: "คุณธนา ใจงาม",         date: "2026-04-08", method: "โอนธนาคาร",  amount: 31200,  status: "completed" },
-];
+let payments = [];
 
 // ============ Update Stat Cards ============
 function updateStats() {

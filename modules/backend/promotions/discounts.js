@@ -5,13 +5,7 @@
 // ============================================================
 
 // ============ Mock Database ============
-let discounts = [
-  { id: 1, name: "Summer Sale",       discount: 20,  type: "percent", applyTo: "all",      startDate: "2026-04-01", endDate: "2026-04-30", status: "active" },
-  { id: 2, name: "Electronics Week",  discount: 15,  type: "percent", applyTo: "category", startDate: "2026-04-10", endDate: "2026-04-17", status: "active" },
-  { id: 3, name: "Flash Deal ลด 200", discount: 200, type: "fixed",   applyTo: "product",  startDate: "2026-04-08", endDate: "2026-04-08", status: "active" },
-  { id: 4, name: "Clearance Sale",    discount: 50,  type: "percent", applyTo: "product",  startDate: "2026-03-01", endDate: "2026-03-31", status: "inactive" },
-  { id: 5, name: "Member Day",        discount: 10,  type: "percent", applyTo: "all",      startDate: "2026-05-01", endDate: "2026-05-01", status: "active" },
-];
+let discounts = [];
 
 // ============ Update Stat Cards ============
 function updateStats() {

@@ -5,18 +5,7 @@
 // ============================================================
 
 // ============ Mock Database ============
-let expenses = [
-  { id: 1,  date: "2026-03-05", description: "ซื้อวัตถุดิบล็อตมีนาคม",       category: "จัดซื้อ",       amount: 85000,  status: "paid" },
-  { id: 2,  date: "2026-03-10", description: "ค่าขนส่งสินค้าไปภาคเหนือ",     category: "ขนส่ง",         amount: 12500,  status: "paid" },
-  { id: 3,  date: "2026-03-15", description: "ค่าไฟฟ้าเดือนมีนาคม",          category: "สาธารณูปโภค",   amount: 8400,   status: "paid" },
-  { id: 4,  date: "2026-03-20", description: "เงินเดือนพนักงาน มี.ค.",        category: "เงินเดือน",     amount: 320000, status: "paid" },
-  { id: 5,  date: "2026-03-25", description: "ค่าเช่าสำนักงาน มี.ค.",         category: "สำนักงาน",      amount: 35000,  status: "paid" },
-  { id: 6,  date: "2026-04-01", description: "โฆษณา Facebook Ads เมษายน",     category: "การตลาด",       amount: 15000,  status: "paid" },
-  { id: 7,  date: "2026-04-02", description: "ซื้ออุปกรณ์สำนักงาน",           category: "สำนักงาน",      amount: 4500,   status: "unpaid" },
-  { id: 8,  date: "2026-04-03", description: "ค่าขนส่งพัสดุด่วน",             category: "ขนส่ง",         amount: 3200,   status: "unpaid" },
-  { id: 9,  date: "2026-04-05", description: "ค่าน้ำประปาเดือนเมษายน",        category: "สาธารณูปโภค",   amount: 2800,   status: "unpaid" },
-  { id: 10, date: "2026-04-07", description: "ซ่อมแซมเครื่องพิมพ์",           category: "อื่นๆ",         amount: 6500,   status: "unpaid" },
-];
+let expenses = [];
 
 // ============ Update Stat Cards ============
 function updateStats() {

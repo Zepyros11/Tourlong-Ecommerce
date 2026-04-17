@@ -3,28 +3,39 @@
 // form อยู่ที่ products-form.html / products-form.js
 // ============================================================
 
-// ============ Mock Database ============
-let products = [
-  { id: 1,  name: "Wireless Headphones",   sku: "WH-001",  category: "Electronics",     price: 2590,  status: "active", variants: [] },
-  { id: 2,  name: "Running Shoes",         sku: "RS-001",  category: "Sports",          price: 3200,  status: "active", variants: [] },
-  { id: 3,  name: "เสื้อลายหมี",            sku: "BEAR",    category: "Clothing",        price: 450,   status: "active", variants: [
-    { variant: "S", sku: "BEAR-S", price: 450 },
-    { variant: "M", sku: "BEAR-M", price: 450 },
-    { variant: "L", sku: "BEAR-L", price: 490 },
-    { variant: "XL", sku: "BEAR-XL", price: 520 },
-  ]},
-  { id: 4,  name: "Yoga Mat",              sku: "YM-001",  category: "Sports",          price: 890,   status: "inactive", variants: [] },
-  { id: 5,  name: "Protein Powder",        sku: "PP-001",  category: "Food & Beverage", price: 1250,  status: "active", variants: [] },
-  { id: 6,  name: "Smart Watch",           sku: "SW",      category: "Electronics",     price: 4500,  status: "active", variants: [
-    { variant: "Black", sku: "SW-BLK", price: 4500 },
-    { variant: "Silver", sku: "SW-SLV", price: 4500 },
-    { variant: "Gold", sku: "SW-GLD", price: 4900 },
-  ]},
-  { id: 7,  name: "Leather Wallet",        sku: "LW-001",  category: "Accessories",     price: 750,   status: "inactive", variants: [] },
-  { id: 8,  name: "Face Serum",            sku: "FS-001",  category: "Beauty",          price: 680,   status: "active", variants: [] },
-  { id: 9,  name: "Desk Lamp",             sku: "DL-001",  category: "Home & Living",   price: 1100,  status: "active", variants: [] },
-  { id: 10, name: "JavaScript Handbook",   sku: "BK-001",  category: "Books",           price: 350,   status: "active", variants: [] },
-];
+// ============ Database ============
+let products = [];
+let allUnits = []; // units จาก DB เพื่อแสดงชื่อหน่วย
+
+function getUnitName(unitId) {
+  if (!unitId) return '';
+  var u = allUnits.find(function (x) { return x.id === unitId; });
+  return u ? u.name : '';
+}
+
+function reloadProducts() {
+  return Promise.all([
+    typeof fetchProducts === "function" ? fetchProducts() : Promise.resolve([]),
+    typeof fetchUnitsDB === "function" ? fetchUnitsDB() : Promise.resolve([]),
+  ]).then(function (results) {
+    products = (results[0] || []).map(function (p) {
+      return {
+        id: p.id,
+        name: p.name || '',
+        sku: p.sku || '',
+        category: p.categories ? p.categories.name : (p.category || ''),
+        price: Number(p.price) || 0,
+        unit_id: p.unit_id || null,
+        variants: p.variants || [],
+        status: p.status || 'active',
+      };
+    });
+    allUnits = (results[1] || []).map(function (u) {
+      return { id: u.id, name: u.name, abbr: u.abbr || '' };
+    });
+    return products;
+  });
+}
 
 // ============ Stats ============
 function updateStats() {
@@ -44,12 +55,17 @@ function renderTable(data) {
     var skuDisplay = p.variants && p.variants.length
       ? '<span style="font-size:10px;color:#8b5cf6;font-weight:600;">' + p.sku + '-*</span>'
       : '<span style="font-size:10px;color:#64748b;font-weight:600;">' + (p.sku || '—') + '</span>';
+    var unitName = getUnitName(p.unit_id);
+    var unitDisplay = unitName
+      ? '<span style="font-size:10px;font-weight:600;color:#47b8b4;">' + unitName + '</span>'
+      : '<span style="font-size:10px;color:#cbd5e1;">—</span>';
     return '<tr>' +
       '<td>' + (i + 1) + '</td>' +
       '<td>' + p.name + '</td>' +
       '<td>' + skuDisplay + '</td>' +
       '<td>' + p.category + '</td>' +
       '<td>฿' + p.price.toLocaleString() + '</td>' +
+      '<td>' + unitDisplay + '</td>' +
       '<td>' + variantBadge + '</td>' +
       '<td><span class="badge badge-' + (p.status === "active" ? "active" : "inactive") + '">' + (p.status === "active" ? "Active" : "Inactive") + '</span></td>' +
       '<td><div class="table-actions">' +
@@ -119,5 +135,11 @@ document.addEventListener("DOMContentLoaded", function() {
     applyFilters();
   });
 
-  renderTable(products);
+  // โหลดข้อมูลจาก Supabase
+  reloadProducts()
+    .then(function () { applyFilters(); })
+    .catch(function (err) {
+      console.error(err);
+      applyFilters(); // render empty
+    });
 });

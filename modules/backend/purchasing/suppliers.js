@@ -5,14 +5,7 @@
 // ============================================================
 
 // ============ Mock Database ============
-let suppliers = [
-  { id: 1, name: "บ.สยามซัพพลาย",       contact: "สมศักดิ์ เจริญกิจ",   phone: "02-111-1111", email: "info@siamsupply.co.th",      address: "กรุงเทพมหานคร",   status: "active" },
-  { id: 2, name: "บ.ไทยเทรด",           contact: "วิชัย พาณิชย์ดี",     phone: "02-222-2222", email: "contact@thaitrade.co.th",    address: "นนทบุรี",         status: "active" },
-  { id: 3, name: "บ.แกรนด์โลจิสติกส์",    contact: "ปรีชา ขนส่งเร็ว",     phone: "02-333-3333", email: "sales@grandlogistics.co.th", address: "สมุทรปราการ",     status: "active" },
-  { id: 4, name: "บ.เอเชียซัพพลาย",      contact: "นิภา ค้าส่งดี",       phone: "02-444-4444", email: "info@asiasupply.co.th",      address: "ปทุมธานี",        status: "inactive" },
-  { id: 5, name: "บ.โกลบอลเทค",         contact: "ธนวัฒน์ เทคโนโลยี",   phone: "02-555-5555", email: "support@globaltech.co.th",   address: "ชลบุรี",          status: "active" },
-  { id: 6, name: "บ.พรีเมียมกู๊ดส์",      contact: "สุรีย์ สินค้าดี",      phone: "02-666-6666", email: "order@premiumgoods.co.th",   address: "เชียงใหม่",       status: "inactive" },
-];
+let suppliers = [];
 
 // ============ Update Stat Cards ============
 function updateStats() {

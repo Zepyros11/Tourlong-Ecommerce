@@ -5,16 +5,7 @@
 // ============================================================
 
 // ============ Mock Database ============
-const purchaseData = [
-  { id: 1, date: "2026-04-01", poNumber: "PO-2026-001", supplier: "บ.สยามซัพพลาย",       items: 8,  amount: 45000,  status: "approved" },
-  { id: 2, date: "2026-04-03", poNumber: "PO-2026-002", supplier: "บ.ไทยเทรด",           items: 5,  amount: 78500,  status: "pending" },
-  { id: 3, date: "2026-04-05", poNumber: "PO-2026-003", supplier: "บ.แกรนด์โลจิสติกส์",   items: 3,  amount: 32000,  status: "pending" },
-  { id: 4, date: "2026-04-05", poNumber: "PO-2026-004", supplier: "บ.เอเชียซัพพลาย",      items: 12, amount: 129000, status: "approved" },
-  { id: 5, date: "2026-04-06", poNumber: "PO-2026-005", supplier: "บ.โกลบอลเทค",         items: 6,  amount: 55000,  status: "approved" },
-  { id: 6, date: "2026-04-06", poNumber: "PO-2026-006", supplier: "บ.พรีเมียมกู๊ดส์",      items: 4,  amount: 28000,  status: "cancelled" },
-  { id: 7, date: "2026-04-07", poNumber: "PO-2026-007", supplier: "บ.สยามซัพพลาย",       items: 10, amount: 92000,  status: "pending" },
-  { id: 8, date: "2026-04-07", poNumber: "PO-2026-008", supplier: "บ.ไทยเทรด",           items: 2,  amount: 15000,  status: "approved" },
-];
+const purchaseData = [];
 
 // ============ Status Badge ============
 function getStatusBadge(status) {

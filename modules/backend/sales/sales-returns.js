@@ -5,12 +5,7 @@
 // ============================================================
 
 // ============ Mock Database ============
-let returns = [
-  { id: 1, returnNumber: "SR-2026-001", soRef: "SO-2026-148", customer: "คุณสมศรี จันทร์ดี",   date: "2026-04-05", reason: "สินค้าไม่ตรงตามสั่ง",  refund: 2590,  status: "approved" },
-  { id: 2, returnNumber: "SR-2026-002", soRef: "SO-2026-150", customer: "คุณธนา ใจงาม",        date: "2026-04-06", reason: "สินค้าชำรุด",          refund: 3200,  status: "approved" },
-  { id: 3, returnNumber: "SR-2026-003", soRef: "SO-2026-154", customer: "บ.เอบีซี จำกัด",      date: "2026-04-08", reason: "สั่งผิดรุ่น",           refund: 4500,  status: "pending" },
-  { id: 4, returnNumber: "SR-2026-004", soRef: "SO-2026-156", customer: "คุณสมศรี จันทร์ดี",   date: "2026-04-08", reason: "เปลี่ยนใจ",            refund: 450,   status: "pending" },
-];
+let returns = [];
 
 // ============ Auto Generate Return Number ============
 function generateReturnNumber() {

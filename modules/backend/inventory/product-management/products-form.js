@@ -3,6 +3,104 @@
 // ============================================================
 
 var blockCounter = 0;
+var allUnits = []; // units จาก DB สำหรับ dropdown
+var allProducts = []; // products จาก DB สำหรับ auto SKU
+var allCategories = []; // categories จาก DB
+
+function generateBarcode() {
+  // สร้าง EAN-13: prefix 885 (Thailand) + 9 หลักสุ่ม + check digit
+  var maxNum = 0;
+  // เช็คจาก DB
+  allProducts.forEach(function (p) {
+    var match = (p.barcode || "").match(/^885(\d{9})\d$/);
+    if (match) { var n = parseInt(match[1], 10); if (n > maxNum) maxNum = n; }
+  });
+  // เช็คจาก fields ที่กรอกอยู่
+  document.querySelectorAll(".b-barcode, .v-barcode").forEach(function (input) {
+    var match = (input.value || "").match(/^885(\d{9})\d$/);
+    if (match) { var n = parseInt(match[1], 10); if (n > maxNum) maxNum = n; }
+  });
+  var next = maxNum + 1;
+  var body = "885" + String(next).padStart(9, "0"); // 12 digits
+  // EAN-13 check digit
+  var sum = 0;
+  for (var i = 0; i < 12; i++) {
+    sum += parseInt(body[i], 10) * (i % 2 === 0 ? 1 : 3);
+  }
+  var check = (10 - (sum % 10)) % 10;
+  return body + check;
+}
+
+function renderBarcodeToSvg(container, val, opts) {
+  try {
+    var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    container.innerHTML = "";
+    container.appendChild(svg);
+    JsBarcode(svg, val, Object.assign({ format: "EAN13", displayValue: true }, opts));
+  } catch (e) {
+    try {
+      var svg2 = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      container.innerHTML = "";
+      container.appendChild(svg2);
+      JsBarcode(svg2, val, Object.assign({ format: "CODE128", displayValue: true }, opts));
+    } catch (e2) {
+      container.innerHTML = '<span style="color:#cbd5e1;font-size:8px;">invalid</span>';
+    }
+  }
+}
+
+function renderBarcodePreview(input) {
+  var preview = input.nextElementSibling;
+  if (!preview || !preview.classList.contains("barcode-preview")) return;
+  var val = (input.value || "").trim();
+  if (!val) {
+    preview.innerHTML = '';
+    preview.style.display = 'none';
+    return;
+  }
+  preview.style.display = 'inline-flex';
+  renderBarcodeToSvg(preview, val, { width: 1, height: 20, fontSize: 0, margin: 1, displayValue: false });
+}
+
+function showBarcodePopup(input) {
+  var val = (input.value || "").trim();
+  if (!val) return;
+  var overlay = document.createElement("div");
+  overlay.className = "barcode-popup-overlay";
+  function closePopup() { escClose.unregister(overlay); overlay.remove(); }
+  overlay.onclick = closePopup;
+  var popup = document.createElement("div");
+  popup.className = "barcode-popup";
+  popup.onclick = function (e) { e.stopPropagation(); };
+  popup.innerHTML = '<div class="barcode-popup-header"><span style="font-size:11px;font-weight:700;color:#1e293b;">Barcode Preview</span><button class="barcode-popup-close">×</button></div><div class="barcode-popup-body"></div><p style="text-align:center;margin:6px 0 0;font-size:10px;color:#64748b;">' + val + '</p>';
+  popup.querySelector(".barcode-popup-close").onclick = closePopup;
+  overlay.appendChild(popup);
+  document.body.appendChild(overlay);
+  escClose.register(overlay, closePopup);
+  renderBarcodeToSvg(popup.querySelector(".barcode-popup-body"), val, { width: 2, height: 80, fontSize: 14, margin: 10 });
+}
+
+function renderAllBarcodePreviews(blockEl) {
+  blockEl.querySelectorAll(".b-barcode, .v-barcode").forEach(function (input) {
+    renderBarcodePreview(input);
+  });
+}
+
+function generateSku() {
+  var maxNum = 0;
+  // เช็คจาก DB
+  allProducts.forEach(function (p) {
+    var match = (p.sku || "").match(/^SKU-(\d+)/);
+    if (match) { var n = parseInt(match[1], 10); if (n > maxNum) maxNum = n; }
+  });
+  // เช็คจาก blocks ที่กำลังกรอกอยู่ด้วย
+  document.querySelectorAll(".b-sku").forEach(function (input) {
+    var match = (input.value || "").match(/^SKU-(\d+)/);
+    if (match) { var n = parseInt(match[1], 10); if (n > maxNum) maxNum = n; }
+  });
+  var next = maxNum + 1;
+  return "SKU-" + String(next).padStart(5, "0");
+}
 
 // ============ Toast ============
 function showToast(title, msg, onDone) {
@@ -22,7 +120,14 @@ function showToast(title, msg, onDone) {
     if (onDone) setTimeout(onDone, 400);
   }, 2000);
 }
-var categoryOptions = '<option value="Electronics">Electronics</option><option value="Clothing">Clothing</option><option value="Accessories">Accessories</option><option value="Food &amp; Beverage">Food &amp; Beverage</option><option value="Sports">Sports</option><option value="Home &amp; Living">Home &amp; Living</option><option value="Beauty">Beauty</option><option value="Books">Books</option>';
+function buildCategoryOptions() {
+  var active = allCategories.filter(function(c) { return c.status === "active"; });
+  if (!active.length) return '<option value="">— ไม่มีหมวดหมู่ —</option>';
+  return active.map(function(c) {
+    var escaped = c.name.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+    return '<option value="' + escaped + '">' + escaped + '</option>';
+  }).join("");
+}
 
 // ============ Add Product Block ============
 function addProductBlock(data) {
@@ -57,7 +162,7 @@ function addProductBlock(data) {
   // Name + Category
   html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px;">';
   html += '<div class="form-group" style="margin:0;"><label class="form-label">Product Name</label><input type="text" class="form-input b-name" placeholder="ชื่อสินค้า..." value="' + (d.name || '') + '" /></div>';
-  html += '<div class="form-group" style="margin:0;"><label class="form-label">Category</label><select class="form-select b-category">' + categoryOptions + '</select></div>';
+  html += '<div class="form-group" style="margin:0;"><label class="form-label">Category</label><select class="form-select b-category">' + buildCategoryOptions() + '</select></div>';
   html += '</div>';
 
   // Description (เฉพาะ block แรก)
@@ -76,19 +181,47 @@ function addProductBlock(data) {
   // Single SKU
   html += '<div class="b-single-sku">';
   html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">';
-  html += '<div class="form-group" style="margin:0;"><label class="form-label">SKU</label><input type="text" class="form-input b-sku" placeholder="เช่น WH-001..." value="' + (d.sku || '') + '" /></div>';
-  html += '<div class="form-group" style="margin:0;"><label class="form-label">Barcode</label><input type="text" class="form-input b-barcode" placeholder="EAN / UPC..." value="' + (d.barcode || '') + '" /></div>';
+  var autoSku = d.sku || (!d._isEdit ? generateSku() : '');
+  html += '<div class="form-group" style="margin:0;"><label class="form-label">SKU</label><input type="text" class="form-input b-sku" placeholder="SKU-00001" value="' + autoSku + '" /></div>';
+  var autoBarcode = d.barcode || (!d._isEdit ? generateBarcode() : '');
+  html += '<div class="form-group" style="margin:0;"><label class="form-label">Barcode</label><div class="barcode-input-wrap"><input type="text" class="form-input b-barcode" placeholder="EAN / UPC..." value="' + autoBarcode + '" oninput="renderBarcodePreview(this)" /><div class="barcode-preview b-barcode-preview" onclick="showBarcodePopup(this.previousElementSibling)"></div></div></div>';
   html += '<div class="form-group" style="margin:0;"><label class="form-label">Price (฿)</label><input type="number" class="form-input b-price" placeholder="0.00" min="0" step="0.01" value="' + (d.price || '') + '" /></div>';
   html += '</div></div>';
 
   // Variant section
   html += '<div class="b-variant-section" style="display:none;">';
-  html += '<div class="form-group" style="margin-bottom:8px;"><label class="form-label">Base SKU</label><input type="text" class="form-input b-base-sku" placeholder="เช่น BEAR → BEAR-S, BEAR-M" oninput="autoFillBlockSku(' + idx + ')" value="' + (d.baseSku || '') + '" /></div>';
+  var autoBaseSku = d.baseSku || (!d._isEdit ? autoSku : '');
+  html += '<div class="form-group" style="margin-bottom:8px;"><label class="form-label">Base SKU</label><input type="text" class="form-input b-base-sku" placeholder="เช่น SKU-00001 → SKU-00001-S" oninput="autoFillBlockSku(' + idx + ')" value="' + autoBaseSku + '" /></div>';
   html += '<div style="background:#f8fafc;border-radius:10px;padding:8px;overflow-x:auto;">';
   html += '<table class="variant-table"><thead><tr><th>Variant</th><th>SKU</th><th>Barcode</th><th>Price (฿)</th><th style="width:30px;"></th></tr></thead>';
   html += '<tbody class="b-variant-body"></tbody></table>';
   html += '<div style="text-align:center;padding-top:8px;"><button class="btn-outline" type="button" onclick="addBlockVariantRow(' + idx + ')" style="padding:4px 14px;font-size:9px;">+ เพิ่ม Variant</button></div>';
   html += '</div></div>';
+
+  // ============ Unit Conversion Section ============
+  html += '<div style="margin-top:12px;padding-top:10px;border-top:1px solid #f1f5f9;">';
+  html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">';
+  html += '<span style="font-size:10px;font-weight:800;color:#1e293b;"><i data-lucide="ruler" style="width:12px;height:12px;display:inline;vertical-align:-2px;color:#47b8b4;"></i> หน่วยนับสินค้า</span>';
+  html += '</div>';
+
+  // Base unit dropdown
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px;">';
+  html += '<div class="form-group" style="margin:0;"><label class="form-label">หน่วยนับหลัก (Base Unit)</label>';
+  html += '<select class="form-select b-base-unit" onchange="onBaseUnitChange(' + idx + ')">';
+  html += '<option value="">— เลือกหน่วยหลัก —</option>';
+  html += '</select></div>';
+  html += '<div></div></div>';
+
+  // Additional unit conversions
+  html += '<div class="b-unit-conversions">';
+  html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">';
+  html += '<label class="form-label" style="margin:0;font-size:9px;color:#64748b;">หน่วยนับเพิ่มเติม (เช่น ลัง, โหล)</label>';
+  html += '<button class="btn-outline b-add-conv-btn" type="button" onclick="addUnitConversionRow(' + idx + ')" style="padding:3px 10px;font-size:9px;display:none;">+ เพิ่มหน่วย</button>';
+  html += '</div>';
+  html += '<div class="b-conv-rows"></div>';
+  html += '</div>';
+
+  html += '</div>';
 
   html += '</div>';
 
@@ -117,8 +250,28 @@ function addProductBlock(data) {
     });
   }
 
+  // Populate unit dropdown
+  populateUnitDropdowns(idx);
+
+  // Load unit conversions if editing
+  if (d.unitConversions && d.unitConversions.length) {
+    var baseConv = d.unitConversions.find(function (c) { return c.is_base; });
+    if (baseConv) {
+      var block = document.getElementById("block-" + idx);
+      block.querySelector(".b-base-unit").value = String(baseConv.unit_id);
+      onBaseUnitChange(idx);
+      d.unitConversions.forEach(function (c) {
+        if (c.is_base) return;
+        var unitName = "";
+        allUnits.forEach(function (u) { if (u.id === c.unit_id) unitName = u.name; });
+        addUnitConversionRow(idx, { unit_id: c.unit_id, factor: c.factor, _unitName: unitName });
+      });
+    }
+  }
+
   lucide.createIcons();
   updateBlockNumbers();
+  renderAllBarcodePreviews(document.getElementById("block-" + idx));
 }
 
 function removeProductBlock(idx) {
@@ -142,11 +295,6 @@ function updateBlockNumbers() {
     var removeBtn = block.querySelector(".product-block-remove");
     if (removeBtn) removeBtn.style.display = blocks.length <= 1 ? "none" : "flex";
   });
-  // ซ่อนปุ่ม "เพิ่มอีก" ตอน edit
-  var params = new URLSearchParams(window.location.search);
-  if (params.get("id")) {
-    document.getElementById("addMoreBlockBtn").style.display = "none";
-  }
   lucide.createIcons();
 }
 
@@ -173,11 +321,13 @@ function addBlockVariantRow(idx, data) {
   tr.innerHTML =
     '<td><input type="text" class="form-input v-name" placeholder="S, M, L..." value="' + (d.variant || '') + '" oninput="autoFillBlockSku(' + idx + ')" /></td>' +
     '<td><input type="text" class="form-input v-sku" placeholder="auto" style="color:#8b5cf6;" value="' + (d.sku || '') + '" /></td>' +
-    '<td><input type="text" class="form-input v-barcode" placeholder="EAN..." value="' + (d.barcode || '') + '" /></td>' +
+    '<td><div class="barcode-input-wrap"><input type="text" class="form-input v-barcode" placeholder="EAN..." value="' + (d.barcode || generateBarcode()) + '" oninput="renderBarcodePreview(this)" /><div class="barcode-preview v-barcode-preview" onclick="showBarcodePopup(this.previousElementSibling)"></div></div></td>' +
     '<td><input type="number" class="form-input v-price" placeholder="0" min="0" step="0.01" value="' + (d.price || '') + '" /></td>' +
     '<td><button class="btn-icon-sm btn-danger" onclick="this.closest(\'tr\').remove()" style="width:20px;height:20px;"><i data-lucide="x" style="width:10px;height:10px;"></i></button></td>';
   tbody.appendChild(tr);
   lucide.createIcons();
+  var barcodeInput = tr.querySelector(".v-barcode");
+  if (barcodeInput) renderBarcodePreview(barcodeInput);
 }
 
 function autoFillBlockSku(idx) {
@@ -226,8 +376,8 @@ function renderBlockImages(idx) {
 
   for (var i = 0; i < 5; i++) {
     if (i < images.length) {
-      html += '<div class="img-card" style="width:auto;height:auto;aspect-ratio:1;">' +
-        '<img src="' + images[i] + '" />' +
+      html += '<div class="img-card" style="width:auto;height:auto;aspect-ratio:1;" draggable="true" data-img-idx="' + i + '">' +
+        '<img src="' + images[i] + '" style="pointer-events:none;" />' +
         '<button class="img-card-remove" onclick="removeBlockImage(' + idx + ',' + i + ')">x</button>' +
       '</div>';
     } else {
@@ -238,6 +388,160 @@ function renderBlockImages(idx) {
     }
   }
   grid.innerHTML = html;
+  initImageDragDrop(idx);
+}
+
+// ============ Drag & Drop for Images ============
+function initImageDragDrop(idx) {
+  var grid = document.getElementById("imgGrid-" + idx);
+  if (!grid) return;
+
+  // --- Drop files from desktop ---
+  grid.addEventListener("dragover", function(e) {
+    e.preventDefault();
+    grid.classList.add("drag-over");
+  });
+  grid.addEventListener("dragleave", function(e) {
+    if (!grid.contains(e.relatedTarget)) grid.classList.remove("drag-over");
+  });
+  grid.addEventListener("drop", function(e) {
+    e.preventDefault();
+    grid.classList.remove("drag-over");
+    var files = e.dataTransfer.files;
+    if (files && files.length) {
+      handleImgDrop(idx, files);
+      return;
+    }
+  });
+
+  // --- Reorder by dragging within grid ---
+  var dragSrcIdx = null;
+  grid.querySelectorAll(".img-card[draggable]").forEach(function(card) {
+    card.addEventListener("dragstart", function(e) {
+      dragSrcIdx = Number(card.dataset.imgIdx);
+      card.classList.add("dragging");
+      e.dataTransfer.effectAllowed = "move";
+      e.dataTransfer.setData("text/plain", String(dragSrcIdx));
+    });
+    card.addEventListener("dragend", function() {
+      card.classList.remove("dragging");
+      grid.querySelectorAll(".img-card").forEach(function(c) { c.classList.remove("drag-target"); });
+    });
+    card.addEventListener("dragover", function(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      card.classList.add("drag-target");
+    });
+    card.addEventListener("dragleave", function() {
+      card.classList.remove("drag-target");
+    });
+    card.addEventListener("drop", function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      grid.classList.remove("drag-over");
+      card.classList.remove("drag-target");
+      var fromIdx = Number(e.dataTransfer.getData("text/plain"));
+      var toIdx = Number(card.dataset.imgIdx);
+      if (isNaN(fromIdx) || fromIdx === toIdx) return;
+      var images = window["images_" + idx] || [];
+      var moved = images.splice(fromIdx, 1)[0];
+      images.splice(toIdx, 0, moved);
+      window["images_" + idx] = images;
+      renderBlockImages(idx);
+    });
+  });
+}
+
+function handleImgDrop(idx, files) {
+  var images = window["images_" + idx] || [];
+  var pending = [];
+  for (var i = 0; i < files.length; i++) {
+    if (images.length + pending.length >= 5) break;
+    if (!files[i].type.startsWith("image/")) continue;
+    pending.push(files[i]);
+  }
+  if (!pending.length) return;
+  var loaded = 0;
+  pending.forEach(function(file) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      images.push(e.target.result);
+      window["images_" + idx] = images;
+      loaded++;
+      if (loaded === pending.length) renderBlockImages(idx);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// ============ Unit Conversion Helpers ============
+function populateUnitDropdowns(idx) {
+  var block = document.getElementById("block-" + idx);
+  if (!block) return;
+  var baseSelect = block.querySelector(".b-base-unit");
+  var currentVal = baseSelect.value;
+  var html = '<option value="">— เลือกหน่วยหลัก —</option>';
+  allUnits.forEach(function (u) {
+    if (u.status !== "active") return;
+    html += '<option value="' + u.id + '">' + u.name + (u.abbr ? ' (' + u.abbr + ')' : '') + '</option>';
+  });
+  baseSelect.innerHTML = html;
+  if (currentVal) baseSelect.value = currentVal;
+}
+
+function onBaseUnitChange(idx) {
+  var block = document.getElementById("block-" + idx);
+  if (!block) return;
+  var baseId = block.querySelector(".b-base-unit").value;
+  var addBtn = block.querySelector(".b-add-conv-btn");
+  addBtn.style.display = baseId ? "inline-flex" : "none";
+  if (!baseId) {
+    block.querySelector(".b-conv-rows").innerHTML = "";
+  }
+}
+
+function addUnitConversionRow(idx, data) {
+  var block = document.getElementById("block-" + idx);
+  if (!block) return;
+  var baseId = block.querySelector(".b-base-unit").value;
+  if (!baseId) return;
+  var baseName = "";
+  allUnits.forEach(function (u) { if (u.id === Number(baseId)) baseName = u.name; });
+
+  var d = data || {};
+  var container = block.querySelector(".b-conv-rows");
+  var row = document.createElement("div");
+  row.className = "conv-row";
+  row.style.cssText = "display:grid;grid-template-columns:1fr auto 80px auto auto;gap:8px;align-items:center;margin-bottom:6px;";
+
+  // Unit dropdown (ไม่รวม base unit)
+  var unitOpts = '';
+  allUnits.forEach(function (u) {
+    if (u.status !== "active") return;
+    if (u.id === Number(baseId)) return;
+    unitOpts += '<option value="' + u.id + '"' + (d.unit_id && d.unit_id === u.id ? ' selected' : '') + '>' + u.name + (u.abbr ? ' (' + u.abbr + ')' : '') + '</option>';
+  });
+
+  row.innerHTML =
+    '<select class="form-select cv-unit" style="font-size:10px;padding:6px 8px;">' + unitOpts + '</select>' +
+    '<span style="font-size:9px;color:#64748b;white-space:nowrap;">1 <span class="cv-unit-label">' + (d._unitName || '') + '</span> =</span>' +
+    '<input type="number" class="form-input cv-factor" placeholder="จำนวน" min="0.000001" step="any" value="' + (d.factor || '') + '" style="font-size:10px;padding:6px 8px;" />' +
+    '<span style="font-size:9px;color:#64748b;white-space:nowrap;">' + baseName + '</span>' +
+    '<button class="btn-icon-sm btn-danger" onclick="this.closest(\'.conv-row\').remove()" style="width:20px;height:20px;" type="button"><i data-lucide="x" style="width:10px;height:10px;"></i></button>';
+
+  container.appendChild(row);
+
+  // Update label when unit changes
+  var unitSelect = row.querySelector(".cv-unit");
+  var unitLabel = row.querySelector(".cv-unit-label");
+  function updateLabel() {
+    var selOpt = unitSelect.options[unitSelect.selectedIndex];
+    unitLabel.textContent = selOpt ? selOpt.textContent.split(" (")[0] : "";
+  }
+  unitSelect.addEventListener("change", updateLabel);
+  updateLabel();
+
+  lucide.createIcons();
 }
 
 // ============ Collect & Save ============
@@ -276,6 +580,21 @@ function collectBlockData(block) {
   // Images from first block
   var blockIdx = block.dataset.block;
   result.images = window["images_" + blockIdx] || [];
+
+  // Unit conversions
+  var baseUnitId = block.querySelector(".b-base-unit").value;
+  if (baseUnitId) {
+    result.unitConversions = [{ unit_id: Number(baseUnitId), factor: 1, is_base: true }];
+    block.querySelectorAll(".conv-row").forEach(function (row) {
+      var unitId = row.querySelector(".cv-unit").value;
+      var factor = parseFloat(row.querySelector(".cv-factor").value);
+      if (unitId && factor > 0) {
+        result.unitConversions.push({ unit_id: Number(unitId), factor: factor, is_base: false });
+      }
+    });
+  } else {
+    result.unitConversions = [];
+  }
 
   return result;
 }
@@ -335,7 +654,32 @@ function checkEditMode() {
 
 // ============ Init ============
 document.addEventListener("DOMContentLoaded", function() {
-  var isEdit = checkEditMode();
-  if (!isEdit) addProductBlock();
-  lucide.createIcons();
+  // โหลด units ก่อน แล้วค่อยสร้าง block
+  Promise.all([
+    typeof fetchUnitsDB === "function" ? fetchUnitsDB() : Promise.resolve([]),
+    typeof fetchProducts === "function" ? fetchProducts() : Promise.resolve([]),
+    typeof fetchCategories === "function" ? fetchCategories() : Promise.resolve([]),
+  ])
+    .then(function (results) {
+      allUnits = (results[0] || []).map(function (r) {
+        return { id: r.id, name: r.name, abbr: r.abbr || "", status: r.status || "active" };
+      });
+      allProducts = (results[1] || []).map(function (r) {
+        return { sku: r.sku || "" };
+      });
+      allCategories = (results[2] || []).map(function (r) {
+        return { id: r.id, name: r.name || "", status: r.status || "active" };
+      });
+    })
+    .catch(function () { allUnits = []; allProducts = []; })
+    .then(function () {
+      var isEdit = checkEditMode();
+      if (!isEdit) addProductBlock();
+      // Populate unit dropdowns สำหรับทุก block
+      document.querySelectorAll(".product-block").forEach(function (block) {
+        var idx = block.dataset.block;
+        populateUnitDropdowns(Number(idx));
+      });
+      lucide.createIcons();
+    });
 });

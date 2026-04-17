@@ -5,16 +5,7 @@
 // ============================================================
 
 // ============ Mock Database ============
-let customers = [
-  { id: 1, name: "คุณสมศรี จันทร์ดี",   contact: "สมศรี",           phone: "081-234-5678", email: "somsri@gmail.com",    type: "individual", address: "123 ถ.ลาดพร้าว กรุงเทพ",      status: "active" },
-  { id: 2, name: "คุณวิชัย สุขสม",      contact: "วิชัย",           phone: "089-876-5432", email: "wichai@gmail.com",    type: "individual", address: "456 ถ.รัชดา กรุงเทพ",         status: "active" },
-  { id: 3, name: "บ.เอบีซี จำกัด",      contact: "สมพร ดีใจ",       phone: "02-345-6789",  email: "info@abc.co.th",      type: "company",    address: "789 ถ.สุขุมวิท กรุงเทพ",      status: "active" },
-  { id: 4, name: "คุณนภา รักดี",        contact: "นภา",             phone: "086-111-2222", email: "napa@gmail.com",      type: "individual", address: "321 ถ.พหลโยธิน กรุงเทพ",      status: "active" },
-  { id: 5, name: "คุณธนา ใจงาม",       contact: "ธนา",             phone: "092-333-4444", email: "thana@gmail.com",     type: "individual", address: "654 ถ.เพชรบุรี กรุงเทพ",       status: "active" },
-  { id: 6, name: "บ.XYZ เทรดดิ้ง",     contact: "วรรณี สว่าง",     phone: "02-987-6543",  email: "info@xyz.co.th",      type: "company",    address: "987 ถ.สีลม กรุงเทพ",          status: "active" },
-  { id: 7, name: "คุณปรีชา มั่นคง",     contact: "ปรีชา",           phone: "085-555-6666", email: "preecha@gmail.com",   type: "individual", address: "147 ถ.งามวงศ์วาน นนทบุรี",    status: "inactive" },
-  { id: 8, name: "บ.สตาร์ กรุ๊ป",       contact: "อรุณ แสงทอง",     phone: "02-456-7890",  email: "info@star.co.th",     type: "company",    address: "258 ถ.บางนา กรุงเทพ",         status: "active" },
-];
+let customers = [];
 
 // ============ Update Stat Cards ============
 function updateStats() {

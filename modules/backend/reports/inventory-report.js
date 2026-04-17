@@ -5,18 +5,7 @@
 // ============================================================
 
 // ============ Mock Database ============
-const inventoryData = [
-  { id: 1,  name: "Wireless Headphones",   category: "Electronics",     unit: "ชิ้น", stock: 45,  unitCost: 1800, totalValue: 81000 },
-  { id: 2,  name: "Running Shoes",         category: "Sports",          unit: "ชิ้น", stock: 12,  unitCost: 2200, totalValue: 26400 },
-  { id: 3,  name: "Cotton T-Shirt",        category: "Clothing",        unit: "ชิ้น", stock: 120, unitCost: 250,  totalValue: 30000 },
-  { id: 4,  name: "Yoga Mat",              category: "Sports",          unit: "ชิ้น", stock: 0,   unitCost: 600,  totalValue: 0 },
-  { id: 5,  name: "Protein Powder",        category: "Food & Beverage", unit: "กล่อง", stock: 38,  unitCost: 850,  totalValue: 32300 },
-  { id: 6,  name: "Smart Watch",           category: "Electronics",     unit: "ชิ้น", stock: 8,   unitCost: 3200, totalValue: 25600 },
-  { id: 7,  name: "Leather Wallet",        category: "Accessories",     unit: "ชิ้น", stock: 0,   unitCost: 500,  totalValue: 0 },
-  { id: 8,  name: "Face Serum Set",        category: "Beauty",          unit: "แพ็ค", stock: 55,  unitCost: 1200, totalValue: 66000 },
-  { id: 9,  name: "Desk Lamp",             category: "Home & Living",   unit: "ชิ้น", stock: 22,  unitCost: 750,  totalValue: 16500 },
-  { id: 10, name: "Vitamin C Bottles",     category: "Food & Beverage", unit: "กล่อง", stock: 85,  unitCost: 1200, totalValue: 107200 },
-];
+const inventoryData = [];
 
 // ============ Update Stat Cards ============
 function updateStats() {

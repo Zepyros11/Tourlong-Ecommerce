@@ -1358,6 +1358,158 @@ body {
   gap: 4px;
 }
 
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 640px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Password input with toggle */
+.input-password {
+  position: relative;
+}
+
+.input-password .form-input {
+  padding-right: 32px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.password-toggle:hover {
+  color: #475569;
+}
+
+.password-toggle i {
+  width: 14px;
+  height: 14px;
+}
+
+/* Password strength meter */
+.password-strength {
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.password-strength-bar {
+  flex: 1;
+  height: 4px;
+  background-color: #e2e8f0;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.password-strength-fill {
+  height: 100%;
+  width: 0%;
+  background-color: #e2e8f0;
+  border-radius: 2px;
+  transition: width 0.25s, background-color 0.25s;
+}
+
+.password-strength-label {
+  font-size: 10px;
+  color: #94a3b8;
+  min-width: 48px;
+  text-align: right;
+}
+
+.password-strength[data-level="1"] .password-strength-fill { width: 25%; background-color: #ef4444; }
+.password-strength[data-level="2"] .password-strength-fill { width: 50%; background-color: #f59e0b; }
+.password-strength[data-level="3"] .password-strength-fill { width: 75%; background-color: #3b82f6; }
+.password-strength[data-level="4"] .password-strength-fill { width: 100%; background-color: #10b981; }
+.password-strength[data-level="1"] .password-strength-label { color: #ef4444; }
+.password-strength[data-level="2"] .password-strength-label { color: #f59e0b; }
+.password-strength[data-level="3"] .password-strength-label { color: #3b82f6; }
+.password-strength[data-level="4"] .password-strength-label { color: #10b981; }
+
+/* Temp password box (admin reset) */
+.temp-password-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background-color: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 10px;
+}
+
+.temp-password-box code {
+  font-family: "Courier New", monospace;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b;
+  letter-spacing: 2px;
+  user-select: all;
+}
+
+.temp-password-box.copied {
+  border-color: #10b981;
+  background-color: #ecfdf5;
+}
+
+.auth-preview-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #47b8b4;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.auth-preview-link:hover {
+  text-decoration: underline;
+}
+
+.auth-preview-link i {
+  width: 12px;
+  height: 12px;
+}
+
+/* Must-change-password badge */
+.badge-must-change {
+  background-color: #fef3c7;
+  color: #92400e;
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  margin-left: 4px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.badge-must-change i {
+  width: 10px;
+  height: 10px;
+}
+
 .form-label {
   font-size: 10px;
   font-weight: 700;

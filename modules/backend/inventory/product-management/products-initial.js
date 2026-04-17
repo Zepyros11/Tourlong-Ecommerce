@@ -5,16 +5,7 @@
 // ============================================================
 
 // ============ Mock Database ============
-let initialStocks = [
-  { id: 1, product: "Wireless Headphones", warehouse: "คลังกลาง กรุงเทพ", qty: 30, cost: 1800, date: "2026-01-15" },
-  { id: 2, product: "Running Shoes",       warehouse: "คลังกลาง กรุงเทพ", qty: 12, cost: 2200, date: "2026-01-15" },
-  { id: 3, product: "Cotton T-Shirt",      warehouse: "คลังภาคเหนือ",     qty: 80, cost: 180,  date: "2026-01-20" },
-  { id: 4, product: "Protein Powder",      warehouse: "คลังภาคใต้",       qty: 25, cost: 850,  date: "2026-02-01" },
-  { id: 5, product: "Smart Watch",         warehouse: "คลังกลาง กรุงเทพ", qty: 8,  cost: 3200, date: "2026-02-01" },
-  { id: 6, product: "Face Serum",          warehouse: "คลังออนไลน์",      qty: 50, cost: 350,  date: "2026-02-10" },
-  { id: 7, product: "Desk Lamp",           warehouse: "คลังภาคเหนือ",     qty: 15, cost: 700,  date: "2026-03-01" },
-  { id: 8, product: "Yoga Mat",            warehouse: "คลังออนไลน์",      qty: 20, cost: 550,  date: "2026-03-05" },
-];
+let initialStocks = [];
 
 // ============ Update Stat Cards ============
 function updateStats() {

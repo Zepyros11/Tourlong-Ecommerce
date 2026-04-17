@@ -5,18 +5,7 @@
 // ============================================================
 
 // ============ Mock Database ============
-let movements = [
-  { id: 1,  date: "2026-04-01", product: "Wireless Headphones", type: "in",       warehouse: "คลังกลาง กรุงเทพ",  qty: 50,  note: "รับสินค้าจาก supplier" },
-  { id: 2,  date: "2026-04-01", product: "Running Shoes",       type: "out",      warehouse: "คลังภาคเหนือ",       qty: 10,  note: "จ่ายออกตามออเดอร์" },
-  { id: 3,  date: "2026-04-02", product: "Cotton T-Shirt",      type: "in",       warehouse: "คลังออนไลน์",        qty: 100, note: "รับเข้าล็อตใหม่" },
-  { id: 4,  date: "2026-04-02", product: "Yoga Mat",            type: "transfer", warehouse: "คลังภาคใต้",         qty: 20,  note: "โอนจากคลังกลาง" },
-  { id: 5,  date: "2026-04-03", product: "Protein Powder",      type: "out",      warehouse: "คลังกลาง กรุงเทพ",  qty: 15,  note: "จัดส่งลูกค้า" },
-  { id: 6,  date: "2026-04-03", product: "Smart Watch",         type: "in",       warehouse: "คลังภาคเหนือ",       qty: 30,  note: "รับสินค้าใหม่" },
-  { id: 7,  date: "2026-04-04", product: "Leather Wallet",      type: "out",      warehouse: "คลังออนไลน์",        qty: 8,   note: "ส่งออเดอร์ออนไลน์" },
-  { id: 8,  date: "2026-04-05", product: "Face Serum",          type: "transfer", warehouse: "คลังกลาง กรุงเทพ",  qty: 25,  note: "โอนไปคลังภาคใต้" },
-  { id: 9,  date: "2026-04-06", product: "Desk Lamp",           type: "in",       warehouse: "คลังภาคใต้",         qty: 40,  note: "เติมสต็อก" },
-  { id: 10, date: "2026-04-07", product: "JavaScript Handbook", type: "out",      warehouse: "คลังออนไลน์",        qty: 5,   note: "จัดส่ง pre-order" },
-];
+let movements = [];
 
 // ============ Update Stat Cards ============
 function updateStats() {

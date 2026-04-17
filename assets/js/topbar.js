@@ -4,6 +4,7 @@
 // หน้าที่: Breadcrumb, Global Search, Notifications, User Menu
 // วิธีใช้: <script src="/assets/js/topbar.js"></script>
 //          renderTopbar({ group: "Settings", page: "Users" });
+// Dependencies (optional แต่ recommend): auth-guard.js, confirm.js, toast.js
 // ============================================================
 
 var topbarNotifications = [
@@ -14,11 +15,20 @@ var topbarNotifications = [
   { text: "<b>คุณธนา</b> เพิ่มสินค้าใหม่", time: "3 ชั่วโมงที่แล้ว", dot: "#10b981" },
 ];
 
-var topbarUser = {
-  name: "สมชาย",
-  initials: "ส",
-  role: "Admin",
-};
+function getTopbarUser() {
+  if (typeof getCurrentUser === "function") {
+    var u = getCurrentUser();
+    if (u) {
+      var displayName = u.name || u.username || "User";
+      return {
+        name: displayName,
+        initials: displayName.charAt(0).toUpperCase(),
+        role: u.role || ""
+      };
+    }
+  }
+  return { name: "Guest", initials: "?", role: "" };
+}
 
 /**
  * Render topbar
@@ -32,6 +42,7 @@ function renderTopbar(options) {
 
   var group = options.group || "";
   var page = options.page || "";
+  var topbarUser = getTopbarUser();
 
   topbar.innerHTML = `
     <div class="topbar-left">
@@ -59,7 +70,7 @@ function renderTopbar(options) {
         <div class="topbar-dropdown" id="notifDropdown">
           <div class="topbar-dropdown-header">
             <p class="topbar-dropdown-title">Notifications</p>
-            <span class="topbar-dropdown-link" onclick="alert('Mark all as read')">Mark all read</span>
+            <span class="topbar-dropdown-link" id="topbarMarkAllReadBtn">Mark all read</span>
           </div>
           <div class="topbar-dropdown-body">
             ${topbarNotifications.map(function (n) {
@@ -82,14 +93,14 @@ function renderTopbar(options) {
         </div>
         <i data-lucide="chevron-down" class="topbar-user-chevron"></i>
         <div class="topbar-user-dropdown" id="userDropdown">
-          <a href="#" class="topbar-user-menu-item" onclick="alert('Profile')">
+          <a href="#" class="topbar-user-menu-item" id="topbarProfileBtn">
             <i data-lucide="user"></i> Profile
           </a>
-          <a href="#" class="topbar-user-menu-item" onclick="alert('Change Password')">
+          <a href="/modules/backend/auth/self-change-password.html" class="topbar-user-menu-item">
             <i data-lucide="lock"></i> Change Password
           </a>
           <div class="topbar-user-menu-divider"></div>
-          <a href="#" class="topbar-user-menu-item danger" onclick="alert('Logout')">
+          <a href="#" class="topbar-user-menu-item danger" id="topbarLogoutBtn">
             <i data-lucide="log-out"></i> Logout
           </a>
         </div>
@@ -129,4 +140,41 @@ function renderTopbar(options) {
   // Prevent dropdown close when clicking inside
   notifDropdown.addEventListener("click", function (e) { e.stopPropagation(); });
   userDropdown.addEventListener("click", function (e) { e.stopPropagation(); });
+
+  // Wire placeholder actions (toast แทน native alert)
+  var profileBtn = document.getElementById("topbarProfileBtn");
+  if (profileBtn) {
+    profileBtn.addEventListener("click", function(e) {
+      e.preventDefault();
+      if (typeof showToast === "function") showToast("หน้า Profile กำลังพัฒนา", "info");
+    });
+  }
+  var markAllBtn = document.getElementById("topbarMarkAllReadBtn");
+  if (markAllBtn) {
+    markAllBtn.addEventListener("click", function(e) {
+      e.stopPropagation();
+      if (typeof showToast === "function") showToast("ทำเครื่องหมายอ่านทั้งหมดแล้ว", "success");
+    });
+  }
+
+  // Wire logout
+  var logoutBtn = document.getElementById("topbarLogoutBtn");
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", function(e) {
+      e.preventDefault();
+      if (typeof logout !== "function") return;
+
+      if (typeof showConfirm === "function") {
+        showConfirm({
+          title: "ออกจากระบบ",
+          message: "ต้องการออกจากระบบใช่ไหม?",
+          okText: "Logout",
+          okColor: "#ef4444",
+          onConfirm: function() { logout(); }
+        });
+      } else {
+        logout();
+      }
+    });
+  }
 }

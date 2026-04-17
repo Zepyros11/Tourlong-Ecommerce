@@ -7,6 +7,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="../assets/backend.css">
+    <script src="/modules/backend/assets/js/supabase-client.js"></script>
+    <script src="/modules/backend/assets/js/auth-guard.js"></script>
     <style>
         .auth-wrapper { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
         .auth-card { background: #fff; border-radius: 18px; padding: 36px; width: 360px; box-shadow: 0 20px 60px rgba(0,0,0,0.08); }
@@ -19,9 +21,19 @@
         .auth-form { display: flex; flex-direction: column; gap: 14px; }
         .auth-btn { width: 100%; padding: 10px; background-color: #47b8b4; color: #fff; border: none; border-radius: 12px; font-family: "Plus Jakarta Sans", sans-serif; font-size: 12px; font-weight: 700; cursor: pointer; transition: background-color 0.2s; }
         .auth-btn:hover { background-color: #3da8a4; }
+        .auth-btn:disabled { background-color: #cbd5e1; cursor: not-allowed; }
         .auth-link { font-size: 11px; color: #47b8b4; text-decoration: none; font-weight: 600; text-align: center; display: block; margin-top: 12px; }
         .auth-link:hover { text-decoration: underline; }
         .auth-footer { font-size: 9px; color: #cbd5e1; text-align: center; margin-top: 20px; }
+        .auth-error { background-color: #fef2f2; color: #ef4444; border-radius: 10px; padding: 8px 12px; font-size: 11px; margin-bottom: 4px; display: none; }
+        .auth-error.show { display: block; }
+        .auth-warn { background-color: #fef3c7; color: #92400e; border-radius: 10px; padding: 8px 12px; font-size: 11px; margin-bottom: 4px; display: none; }
+        .auth-warn.show { display: block; }
+        .auth-hint { font-size: 10px; color: #94a3b8; text-align: center; margin-top: 8px; line-height: 1.5; }
+        .auth-hint code { background: #f1f5f9; padding: 1px 5px; border-radius: 4px; color: #475569; font-family: "Courier New", monospace; }
+        .auth-row { display: flex; align-items: center; justify-content: space-between; font-size: 11px; }
+        .remember-me { display: inline-flex; align-items: center; gap: 6px; color: #475569; cursor: pointer; user-select: none; }
+        .remember-me input { accent-color: #47b8b4; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -37,24 +49,152 @@
             <h2 class="auth-title">เข้าสู่ระบบ</h2>
             <p class="auth-subtitle">กรุณากรอกข้อมูลเพื่อเข้าใช้งาน</p>
 
+            <div class="auth-error" id="authError"></div>
+            <div class="auth-warn" id="authWarn"></div>
+
             <form class="auth-form" onsubmit="return false;">
                 <div class="form-group">
-                    <label class="form-label">Email</label>
-                    <input type="email" class="form-input" placeholder="you@example.com">
+                    <label class="form-label">Username or Email</label>
+                    <input type="text" class="form-input" id="loginIdentifier" placeholder="username หรือ email" autocomplete="username">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Password</label>
-                    <input type="password" class="form-input" placeholder="••••••••">
+                    <div class="input-password">
+                        <input type="password" class="form-input" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
+                        <button type="button" class="password-toggle" data-target="loginPassword" aria-label="Show password">
+                            <i data-lucide="eye"></i>
+                        </button>
+                    </div>
                 </div>
-                <button type="button" class="auth-btn" onclick="alert('Login — connect to backend later')">Login</button>
+                <div class="auth-row">
+                    <label class="remember-me">
+                        <input type="checkbox" id="rememberMe">
+                        <span>จดจำฉันไว้</span>
+                    </label>
+                    <a class="auth-link" style="margin: 0;" href="forgot-password.html">ลืมรหัสผ่าน?</a>
+                </div>
+                <button type="button" class="auth-btn" id="loginBtn">Login</button>
             </form>
 
-            <a class="auth-link" href="forgot-password.html">ลืมรหัสผ่าน?</a>
+            <p class="auth-hint">
+                Demo: <code>admin</code> / <code>admin1234</code>
+            </p>
             <p class="auth-footer">&copy; 2026 Pathara. All rights reserved.</p>
         </div>
     </div>
 
     <script>
+        // ถ้า login อยู่แล้ว → redirect ไป users
+        var existing = getCurrentUser();
+        if (existing) window.location.href = "/modules/backend/settings/users.html";
+
+        function showError(msg) {
+            var el = document.getElementById("authError");
+            el.textContent = msg;
+            el.classList.add("show");
+            document.getElementById("authWarn").classList.remove("show");
+        }
+        function showWarn(msg) {
+            var el = document.getElementById("authWarn");
+            el.textContent = msg;
+            el.classList.add("show");
+            document.getElementById("authError").classList.remove("show");
+        }
+        function clearMsg() {
+            document.getElementById("authError").classList.remove("show");
+            document.getElementById("authWarn").classList.remove("show");
+        }
+
+        document.querySelectorAll(".password-toggle").forEach(function(btn) {
+            btn.addEventListener("click", function() {
+                var target = document.getElementById(this.dataset.target);
+                var showing = target.type === "text";
+                target.type = showing ? "password" : "text";
+                var icon = this.querySelector("i");
+                icon.setAttribute("data-lucide", showing ? "eye" : "eye-off");
+                lucide.createIcons();
+            });
+        });
+
+        document.getElementById("loginBtn").addEventListener("click", function() {
+            clearMsg();
+            var id = document.getElementById("loginIdentifier").value.trim();
+            var pwd = document.getElementById("loginPassword").value;
+            var remember = document.getElementById("rememberMe").checked;
+
+            if (!id) return showError("กรุณากรอก username หรือ email");
+            if (!pwd) return showError("กรุณากรอกรหัสผ่าน");
+
+            // เช็ค lockout ก่อน
+            var lock = getLockInfo(id);
+            if (lock.locked) {
+                return showError("บัญชีนี้ถูกล็อคจากการกรอกผิดหลายครั้ง กรุณาลองใหม่อีก " + lock.remaining + " นาที");
+            }
+
+            var btn = document.getElementById("loginBtn");
+            btn.disabled = true;
+
+            findUserByLoginDB(id).then(function(row) {
+                var user = normalizeUser(row);
+
+                if (!user) {
+                    recordLoginFailure(id);
+                    logActivity("delete", "Auth", "Login ล้มเหลว: ไม่พบผู้ใช้ (" + id + ")");
+                    showError("ไม่พบผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
+                    return;
+                }
+                if (user.status !== "active") {
+                    showError("บัญชีถูกปิดใช้งาน กรุณาติดต่อ Admin");
+                    return;
+                }
+                if (user.password !== pwd) {
+                    var rec = recordLoginFailure(id);
+                    var remaining = 5 - rec.count;
+                    logActivity("delete", "Auth", "Login ล้มเหลว: รหัสผ่านผิด (" + id + ")");
+                    if (rec.lockedUntil) {
+                        showError("กรอกผิดเกิน 5 ครั้ง บัญชีถูกล็อค 15 นาที");
+                        return;
+                    }
+                    if (remaining <= 2) {
+                        showWarn("รหัสผ่านไม่ถูกต้อง เหลืออีก " + remaining + " ครั้งก่อนถูกล็อค");
+                        return;
+                    }
+                    showError("ไม่พบผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
+                    return;
+                }
+
+                // สำเร็จ
+                clearLoginFailures(id);
+
+                if (user.mustChangePassword) {
+                    sessionStorage.setItem("pendingUserId", String(user.id));
+                    logActivity("update", "Auth", "Login ด้วยรหัสชั่วคราว: " + user.name);
+                    window.location.href = "change-password.html";
+                    return;
+                }
+
+                var today = new Date().toISOString().split("T")[0];
+                return updateUserDB(user.id, { last_login: today }).then(function() {
+                    user.lastLogin = today;
+                    setCurrentUser(user, remember);
+                    logActivity("create", "Auth", "Login สำเร็จ: " + user.name);
+                    window.location.href = "/modules/backend/settings/users.html";
+                });
+            }).catch(function(err) {
+                console.error(err);
+                showError("เชื่อมต่อ server ไม่สำเร็จ กรุณาลองใหม่");
+            }).finally(function() {
+                btn.disabled = false;
+            });
+        });
+
+        document.getElementById("loginPassword").addEventListener("keydown", function(e) {
+            if (e.key === "Enter") document.getElementById("loginBtn").click();
+        });
+        document.getElementById("loginIdentifier").addEventListener("keydown", function(e) {
+            if (e.key === "Enter") document.getElementById("loginBtn").click();
+        });
+
         lucide.createIcons();
     </script>
 </body>

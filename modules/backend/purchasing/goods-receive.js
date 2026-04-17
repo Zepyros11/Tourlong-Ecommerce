@@ -5,14 +5,7 @@
 // ============================================================
 
 // ============ Mock Database ============
-let goodsReceives = [
-  { id: 1, grNumber: "GR-2026-001", poRef: "PO-2026-001", supplier: "บ.สยามซัพพลาย",       date: "2026-04-06", items: 8,  status: "completed" },
-  { id: 2, grNumber: "GR-2026-002", poRef: "PO-2026-004", supplier: "บ.เอเชียซัพพลาย",      date: "2026-04-07", items: 12, status: "completed" },
-  { id: 3, grNumber: "GR-2026-003", poRef: "PO-2026-005", supplier: "บ.โกลบอลเทค",          date: "2026-04-07", items: 6,  status: "completed" },
-  { id: 4, grNumber: "GR-2026-004", poRef: "PO-2026-002", supplier: "บ.ไทยเทรด",            date: "2026-04-08", items: 5,  status: "pending" },
-  { id: 5, grNumber: "GR-2026-005", poRef: "PO-2026-003", supplier: "บ.แกรนด์โลจิสติกส์",    date: "2026-04-08", items: 3,  status: "pending" },
-  { id: 6, grNumber: "GR-2026-006", poRef: "PO-2026-008", supplier: "บ.ไทยเทรด",            date: "2026-04-08", items: 2,  status: "pending" },
-];
+let goodsReceives = [];
 
 // ============ Auto Generate GR Number ============
 function generateGRNumber() {

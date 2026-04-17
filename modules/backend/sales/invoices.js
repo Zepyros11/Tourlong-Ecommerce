@@ -5,16 +5,7 @@
 // ============================================================
 
 // ============ Mock Database ============
-let invoices = [
-  { id: 1, invNumber: "INV-2026-001", soRef: "SO-2026-147", customer: "บ.เอบีซี จำกัด",       date: "2026-04-01", dueDate: "2026-04-15", amount: 45000,  status: "paid" },
-  { id: 2, invNumber: "INV-2026-002", soRef: "SO-2026-148", customer: "คุณสมศรี จันทร์ดี",     date: "2026-04-02", dueDate: "2026-04-16", amount: 5180,   status: "paid" },
-  { id: 3, invNumber: "INV-2026-003", soRef: "SO-2026-149", customer: "บ.XYZ เทรดดิ้ง",       date: "2026-04-03", dueDate: "2026-04-17", amount: 92000,  status: "paid" },
-  { id: 4, invNumber: "INV-2026-004", soRef: "SO-2026-150", customer: "คุณธนา ใจงาม",         date: "2026-04-04", dueDate: "2026-04-18", amount: 18750,  status: "paid" },
-  { id: 5, invNumber: "INV-2026-005", soRef: "SO-2026-152", customer: "คุณธนา ใจงาม",         date: "2026-04-06", dueDate: "2026-04-20", amount: 18750,  status: "unpaid" },
-  { id: 6, invNumber: "INV-2026-006", soRef: "SO-2026-154", customer: "บ.เอบีซี จำกัด",       date: "2026-04-07", dueDate: "2026-04-21", amount: 45000,  status: "unpaid" },
-  { id: 7, invNumber: "INV-2026-007", soRef: "SO-2026-155", customer: "คุณวิชัย สุขสม",       date: "2026-04-08", dueDate: "2026-04-22", amount: 8900,   status: "unpaid" },
-  { id: 8, invNumber: "INV-2026-008", soRef: "SO-2026-156", customer: "คุณสมศรี จันทร์ดี",     date: "2026-04-08", dueDate: "2026-04-05", amount: 12500,  status: "overdue" },
-];
+let invoices = [];
 
 // ============ Update Stat Cards ============
 function updateStats() {

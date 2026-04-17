@@ -16,9 +16,12 @@
  * @param {Function} [onOpen] - callback หลังเปิด
  */
 function openModalById(modalId, onOpen) {
-  const modal = document.getElementById(modalId);
+  var modal = document.getElementById(modalId);
   if (!modal) return;
   modal.classList.add("active");
+  if (typeof escClose !== "undefined") {
+    escClose.register(modal, function () { closeModalById(modalId); });
+  }
   if (onOpen) onOpen(modal);
 }
 
@@ -27,9 +30,10 @@ function openModalById(modalId, onOpen) {
  * @param {string} modalId - id ของ .modal-overlay
  */
 function closeModalById(modalId) {
-  const modal = document.getElementById(modalId);
+  var modal = document.getElementById(modalId);
   if (!modal) return;
   modal.classList.remove("active");
+  if (typeof escClose !== "undefined") escClose.unregister(modal);
 }
 
 /**
@@ -43,15 +47,10 @@ function closeAllModals() {
 
 // ============ Auto Setup ============
 document.addEventListener("DOMContentLoaded", function () {
-  // กด Esc ปิด modal
-  document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape") closeAllModals();
-  });
-
   // คลิก overlay ปิด modal
   document.querySelectorAll(".modal-overlay").forEach(function (overlay) {
     overlay.addEventListener("click", function (e) {
-      if (e.target === this) this.classList.remove("active");
+      if (e.target === this) closeModalById(this.id);
     });
   });
 
@@ -59,7 +58,7 @@ document.addEventListener("DOMContentLoaded", function () {
   document.querySelectorAll(".modal-close").forEach(function (btn) {
     btn.addEventListener("click", function () {
       var overlay = this.closest(".modal-overlay");
-      if (overlay) overlay.classList.remove("active");
+      if (overlay) closeModalById(overlay.id);
     });
   });
 });

@@ -4,17 +4,23 @@
 // ใช้ร่วมกับ: modal.js, confirm.js
 // ============================================================
 
-// ============ Mock Database ============
-let categories = [
-  { id: 1, name: "Electronics",     description: "อุปกรณ์อิเล็กทรอนิกส์",      products: 24, status: "active" },
-  { id: 2, name: "Clothing",        description: "เสื้อผ้าและแฟชั่น",           products: 18, status: "active" },
-  { id: 3, name: "Accessories",     description: "เครื่องประดับและอุปกรณ์เสริม",  products: 9,  status: "inactive" },
-  { id: 4, name: "Food & Beverage", description: "อาหารและเครื่องดื่ม",          products: 32, status: "active" },
-  { id: 5, name: "Sports",          description: "อุปกรณ์กีฬา",                 products: 15, status: "active" },
-  { id: 6, name: "Home & Living",   description: "ของใช้ในบ้าน",                products: 21, status: "active" },
-  { id: 7, name: "Beauty",          description: "เครื่องสำอางและความงาม",       products: 11, status: "inactive" },
-  { id: 8, name: "Books",           description: "หนังสือและสื่อการเรียนรู้",      products: 7,  status: "active" },
-];
+// ============ Database (Supabase) ============
+let categories = [];
+
+function reloadCategories() {
+  return fetchCategories().then(function (rows) {
+    categories = (rows || []).map(function (r) {
+      return {
+        id: r.id,
+        name: r.name || "",
+        description: r.description || "",
+        products: r.products || 0,
+        status: r.status || "active",
+      };
+    });
+    return categories;
+  });
+}
 
 // ============ Update Stat Cards ============
 function updateStats() {
@@ -70,21 +76,20 @@ function saveCategory() {
   const status = document.getElementById("inputStatus").checked ? "active" : "inactive";
   if (!name) return document.getElementById("inputName").focus();
 
-  if (id) {
-    const cat = categories.find((c) => c.id === Number(id));
-    if (cat) {
-      cat.name = name;
-      cat.description = desc;
-      cat.status = status;
-    }
-  } else {
-    const newId = categories.length
-      ? Math.max(...categories.map((c) => c.id)) + 1
-      : 1;
-    categories.push({ id: newId, name, description: desc, products: 0, status });
-  }
-  closeModalById("categoryModal");
-  renderTable(categories);
+  var payload = { name: name, description: desc, status: status };
+  var promise = id
+    ? updateCategoryDB(Number(id), payload)
+    : createCategoryDB(payload);
+
+  promise
+    .then(reloadCategories)
+    .then(function () {
+      closeModalById("categoryModal");
+      applyFilters();
+    })
+    .catch(function (err) {
+      console.error(err);
+    });
 }
 
 function editCategory(id) {
@@ -102,8 +107,20 @@ function deleteCategory(id) {
     okText: "Delete",
     okColor: "#ef4444",
     onConfirm: function () {
-      categories = categories.filter((c) => c.id !== id);
-      renderTable(categories);
+      deleteCategoryDB(id)
+        .then(reloadCategories)
+        .then(function () {
+          applyFilters();
+          showToast("ลบหมวดหมู่สำเร็จ", "success");
+        })
+        .catch(function (err) {
+          console.error(err);
+          if (err.message && err.message.includes("foreign key")) {
+            showToast("ลบไม่ได้ — มีสินค้าอยู่ในหมวดหมู่นี้ ต้องย้ายสินค้าออกก่อน", "error", 5000);
+          } else {
+            showToast("ลบไม่สำเร็จ: " + (err.message || "เกิดข้อผิดพลาด"), "error");
+          }
+        });
     },
   });
 }
@@ -186,6 +203,11 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // Render
-  renderTable(categories);
+  // โหลดข้อมูลจาก Supabase
+  reloadCategories()
+    .then(applyFilters)
+    .catch(function (err) {
+      console.error(err);
+      applyFilters();
+    });
 });

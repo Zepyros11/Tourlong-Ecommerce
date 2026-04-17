@@ -101,6 +101,7 @@
                   <th>#</th>
                   <th data-sort="name">Unit Name</th>
                   <th data-sort="abbr">Abbreviation</th>
+                  <th>Conversion</th>
                   <th data-sort="desc">Description</th>
                   <th data-sort="status">Status</th>
                   <th>Actions</th>
@@ -147,6 +148,18 @@
             <input type="text" class="form-input" id="inputDesc" placeholder="รายละเอียด..." />
           </div>
           <div class="form-group">
+            <label class="form-label">Base Unit (หน่วยฐาน)</label>
+            <select class="form-select" id="inputBaseUnit">
+              <option value="">— ไม่มี (ตัวเองเป็น base unit) —</option>
+            </select>
+            <p class="form-hint" style="font-size:10px;color:#94a3b8;margin:4px 0 0;">เลือกหน่วยที่จะใช้แปลงค่า เช่น "ลัง" → base = "ห่อ"</p>
+          </div>
+          <div class="form-group" id="factorGroup" style="display:none;">
+            <label class="form-label">1 หน่วยนี้ = กี่ <span id="factorBaseLabel">base unit</span>?</label>
+            <input type="number" class="form-input" id="inputFactor" placeholder="เช่น 12" min="0.000001" step="any" />
+            <p class="form-hint" style="font-size:10px;color:#94a3b8;margin:4px 0 0;">ตัวอย่าง: 1 ลัง = 12 ห่อ → ใส่ 12</p>
+          </div>
+          <div class="form-group">
             <label class="form-label">Status</label>
             <div class="status-toggle">
               <label class="toggle">
@@ -182,8 +195,14 @@
     </div>
 
     <script src="../../assets/js/table.js"></script>
+    <script src="/assets/js/esc-close.js"></script>
     <script src="../../assets/js/modal.js"></script>
+    <script src="../../assets/js/enter-save.js"></script>
     <script src="../../assets/js/confirm.js"></script>
+    <script src="/modules/backend/assets/js/supabase-client.js"></script>
+    <script src="/modules/backend/assets/js/auth-guard.js"></script>
+    <script src="/modules/backend/assets/js/toast.js"></script>
+    <script>requireAuth();</script>
     <script src="../../assets/js/sidebar-menu.js"></script>
     <script>renderSidebarMenu("unit-of-measure.html");</script>
     <script src="/assets/js/topbar.js"></script>

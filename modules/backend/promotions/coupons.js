@@ -5,14 +5,7 @@
 // ============================================================
 
 // ============ Mock Database ============
-let coupons = [
-  { id: 1, code: "WELCOME10",  discount: 10,  type: "percent", minPurchase: 500,  used: 45,  limit: 100, expiry: "2026-06-30", status: "active" },
-  { id: 2, code: "SAVE50",     discount: 50,  type: "fixed",   minPurchase: 1000, used: 23,  limit: 50,  expiry: "2026-05-31", status: "active" },
-  { id: 3, code: "SUMMER20",   discount: 20,  type: "percent", minPurchase: 800,  used: 67,  limit: 200, expiry: "2026-08-31", status: "active" },
-  { id: 4, code: "FLASH100",   discount: 100, type: "fixed",   minPurchase: 2000, used: 30,  limit: 30,  expiry: "2026-04-01", status: "expired" },
-  { id: 5, code: "VIP15",      discount: 15,  type: "percent", minPurchase: 0,    used: 12,  limit: 50,  expiry: "2026-12-31", status: "active" },
-  { id: 6, code: "NEWYEAR25",  discount: 25,  type: "percent", minPurchase: 1500, used: 100, limit: 100, expiry: "2026-01-31", status: "expired" },
-];
+let coupons = [];
 
 // ============ Update Stat Cards ============
 function updateStats() {

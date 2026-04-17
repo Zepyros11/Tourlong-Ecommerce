@@ -5,16 +5,7 @@
 // ============================================================
 
 // ============ Mock Database ============
-let rates = [
-  { id: 1, carrier: "Kerry Express",  zone: "กรุงเทพและปริมณฑล", weightMin: 0,  weightMax: 5,  baseRate: 50,  perKg: 10, days: "1-2", status: "active" },
-  { id: 2, carrier: "Kerry Express",  zone: "ทั่วประเทศ",         weightMin: 0,  weightMax: 5,  baseRate: 80,  perKg: 15, days: "2-3", status: "active" },
-  { id: 3, carrier: "Flash Express",  zone: "กรุงเทพและปริมณฑล", weightMin: 0,  weightMax: 3,  baseRate: 40,  perKg: 12, days: "1-2", status: "active" },
-  { id: 4, carrier: "Flash Express",  zone: "ทั่วประเทศ",         weightMin: 0,  weightMax: 3,  baseRate: 60,  perKg: 18, days: "2-4", status: "active" },
-  { id: 5, carrier: "Thailand Post",  zone: "ทั่วประเทศ",         weightMin: 0,  weightMax: 20, baseRate: 35,  perKg: 8,  days: "3-5", status: "active" },
-  { id: 6, carrier: "J&T Express",    zone: "ทั่วประเทศ",         weightMin: 0,  weightMax: 10, baseRate: 55,  perKg: 12, days: "2-3", status: "active" },
-  { id: 7, carrier: "DHL",            zone: "ทั่วประเทศ",         weightMin: 0,  weightMax: 30, baseRate: 150, perKg: 25, days: "1-2", status: "active" },
-  { id: 8, carrier: "Thailand Post",  zone: "ภาคเหนือ",           weightMin: 5,  weightMax: 20, baseRate: 45,  perKg: 10, days: "4-7", status: "inactive" },
-];
+let rates = [];
 
 // ============ Update Stat Cards ============
 function updateStats() {

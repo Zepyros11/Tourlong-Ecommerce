@@ -5,20 +5,7 @@
 // ============================================================
 
 // ============ Mock Database ============
-const salesData = [
-  { id: 1,  date: "2026-03-25", orderNo: "SO-2026-135", customer: "บ.เอบีซี จำกัด",       items: 5,  amount: 45000,  status: "completed" },
-  { id: 2,  date: "2026-03-27", orderNo: "SO-2026-136", customer: "คุณสมศรี จันทร์ดี",     items: 2,  amount: 5180,   status: "completed" },
-  { id: 3,  date: "2026-03-28", orderNo: "SO-2026-137", customer: "บ.XYZ เทรดดิ้ง",       items: 8,  amount: 92000,  status: "completed" },
-  { id: 4,  date: "2026-03-30", orderNo: "SO-2026-138", customer: "คุณธนา ใจงาม",         items: 3,  amount: 18750,  status: "completed" },
-  { id: 5,  date: "2026-04-01", orderNo: "SO-2026-139", customer: "คุณนภา รักดี",          items: 1,  amount: 3200,   status: "cancelled" },
-  { id: 6,  date: "2026-04-02", orderNo: "SO-2026-140", customer: "บ.สตาร์มาร์ท จำกัด",   items: 4,  amount: 28500,  status: "completed" },
-  { id: 7,  date: "2026-04-03", orderNo: "SO-2026-141", customer: "คุณวิชัย สุขสม",        items: 6,  amount: 67200,  status: "completed" },
-  { id: 8,  date: "2026-04-04", orderNo: "SO-2026-142", customer: "บ.แฮปปี้โฮม จำกัด",    items: 2,  amount: 12400,  status: "completed" },
-  { id: 9,  date: "2026-04-05", orderNo: "SO-2026-143", customer: "คุณสมศรี จันทร์ดี",     items: 3,  amount: 7540,   status: "cancelled" },
-  { id: 10, date: "2026-04-06", orderNo: "SO-2026-144", customer: "บ.เอบีซี จำกัด",       items: 10, amount: 156000, status: "completed" },
-  { id: 11, date: "2026-04-07", orderNo: "SO-2026-145", customer: "คุณธนา ใจงาม",         items: 7,  amount: 89300,  status: "completed" },
-  { id: 12, date: "2026-04-08", orderNo: "SO-2026-146", customer: "บ.XYZ เทรดดิ้ง",       items: 5,  amount: 34800,  status: "completed" },
-];
+const salesData = [];
 
 // ============ Status Badge ============
 function getStatusBadge(status) {

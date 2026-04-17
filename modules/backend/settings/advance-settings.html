@@ -126,6 +126,64 @@
             </div>
           </div>
 
+          <!-- Password Policy -->
+          <div class="setting-card">
+            <h3 class="setting-card-title">Password Policy</h3>
+            <p class="setting-card-desc">ข้อบังคับเมื่อผู้ใช้ตั้งรหัสผ่าน (มีผลกับทุกหน้าตั้ง/เปลี่ยนรหัส)</p>
+
+            <div class="setting-row">
+              <div>
+                <p class="setting-label">ความยาวขั้นต่ำ</p>
+                <p class="setting-hint">ตัวอักษรขั้นต่ำที่ผู้ใช้ต้องตั้ง (แนะนำ 8-12)</p>
+              </div>
+              <input type="number" class="form-input" id="policyMinLength" min="6" max="32" style="width: 80px; text-align: center;" />
+            </div>
+
+            <div class="setting-row">
+              <div>
+                <p class="setting-label">ต้องมีตัวพิมพ์ใหญ่ (A-Z)</p>
+                <p class="setting-hint">บังคับให้มีตัวพิมพ์ใหญ่อย่างน้อย 1 ตัว</p>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" id="policyUpper" />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div class="setting-row">
+              <div>
+                <p class="setting-label">ต้องมีตัวพิมพ์เล็ก (a-z)</p>
+                <p class="setting-hint">บังคับให้มีตัวพิมพ์เล็กอย่างน้อย 1 ตัว</p>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" id="policyLower" />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div class="setting-row">
+              <div>
+                <p class="setting-label">ต้องมีตัวเลข (0-9)</p>
+                <p class="setting-hint">บังคับให้มีตัวเลขอย่างน้อย 1 ตัว</p>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" id="policyDigit" />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div class="setting-row">
+              <div>
+                <p class="setting-label">ต้องมีสัญลักษณ์พิเศษ (!@#$)</p>
+                <p class="setting-hint">บังคับให้มีสัญลักษณ์พิเศษอย่างน้อย 1 ตัว</p>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" id="policySpecial" />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+
           <!-- Notification Settings -->
           <div class="setting-card">
             <h3 class="setting-card-title">Notifications</h3>
@@ -168,7 +226,11 @@
     </div>
 
     <script src="../assets/js/table.js"></script>
+    <script src="/assets/js/esc-close.js"></script>
     <script src="../assets/js/modal.js"></script>
+    <script src="../assets/js/enter-save.js"></script>
+    <script src="/modules/backend/assets/js/auth-guard.js"></script>
+    <script>requireAuth();</script>
     <script src="../assets/js/sidebar-menu.js"></script>
     <script>renderSidebarMenu();</script>
     <script src="/assets/js/topbar.js"></script>
@@ -199,6 +261,40 @@
           msg.classList.add("show");
           setTimeout(function() { msg.classList.remove("show"); }, 1500);
         });
+      });
+
+      // ============ Password Policy (ใช้ helpers จาก auth-guard.js) ============
+      function flashSaved() {
+        var msg = document.getElementById("saveMsg");
+        msg.classList.add("show");
+        setTimeout(function() { msg.classList.remove("show"); }, 1500);
+      }
+
+      var policy = getPasswordPolicy();
+      document.getElementById("policyMinLength").value = policy.minLength;
+      document.getElementById("policyUpper").checked = policy.requireUppercase;
+      document.getElementById("policyLower").checked = policy.requireLowercase;
+      document.getElementById("policyDigit").checked = policy.requireDigit;
+      document.getElementById("policySpecial").checked = policy.requireSpecial;
+
+      function persistPolicy() {
+        var newPolicy = {
+          minLength: Math.max(6, Math.min(32, parseInt(document.getElementById("policyMinLength").value, 10) || 8)),
+          requireUppercase: document.getElementById("policyUpper").checked,
+          requireLowercase: document.getElementById("policyLower").checked,
+          requireDigit: document.getElementById("policyDigit").checked,
+          requireSpecial: document.getElementById("policySpecial").checked
+        };
+        savePasswordPolicy(newPolicy);
+        logActivity("update", "Settings", "ปรับ Password Policy");
+        flashSaved();
+      }
+
+      ["policyMinLength", "policyUpper", "policyLower", "policyDigit", "policySpecial"].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        var evt = el.type === "checkbox" ? "change" : "change";
+        el.addEventListener(evt, persistPolicy);
       });
 
       lucide.createIcons();

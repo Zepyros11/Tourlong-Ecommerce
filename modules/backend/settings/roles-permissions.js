@@ -5,12 +5,7 @@
 // ============================================================
 
 // ============ Mock Database ============
-let roles = [
-  { id: 1, name: "Admin",   desc: "ผู้ดูแลระบบ สิทธิ์เต็ม",          users: 1, permissions: ["dashboard_view","inventory_view","inventory_edit","inventory_delete","settings_view","settings_edit","users_manage"], status: "active" },
-  { id: 2, name: "Manager", desc: "ผู้จัดการ ดูแลสินค้าและคลัง",      users: 2, permissions: ["dashboard_view","inventory_view","inventory_edit","settings_view"],                                                  status: "active" },
-  { id: 3, name: "Staff",   desc: "พนักงาน จัดการสินค้า",             users: 2, permissions: ["dashboard_view","inventory_view","inventory_edit"],                                                                  status: "active" },
-  { id: 4, name: "Viewer",  desc: "ผู้ดูข้อมูล อ่านอย่างเดียว",       users: 1, permissions: ["dashboard_view","inventory_view"],                                                                                  status: "active" },
-];
+let roles = [];
 
 // ============ Update Stat Cards ============
 function updateStats() {

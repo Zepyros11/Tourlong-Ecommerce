@@ -5,11 +5,7 @@
 // ============================================================
 
 // ============ Mock Database ============
-let accounts = [
-  { id: 1, bank: "ธนาคารกสิกรไทย",     accountName: "Pathara Co., Ltd.", accountNumber: "123-4-56789-0", balance: 458500, status: "active" },
-  { id: 2, bank: "ธนาคารไทยพาณิชย์",    accountName: "Pathara Co., Ltd.", accountNumber: "987-6-54321-0", balance: 185000, status: "active" },
-  { id: 3, bank: "ธนาคารกรุงเทพ",       accountName: "Pathara Savings",   accountNumber: "456-7-89012-3", balance: 15000,  status: "active" },
-];
+let accounts = [];
 
 // ============ Update Stat Cards ============
 function updateStats() {

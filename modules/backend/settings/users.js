@@ -4,15 +4,15 @@
 // ใช้ร่วมกับ: modal.js, confirm.js
 // ============================================================
 
-// ============ Mock Database ============
-let users = [
-  { id: 1, name: "สมชาย วงศ์ดี",     email: "somchai@pathara.com",   role: "Admin",   status: "active",   lastLogin: "2026-04-07" },
-  { id: 2, name: "วิภา สุขใจ",       email: "wipa@pathara.com",     role: "Manager", status: "active",   lastLogin: "2026-04-07" },
-  { id: 3, name: "ประวิทย์ แก้วมณี",  email: "prawit@pathara.com",   role: "Staff",   status: "active",   lastLogin: "2026-04-06" },
-  { id: 4, name: "นภา พิมพ์ทอง",     email: "napa@pathara.com",     role: "Staff",   status: "inactive", lastLogin: "2026-03-20" },
-  { id: 5, name: "ธนา รัตนกุล",      email: "thana@pathara.com",    role: "Manager", status: "active",   lastLogin: "2026-04-05" },
-  { id: 6, name: "พิมพ์ใจ ศรีสุข",    email: "pimjai@pathara.com",   role: "Viewer",  status: "active",   lastLogin: "2026-04-04" },
-];
+// ============ Database (Supabase) ============
+let users = [];
+
+function reloadUsers() {
+  return fetchUsersDB().then(function(rows) {
+    users = (rows || []).map(normalizeUser);
+    return users;
+  });
+}
 
 // ============ Update Stat Cards ============
 function updateStats() {
@@ -41,15 +41,16 @@ function renderTable(data) {
       (u, i) => `
     <tr>
       <td>${i + 1}</td>
-      <td>${u.name}</td>
+      <td>${u.name}${u.mustChangePassword ? ' <span class="badge-must-change" title="ต้องเปลี่ยนรหัสผ่านครั้งถัดไป"><i data-lucide="key-round"></i>ต้องเปลี่ยนรหัส</span>' : ""}</td>
       <td>${u.email}</td>
       <td>${roleBadge(u.role)}</td>
       <td><span class="badge badge-${u.status === "active" ? "active" : "inactive"}">${u.status === "active" ? "Active" : "Inactive"}</span></td>
       <td>${u.lastLogin}</td>
       <td>
         <div class="table-actions">
-          <button class="btn-icon-sm" onclick="editUser(${u.id})"><i data-lucide="pencil"></i></button>
-          <button class="btn-icon-sm btn-danger" onclick="deleteUser(${u.id})"><i data-lucide="trash-2"></i></button>
+          <button class="btn-icon-sm" onclick="editUser(${u.id})" title="Edit"><i data-lucide="pencil"></i></button>
+          <button class="btn-icon-sm" onclick="resetUserPassword(${u.id})" title="Reset Password"><i data-lucide="key-round"></i></button>
+          <button class="btn-icon-sm btn-danger" onclick="deleteUser(${u.id})" title="Delete"><i data-lucide="trash-2"></i></button>
         </div>
       </td>
     </tr>
@@ -66,6 +67,11 @@ function openUserModal(title, u) {
   document.getElementById("editId").value = u ? u.id : "";
   document.getElementById("inputName").value = u ? u.name : "";
   document.getElementById("inputEmail").value = u ? u.email : "";
+  document.getElementById("inputUsername").value = u ? (u.username || "") : "";
+  document.getElementById("inputPhone").value = u ? (u.phone || "") : "";
+  document.getElementById("inputPassword").value = "";
+  document.getElementById("inputPasswordConfirm").value = "";
+  updatePasswordStrength("");
   document.getElementById("inputRole").value = u ? u.role : "Staff";
   document.getElementById("inputStatus").checked = u ? u.status === "active" : true;
   var _lbl = document.getElementById("inputStatusLabel"); if(_lbl) { _lbl.textContent = (u ? u.status === "active" : true) ? "Active" : "Inactive"; _lbl.classList.toggle("active-label", u ? u.status === "active" : true); }
@@ -78,32 +84,132 @@ function saveUser() {
   const id = document.getElementById("editId").value;
   const name = document.getElementById("inputName").value.trim();
   const email = document.getElementById("inputEmail").value.trim();
+  const username = document.getElementById("inputUsername").value.trim();
+  const phone = document.getElementById("inputPhone").value.trim();
+  const password = document.getElementById("inputPassword").value;
+  const passwordConfirm = document.getElementById("inputPasswordConfirm").value;
   const role = document.getElementById("inputRole").value;
   const status = document.getElementById("inputStatus").checked ? "active" : "inactive";
-  if (!name) return document.getElementById("inputName").focus();
-  if (!email) return document.getElementById("inputEmail").focus();
+  if (!name) {
+    showToast("กรุณากรอกชื่อ", "warning");
+    return document.getElementById("inputName").focus();
+  }
+  if (!email) {
+    showToast("กรุณากรอก email", "warning");
+    return document.getElementById("inputEmail").focus();
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showToast("รูปแบบ email ไม่ถูกต้อง", "warning");
+    return document.getElementById("inputEmail").focus();
+  }
+  if (!username) {
+    showToast("กรุณากรอก username", "warning");
+    return document.getElementById("inputUsername").focus();
+  }
+  if (!id && !password) {
+    showToast("กรุณากรอกรหัสผ่าน", "warning");
+    return document.getElementById("inputPassword").focus();
+  }
+  if (password) {
+    const policyErr = validatePassword(password);
+    if (policyErr) {
+      showToast(policyErr, "warning");
+      return document.getElementById("inputPassword").focus();
+    }
+  }
+  if (password !== passwordConfirm) {
+    showToast("รหัสผ่านไม่ตรงกัน", "warning");
+    return document.getElementById("inputPasswordConfirm").focus();
+  }
 
   const today = new Date().toISOString().split("T")[0];
 
+  let promise;
   if (id) {
-    const u = users.find((item) => item.id === Number(id));
-    if (u) {
-      u.name = name;
-      u.email = email;
-      u.role = role;
-      u.status = status;
-    }
+    const payload = denormalizeUser({ name, email, username, phone, role, status });
+    if (password) payload.password = password;
+    promise = updateUserDB(Number(id), payload).then(function() {
+      logActivity("update", "Users", "แก้ไขผู้ใช้: " + name);
+    });
   } else {
-    const newId = users.length ? Math.max(...users.map((item) => item.id)) + 1 : 1;
-    users.push({ id: newId, name, email, role, status, lastLogin: today });
+    const payload = denormalizeUser({
+      name, email, username, phone, password, role, status,
+      lastLogin: today, mustChangePassword: false
+    });
+    promise = createUserDB(payload).then(function() {
+      logActivity("create", "Users", "เพิ่มผู้ใช้ใหม่: " + name);
+    });
   }
-  closeModalById("userModal");
-  applyFilters();
+
+  promise
+    .then(reloadUsers)
+    .then(function() {
+      closeModalById("userModal");
+      applyFilters();
+      showToast(id ? "แก้ไขผู้ใช้สำเร็จ" : "เพิ่มผู้ใช้ใหม่สำเร็จ", "success");
+    })
+    .catch(function(err) {
+      console.error(err);
+      showToast("บันทึกไม่สำเร็จ: " + (err && err.message ? err.message : "เชื่อมต่อ server ไม่ได้"), "error");
+    });
 }
 
 function editUser(id) {
   const u = users.find((item) => item.id === id);
   if (u) openUserModal("Edit User", u);
+}
+
+// ============ Reset Password (Admin) — ใช้ generateTempPassword จาก auth-guard.js ============
+function resetUserPassword(id) {
+  const u = users.find((item) => item.id === id);
+  if (!u) return;
+  showConfirm({
+    title: "รีเซ็ตรหัสผ่าน",
+    message: "ต้องการรีเซ็ตรหัสผ่านของ <strong>" + u.name + "</strong> ใช่ไหม? ระบบจะสร้างรหัสชั่วคราวและบังคับให้ผู้ใช้เปลี่ยนรหัสเมื่อ login ครั้งถัดไป",
+    okText: "Reset",
+    okColor: "#47b8b4",
+    onConfirm: function () {
+      const temp = generateTempPassword(10);
+      updateUserDB(u.id, { password: temp, must_change_password: true })
+        .then(function() {
+          clearLoginFailures(u.username || "");
+          clearLoginFailures(u.email || "");
+          logActivity("update", "Users", "Admin รีเซ็ตรหัสผ่านให้: " + u.name);
+          document.getElementById("tempPwdUserName").textContent = u.name;
+          const codeEl = document.getElementById("tempPwdValue");
+          codeEl.textContent = temp;
+          const box = codeEl.parentElement;
+          box.classList.remove("copied");
+          openModalById("tempPasswordModal");
+          return reloadUsers();
+        })
+        .then(applyFilters)
+        .catch(function(err) {
+          console.error(err);
+          showToast("รีเซ็ตรหัสผ่านไม่สำเร็จ", "error");
+        });
+    },
+  });
+}
+
+function copyTempPassword() {
+  const code = document.getElementById("tempPwdValue").textContent;
+  const box = document.getElementById("tempPwdValue").parentElement;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(code).then(function() {
+      box.classList.add("copied");
+      setTimeout(function() { box.classList.remove("copied"); }, 1500);
+    });
+  } else {
+    const ta = document.createElement("textarea");
+    ta.value = code;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    document.body.removeChild(ta);
+    box.classList.add("copied");
+    setTimeout(function() { box.classList.remove("copied"); }, 1500);
+  }
 }
 
 // ============ Delete (ใช้ confirm.js) ============
@@ -116,8 +222,19 @@ function deleteUser(id) {
     okText: "Delete",
     okColor: "#ef4444",
     onConfirm: function () {
-      users = users.filter((item) => item.id !== id);
-      applyFilters();
+      deleteUserDB(id)
+        .then(function() {
+          logActivity("delete", "Users", "ลบผู้ใช้: " + u.name);
+          return reloadUsers();
+        })
+        .then(function() {
+          applyFilters();
+          showToast("ลบผู้ใช้สำเร็จ", "success");
+        })
+        .catch(function(err) {
+          console.error(err);
+          showToast("ลบไม่สำเร็จ", "error");
+        });
     },
   });
 }
@@ -162,6 +279,27 @@ function applyFilters() {
   renderTable(getFilteredData());
 }
 
+// ============ Password Strength ============
+function calcPasswordStrength(pwd) {
+  if (!pwd) return 0;
+  let score = 0;
+  if (pwd.length >= 8) score++;
+  if (pwd.length >= 12) score++;
+  if (/[A-Z]/.test(pwd) && /[a-z]/.test(pwd)) score++;
+  if (/\d/.test(pwd)) score++;
+  if (/[^A-Za-z0-9]/.test(pwd)) score++;
+  return Math.min(4, score);
+}
+
+function updatePasswordStrength(pwd) {
+  const wrap = document.getElementById("passwordStrength");
+  if (!wrap) return;
+  const level = calcPasswordStrength(pwd);
+  const labels = ["—", "อ่อนมาก", "อ่อน", "ปานกลาง", "แข็งแรง"];
+  wrap.setAttribute("data-level", level);
+  wrap.querySelector(".password-strength-label").textContent = labels[level];
+}
+
 // ============ Init ============
 document.addEventListener("DOMContentLoaded", function () {
   document.querySelector(".filter-search-input").addEventListener("input", applyFilters);
@@ -193,5 +331,33 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  renderTable(users);
+  // Password strength
+  var pwdInput = document.getElementById("inputPassword");
+  if (pwdInput) {
+    pwdInput.addEventListener("input", function() { updatePasswordStrength(this.value); });
+  }
+
+  // Copy temp password button
+  var copyBtn = document.getElementById("copyTempPwdBtn");
+  if (copyBtn) copyBtn.addEventListener("click", copyTempPassword);
+
+  // Show/hide password toggle
+  document.querySelectorAll(".password-toggle").forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      var target = document.getElementById(this.dataset.target);
+      if (!target) return;
+      var showing = target.type === "text";
+      target.type = showing ? "password" : "text";
+      var icon = this.querySelector("i");
+      if (icon) {
+        icon.setAttribute("data-lucide", showing ? "eye" : "eye-off");
+        if (window.lucide) lucide.createIcons();
+      }
+    });
+  });
+
+  reloadUsers().then(applyFilters).catch(function(err) {
+    console.error(err);
+    showToast("โหลดข้อมูลผู้ใช้ไม่สำเร็จ — ตรวจสอบการเชื่อมต่อ Supabase", "error", 5000);
+  });
 });
