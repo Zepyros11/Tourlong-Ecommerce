@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pathara - Purchase Order Form</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../assets/backend.css" />
+    <style>
+      .form-section { background:#fff; border:1px solid #f1f5f9; border-radius:14px; padding:18px; margin-bottom:14px; box-shadow:0 10px 40px -10px rgba(0,0,0,0.04); }
+      .form-section-title { font-size:12px; font-weight:800; color:#1e293b; margin:0 0 14px; display:flex; align-items:center; gap:6px; }
+      .form-section-title i { width:14px; height:14px; color:#47b8b4; }
+
+      .po-items-table { width:100%; border-collapse:collapse; font-size:11px; }
+      .po-items-table thead tr { color:#64748b; text-transform:uppercase; font-size:9px; letter-spacing:0.5px; }
+      .po-items-table th { padding:6px 8px; text-align:left; font-weight:700; }
+      .po-items-table td { padding:4px 6px; vertical-align:middle; }
+      .po-items-table input, .po-items-table select { font-size:11px; padding:6px 8px; }
+
+      .po-summary { display:grid; grid-template-columns:1fr 260px; gap:24px; align-items:start; }
+      .po-summary-totals { display:flex; flex-direction:column; gap:6px; font-size:12px; }
+      .po-summary-row { display:flex; justify-content:space-between; align-items:center; color:#64748b; }
+      .po-summary-row.total { font-weight:800; color:#1e293b; font-size:14px; border-top:1px solid #e2e8f0; padding-top:8px; margin-top:4px; }
+      .po-summary-row input { width:120px; padding:6px 8px; font-size:11px; text-align:right; }
+
+      .form-actions { display:flex; align-items:center; justify-content:flex-end; gap:8px; padding:16px 0; }
+
+      .input-locked { position:relative; }
+      .input-locked .form-input { background-color:#f1f5f9; color:#64748b; cursor:not-allowed; padding-right:32px; font-weight:600; }
+      .input-locked .form-input:focus { outline:none; border-color:#e2e8f0; box-shadow:none; }
+      .input-locked-icon { position:absolute; right:10px; top:50%; transform:translateY(-50%); width:12px; height:12px; color:#94a3b8; pointer-events:none; }
+
+      @media (max-width: 640px) {
+        .po-summary { grid-template-columns:1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="sidebar-logo">
+          <div class="sidebar-logo-icon"><i data-lucide="zap" class="sidebar-icon-sm"></i></div>
+          <h1 class="sidebar-logo-text">Pathara</h1>
+        </div>
+        <nav class="sidebar-nav"></nav>
+        <button class="sidebar-logout">
+          <i data-lucide="log-out" class="sidebar-icon-xs"></i>
+          <span>ออกจากระบบ</span>
+        </button>
+      </aside>
+
+      <div class="main-area">
+        <header class="topbar"></header>
+
+        <div class="content">
+          <!-- Header -->
+          <div class="content-header">
+            <div>
+              <h2 class="content-title" id="pageTitle">Create PO</h2>
+              <p class="content-subtitle" id="pageSubtitle">สร้างใบสั่งซื้อใหม่</p>
+            </div>
+            <a href="purchase-orders.html" class="btn-outline" style="text-decoration:none;">
+              <i data-lucide="arrow-left" class="btn-icon"></i> กลับรายการ PO
+            </a>
+          </div>
+
+          <input type="hidden" id="editId" />
+
+          <!-- Section 1: PO Info -->
+          <div class="form-section">
+            <h3 class="form-section-title"><i data-lucide="file-text"></i> ข้อมูลใบสั่งซื้อ</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">PO Number</label>
+                <div class="input-locked">
+                  <input type="text" class="form-input" id="inputPONumber" placeholder="PO-2026-001" readonly tabindex="-1" />
+                  <i data-lucide="lock" class="input-locked-icon"></i>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Date</label>
+                <input type="date" class="form-input" id="inputDate" />
+              </div>
+            </div>
+            <div class="form-row" style="margin-top:10px;">
+              <div class="form-group">
+                <label class="form-label">Supplier</label>
+                <select class="form-select" id="inputSupplier"></select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Status</label>
+                <select class="form-select" id="inputStatus">
+                  <option value="pending">Pending</option>
+                  <option value="approved">Approved</option>
+                  <option value="received">Received</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 2: Line Items -->
+          <div class="form-section">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+              <h3 class="form-section-title" style="margin:0;"><i data-lucide="shopping-cart"></i> รายการสินค้า</h3>
+              <button class="btn-outline" type="button" onclick="addPOItemRow()" style="padding:6px 14px;font-size:10px;">
+                <i data-lucide="plus" style="width:12px;height:12px;"></i> เพิ่มรายการ
+              </button>
+            </div>
+            <div style="background:#f8fafc;border-radius:10px;padding:10px;overflow-x:auto;">
+              <table class="po-items-table">
+                <thead>
+                  <tr>
+                    <th>สินค้า</th>
+                    <th style="text-align:right;width:100px;">จำนวน</th>
+                    <th style="text-align:right;width:120px;">ต้นทุน/หน่วย</th>
+                    <th style="text-align:right;width:130px;">ยอดย่อย</th>
+                    <th style="width:36px;"></th>
+                  </tr>
+                </thead>
+                <tbody id="poItemsBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Section 3: Summary -->
+          <div class="form-section">
+            <h3 class="form-section-title"><i data-lucide="calculator"></i> สรุปยอด</h3>
+            <div class="po-summary">
+              <div class="form-group" style="margin:0;">
+                <label class="form-label">Note</label>
+                <input type="text" class="form-input" id="inputNote" placeholder="หมายเหตุ..." />
+              </div>
+              <div class="po-summary-totals">
+                <div class="po-summary-row">
+                  <span>Subtotal:</span>
+                  <span id="sumSubtotal">฿0.00</span>
+                </div>
+                <div class="po-summary-row">
+                  <span>Tax (฿):</span>
+                  <input type="number" class="form-input" id="inputTax" value="0" min="0" step="0.01" oninput="recalcTotals()" />
+                </div>
+                <div class="po-summary-row total">
+                  <span>Total:</span>
+                  <span id="sumTotal">฿0.00</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="form-actions">
+            <a href="purchase-orders.html" class="btn-secondary" style="text-decoration:none;display:inline-flex;align-items:center;">Cancel</a>
+            <button class="btn-primary" id="savePOBtn" onclick="savePO()">Save</button>
+          </div>
+        </div>
+
+        <footer class="footer">
+          <p class="footer-text">&copy; 2026 Pathara. All rights reserved.</p>
+          <nav class="footer-nav">
+            <a href="#" class="footer-link">Privacy Policy</a>
+            <a href="#" class="footer-link">Terms of Service</a>
+            <a href="#" class="footer-link">Support</a>
+          </nav>
+        </footer>
+      </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div class="modal-overlay" id="confirmModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title" id="confirmTitle">Confirm</h3>
+          <button class="modal-close"><i data-lucide="x"></i></button>
+        </div>
+        <div class="modal-body">
+          <p id="confirmMessage" style="font-size: 12px; color: #64748b;"></p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" id="confirmCancelBtn">Cancel</button>
+          <button class="btn-primary" id="confirmOkBtn">OK</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="/assets/js/esc-close.js"></script>
+    <script src="../assets/js/modal.js"></script>
+    <script src="../assets/js/confirm.js"></script>
+    <script src="/modules/backend/assets/js/toast.js"></script>
+    <script src="/modules/backend/assets/js/supabase-client.js"></script>
+    <script src="/modules/backend/assets/js/auth-guard.js"></script>
+    <script>requireAuth();</script>
+    <script src="../assets/js/sidebar-menu.js"></script>
+    <script>renderSidebarMenu();</script>
+    <script src="/assets/js/topbar.js"></script>
+    <script>renderTopbar({ group: "Purchasing", page: "ใบสั่งซื้อ" });</script>
+    <script src="/modules/backend/assets/js/random-data.js"></script>
+    <script src="purchase-order-form.js"></script>
+  </body>
+</html>

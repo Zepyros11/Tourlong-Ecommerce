@@ -28,7 +28,7 @@
 
         <button class="sidebar-logout">
           <i data-lucide="log-out" class="sidebar-icon-xs"></i>
-          <span>Go Out</span>
+          <span>ออกจากระบบ</span>
         </button>
       </aside>
 
@@ -113,13 +113,13 @@
               <thead>
                 <tr>
                   <th>#</th>
-                  <th data-sort="date" data-sort-type="date">Date</th>
-                  <th data-sort="invoice">Invoice Ref</th>
-                  <th data-sort="customer">Customer</th>
-                  <th data-sort="method">Method</th>
-                  <th data-sort="amount" data-sort-type="number">Amount</th>
-                  <th data-sort="status">Status</th>
-                  <th>Actions</th>
+                  <th data-sort="date" data-sort-type="date">วันที่</th>
+                  <th data-sort="invoice">อ้างอิงใบแจ้งหนี้</th>
+                  <th data-sort="customer">ลูกค้า</th>
+                  <th data-sort="method">วิธีการชำระเงิน</th>
+                  <th data-sort="amount" data-sort-type="number">ยอดรวม</th>
+                  <th data-sort="status">สถานะ</th>
+                  <th>จัดการ</th>
                 </tr>
               </thead>
               <tbody id="paymentTableBody">
@@ -143,53 +143,91 @@
 
     <!-- Modal Add/Edit Payment -->
     <div class="modal-overlay" id="paymentModal">
-      <div class="modal">
+      <div class="modal" style="max-width:620px;">
         <div class="modal-header">
           <h3 class="modal-title" id="modalTitle">Add Payment</h3>
           <button class="modal-close"><i data-lucide="x"></i></button>
         </div>
         <div class="modal-body">
           <input type="hidden" id="editId" />
-          <div class="form-group">
-            <label class="form-label">Invoice Ref</label>
-            <select class="form-select" id="inputInvoice">
-              <option value="INV-2026-001">INV-2026-001</option>
-              <option value="INV-2026-002">INV-2026-002</option>
-              <option value="INV-2026-003">INV-2026-003</option>
-              <option value="INV-2026-004">INV-2026-004</option>
-              <option value="INV-2026-005">INV-2026-005</option>
-              <option value="INV-2026-006">INV-2026-006</option>
-              <option value="INV-2026-007">INV-2026-007</option>
-              <option value="INV-2026-008">INV-2026-008</option>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Payment Number</label>
+              <input type="text" class="form-input" id="inputPaymentNumber" readonly />
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Date</label>
+              <input type="date" class="form-input" id="inputDate" />
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:10px;">
+            <label class="form-label">Direction</label>
+            <select class="form-select" id="inputDirection" onchange="onDirectionChange()">
+              <option value="incoming">Incoming (รับจากลูกค้า)</option>
+              <option value="outgoing">Outgoing (จ่ายซัพพลาย)</option>
             </select>
           </div>
-          <div class="form-group">
-            <label class="form-label">Customer</label>
-            <input type="text" class="form-input" id="inputCustomer" placeholder="ชื่อลูกค้า..." />
+
+          <!-- Incoming fields -->
+          <div id="incomingFields">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+              <div class="form-group" style="margin:0;">
+                <label class="form-label">Invoice (optional)</label>
+                <select class="form-select" id="inputInvoice" onchange="onInvoiceChange()"></select>
+              </div>
+              <div class="form-group" style="margin:0;">
+                <label class="form-label">Customer</label>
+                <select class="form-select" id="inputCustomer"></select>
+              </div>
+            </div>
           </div>
-          <div class="form-group">
-            <label class="form-label">Date</label>
-            <input type="date" class="form-input" id="inputDate" />
+
+          <!-- Outgoing fields -->
+          <div id="outgoingFields" style="display:none;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+              <div class="form-group" style="margin:0;">
+                <label class="form-label">PO (optional)</label>
+                <select class="form-select" id="inputPO" onchange="onPOChange()"></select>
+              </div>
+              <div class="form-group" style="margin:0;">
+                <label class="form-label">Supplier</label>
+                <select class="form-select" id="inputSupplier"></select>
+              </div>
+            </div>
           </div>
-          <div class="form-group">
-            <label class="form-label">Method</label>
-            <select class="form-select" id="inputMethod">
-              <option value="โอนธนาคาร">โอนธนาคาร</option>
-              <option value="เงินสด">เงินสด</option>
-              <option value="บัตรเครดิต">บัตรเครดิต</option>
-              <option value="เช็ค">เช็ค</option>
-            </select>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Bank Account</label>
+              <select class="form-select" id="inputBankAccount"></select>
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Method</label>
+              <select class="form-select" id="inputMethod">
+                <option value="โอนธนาคาร">โอนธนาคาร</option>
+                <option value="เงินสด">เงินสด</option>
+                <option value="บัตรเครดิต">บัตรเครดิต</option>
+                <option value="เช็ค">เช็ค</option>
+              </select>
+            </div>
           </div>
-          <div class="form-group">
-            <label class="form-label">Amount</label>
-            <input type="number" class="form-input" id="inputAmount" placeholder="ยอดชำระ..." />
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Amount</label>
+              <input type="number" class="form-input" id="inputAmount" placeholder="0.00" min="0" step="0.01" />
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Status</label>
+              <select class="form-select" id="inputStatus">
+                <option value="completed">Completed</option>
+                <option value="pending">Pending</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
           </div>
-          <div class="form-group">
-            <label class="form-label">Status</label>
-            <select class="form-select" id="inputStatus">
-              <option value="completed">Completed</option>
-              <option value="pending">Pending</option>
-            </select>
+          <div class="form-group" style="margin-bottom:10px;">
+            <label class="form-label">Note</label>
+            <input type="text" class="form-input" id="inputNote" placeholder="หมายเหตุ..." />
           </div>
         </div>
         <div class="modal-footer">
@@ -221,12 +259,14 @@
     <script src="../assets/js/modal.js"></script>
     <script src="../assets/js/enter-save.js"></script>
     <script src="../assets/js/confirm.js"></script>
+    <script src="/modules/backend/assets/js/supabase-client.js"></script>
     <script src="/modules/backend/assets/js/auth-guard.js"></script>
     <script>requireAuth();</script>
     <script src="../assets/js/sidebar-menu.js"></script>
     <script>renderSidebarMenu("payments.html");</script>
     <script src="/assets/js/topbar.js"></script>
     <script>renderTopbar({ group: "Finance", page: "รายรับ" });</script>
+    <script src="/modules/backend/assets/js/random-data.js"></script>
     <script src="payments.js"></script>
   </body>
 </html>

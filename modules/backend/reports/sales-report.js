@@ -1,97 +1,86 @@
 // ============================================================
-// sales-report.js — logic เฉพาะหน้า Sales Report
-// ------------------------------------------------------------
-// READ-ONLY report — ไม่มี add/edit/delete
+// sales-report.js — Sales Report (อ่านจาก sales_orders)
 // ============================================================
 
-// ============ Mock Database ============
-const salesData = [];
+var salesData = [];
 
-// ============ Status Badge ============
+function fmtMoney(n) { return "฿" + Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+
 function getStatusBadge(status) {
   switch (status) {
-    case "completed":
-      return '<span class="badge badge-active">Completed</span>';
-    case "cancelled":
-      return '<span class="badge badge-inactive">Cancelled</span>';
-    default:
-      return '<span class="badge">' + status + "</span>";
+    case "completed":  return '<span class="badge badge-active">Completed</span>';
+    case "processing": return '<span class="badge" style="background-color:#fef3c7;color:#f59e0b;">Processing</span>';
+    case "cancelled":  return '<span class="badge badge-inactive">Cancelled</span>';
+    default: return '<span class="badge">' + status + "</span>";
   }
 }
 
-// ============ Render Table ============
 function renderTable(data) {
-  const tbody = document.getElementById("reportTableBody");
-  tbody.innerHTML = data
-    .map(
-      (row, i) => `
-    <tr>
-      <td>${i + 1}</td>
-      <td>${row.date}</td>
-      <td>${row.orderNo}</td>
-      <td>${row.customer}</td>
-      <td>${row.items}</td>
-      <td>฿${row.amount.toLocaleString()}</td>
-      <td>${getStatusBadge(row.status)}</td>
-    </tr>
-  `
-    )
-    .join("");
+  var tbody = document.getElementById("reportTableBody");
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:#94a3b8;font-size:11px;">ยังไม่มีข้อมูลการขาย</td></tr>';
+    lucide.createIcons();
+    return;
+  }
+  tbody.innerHTML = data.map(function (row, i) {
+    return '<tr>' +
+      '<td>' + (i + 1) + '</td>' +
+      '<td>' + (row.date || "—") + '</td>' +
+      '<td><strong>' + row.orderNo + '</strong></td>' +
+      '<td>' + (row.customer || "—") + '</td>' +
+      '<td>' + row.items + '</td>' +
+      '<td>' + fmtMoney(row.amount) + '</td>' +
+      '<td>' + getStatusBadge(row.status) + '</td>' +
+    '</tr>';
+  }).join("");
   lucide.createIcons();
   if (typeof refreshSortableHeaders === "function") refreshSortableHeaders();
 }
 
-// ============ Filter & Sort ============
-let currentSort = "default";
+var currentSort = "default";
 
 function getFilteredData() {
-  const keyword = document.querySelector(".filter-search-input").value.toLowerCase();
-  const dateFrom = document.getElementById("dateFrom").value;
-  const dateTo = document.getElementById("dateTo").value;
+  var keyword = document.querySelector(".filter-search-input").value.toLowerCase();
+  var dateFrom = document.getElementById("dateFrom").value;
+  var dateTo = document.getElementById("dateTo").value;
+  var data = salesData.slice();
 
-  let data = [...salesData];
-
-  // Search filter
   if (keyword) {
-    data = data.filter(
-      (row) =>
-        row.orderNo.toLowerCase().includes(keyword) ||
-        row.customer.toLowerCase().includes(keyword)
-    );
+    data = data.filter(function (row) {
+      return (row.orderNo || "").toLowerCase().includes(keyword) ||
+             (row.customer || "").toLowerCase().includes(keyword);
+    });
   }
+  if (dateFrom) data = data.filter(function (row) { return (row.date || "") >= dateFrom; });
+  if (dateTo) data = data.filter(function (row) { return (row.date || "") <= dateTo; });
 
-  // Date range filter
-  if (dateFrom) {
-    data = data.filter((row) => row.date >= dateFrom);
-  }
-  if (dateTo) {
-    data = data.filter((row) => row.date <= dateTo);
-  }
-
-  // Sort
   switch (currentSort) {
-    case "date-desc":
-      data.sort((a, b) => b.date.localeCompare(a.date));
-      break;
-    case "date-asc":
-      data.sort((a, b) => a.date.localeCompare(b.date));
-      break;
-    case "amount-desc":
-      data.sort((a, b) => b.amount - a.amount);
-      break;
-    case "amount-asc":
-      data.sort((a, b) => a.amount - b.amount);
-      break;
+    case "date-desc":   data.sort(function (a, b) { return (b.date || "").localeCompare(a.date || ""); }); break;
+    case "date-asc":    data.sort(function (a, b) { return (a.date || "").localeCompare(b.date || ""); }); break;
+    case "amount-desc": data.sort(function (a, b) { return Number(b.amount) - Number(a.amount); }); break;
+    case "amount-asc":  data.sort(function (a, b) { return Number(a.amount) - Number(b.amount); }); break;
   }
-
   return data;
 }
 
-function applyFilters() {
-  renderTable(getFilteredData());
+function applyFilters() { renderTable(getFilteredData()); }
+
+function reloadData() {
+  return (typeof fetchSalesOrdersDB === "function" ? fetchSalesOrdersDB() : Promise.resolve([]))
+    .then(function (rows) {
+      salesData = (rows || []).map(function (so) {
+        return {
+          date: so.date || "",
+          orderNo: so.so_number || "",
+          customer: so.customers ? so.customers.name : "",
+          items: so.sales_order_items ? so.sales_order_items.length : 0,
+          amount: Number(so.total) || 0,
+          status: so.status || "processing",
+        };
+      });
+    });
 }
 
-// ============ Init ============
 document.addEventListener("DOMContentLoaded", function () {
   document.querySelector(".filter-search-input").addEventListener("input", applyFilters);
   document.getElementById("dateFrom").addEventListener("change", applyFilters);
@@ -102,5 +91,7 @@ document.addEventListener("DOMContentLoaded", function () {
     applyFilters();
   });
 
-  renderTable(salesData);
+  reloadData()
+    .then(function () { applyFilters(); })
+    .catch(function (err) { console.error(err); applyFilters(); });
 });

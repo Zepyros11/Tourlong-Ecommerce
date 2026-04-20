@@ -300,6 +300,28 @@ function updatePasswordStrength(pwd) {
   wrap.querySelector(".password-strength-label").textContent = labels[level];
 }
 
+// ============ Random Fill (dev tool) ============
+if (typeof registerRandomFill === "function") {
+  registerRandomFill({
+    target: "#userModal",
+    fill: function () {
+      setFieldValue("inputName", randomPersonName());
+      setFieldValue("inputEmail", randomEmail());
+      setFieldValue("inputUsername", randomUsername());
+      setFieldValue("inputPhone", randomPhone());
+      setFieldValue("inputPassword", "Pass1234!");
+      setFieldValue("inputPasswordConfirm", "Pass1234!");
+      if (typeof updatePasswordStrength === "function") updatePasswordStrength("Pass1234!");
+      pickRandomSelectOption("inputRole", { includeEmpty: false });
+      var sw = document.getElementById("inputStatus");
+      if (sw) {
+        sw.checked = rdBool(0.85);
+        sw.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+    },
+  });
+}
+
 // ============ Init ============
 document.addEventListener("DOMContentLoaded", function () {
   document.querySelector(".filter-search-input").addEventListener("input", applyFilters);

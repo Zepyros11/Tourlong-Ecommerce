@@ -28,7 +28,7 @@
 
         <button class="sidebar-logout">
           <i data-lucide="log-out" class="sidebar-icon-xs"></i>
-          <span>Go Out</span>
+          <span>ออกจากระบบ</span>
         </button>
       </aside>
 
@@ -114,13 +114,13 @@
               <thead>
                 <tr>
                   <th>#</th>
-                  <th data-sort="date" data-sort-type="date">Date</th>
-                  <th data-sort="product">Product Name</th>
-                  <th data-sort="type">Type</th>
-                  <th data-sort="warehouse">Warehouse</th>
-                  <th data-sort="qty" data-sort-type="number">Qty</th>
-                  <th data-sort="note">Note</th>
-                  <th>Actions</th>
+                  <th data-sort="date" data-sort-type="date">วันที่</th>
+                  <th data-sort="product">ชื่อสินค้า</th>
+                  <th data-sort="type">ประเภท</th>
+                  <th data-sort="warehouse">คลังสินค้า</th>
+                  <th data-sort="qty" data-sort-type="number">จำนวน</th>
+                  <th data-sort="note">หมายเหตุ</th>
+                  <th>จัดการ</th>
                 </tr>
               </thead>
               <tbody id="movementTableBody">
@@ -153,7 +153,7 @@
           <input type="hidden" id="editId" />
           <div class="form-group">
             <label class="form-label">Type</label>
-            <select class="form-select" id="inputType">
+            <select class="form-select" id="inputType" onchange="onTypeChange()">
               <option value="in">Stock In (รับเข้า)</option>
               <option value="out">Stock Out (จ่ายออก)</option>
               <option value="transfer">Transfer (โอนย้าย)</option>
@@ -161,31 +161,23 @@
           </div>
           <div class="form-group">
             <label class="form-label">Product</label>
-            <select class="form-select" id="inputProduct">
-              <option value="Wireless Headphones">Wireless Headphones</option>
-              <option value="Running Shoes">Running Shoes</option>
-              <option value="Cotton T-Shirt">Cotton T-Shirt</option>
-              <option value="Yoga Mat">Yoga Mat</option>
-              <option value="Protein Powder">Protein Powder</option>
-              <option value="Smart Watch">Smart Watch</option>
-              <option value="Leather Wallet">Leather Wallet</option>
-              <option value="Face Serum">Face Serum</option>
-              <option value="Desk Lamp">Desk Lamp</option>
-              <option value="JavaScript Handbook">JavaScript Handbook</option>
-            </select>
+            <select class="form-select" id="inputProduct"></select>
+          </div>
+          <div class="form-group" id="fromWarehouseGroup" style="display:none;">
+            <label class="form-label">From Warehouse</label>
+            <select class="form-select" id="inputFromWarehouse"></select>
           </div>
           <div class="form-group">
-            <label class="form-label">Warehouse</label>
-            <select class="form-select" id="inputWarehouse">
-              <option value="คลังกลาง กรุงเทพ">คลังกลาง กรุงเทพ</option>
-              <option value="คลังภาคเหนือ">คลังภาคเหนือ</option>
-              <option value="คลังภาคใต้">คลังภาคใต้</option>
-              <option value="คลังออนไลน์">คลังออนไลน์</option>
-            </select>
+            <label class="form-label" id="labelWarehouse">Warehouse</label>
+            <select class="form-select" id="inputWarehouse"></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Date</label>
+            <input type="date" class="form-input" id="inputDate" />
           </div>
           <div class="form-group">
             <label class="form-label">Quantity</label>
-            <input type="number" class="form-input" id="inputQty" placeholder="0" min="0" />
+            <input type="number" class="form-input" id="inputQty" placeholder="0" min="0" step="any" />
           </div>
           <div class="form-group">
             <label class="form-label">Note</label>
@@ -221,12 +213,14 @@
     <script src="../../assets/js/modal.js"></script>
     <script src="../../assets/js/enter-save.js"></script>
     <script src="../../assets/js/confirm.js"></script>
+    <script src="/modules/backend/assets/js/supabase-client.js"></script>
     <script src="/modules/backend/assets/js/auth-guard.js"></script>
     <script>requireAuth();</script>
     <script src="../../assets/js/sidebar-menu.js"></script>
     <script>renderSidebarMenu("stock-movement.html");</script>
     <script src="/assets/js/topbar.js"></script>
     <script>renderTopbar({ group: "Inventory", page: "เคลื่อนไหวสินค้า" });</script>
+    <script src="/modules/backend/assets/js/random-data.js"></script>
     <script src="stock-movement.js"></script>
   </body>
 </html>

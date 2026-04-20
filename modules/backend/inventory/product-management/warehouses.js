@@ -169,6 +169,21 @@ function getFilteredData() {
 
 function applyFilters() { renderTable(getFilteredData()); }
 
+// ============ Random fill (dev) ============
+if (typeof registerRandomFill === "function") {
+  registerRandomFill({
+    target: "#whModal",
+    fill: function () {
+      setFieldValue("inputName", "คลัง" + rdPick(["หลัก", "สาขา 1", "สาขา 2", "ภาคเหนือ", "ภาคใต้", "กลาง"]));
+      // inputCode readonly — ข้าม (generateCode ทำให้แล้วตอนเปิด modal)
+      setFieldValue("inputLocation", randomAddress());
+      setFieldValue("inputManager", randomPersonName());
+      var sw = document.getElementById("inputStatus");
+      if (sw) { sw.checked = rdBool(0.85); sw.dispatchEvent(new Event("change", { bubbles: true })); }
+    },
+  });
+}
+
 // ============ Init ============
 document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("addWhBtn").addEventListener("click", function () { openWhModal(null); });

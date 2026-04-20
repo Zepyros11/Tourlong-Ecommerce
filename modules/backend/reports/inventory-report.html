@@ -28,7 +28,7 @@
 
         <button class="sidebar-logout">
           <i data-lucide="log-out" class="sidebar-icon-xs"></i>
-          <span>Go Out</span>
+          <span>ออกจากระบบ</span>
         </button>
       </aside>
 
@@ -128,13 +128,13 @@
               <thead>
                 <tr>
                   <th>#</th>
-                  <th data-sort="name">Product Name</th>
-                  <th data-sort="category">Category</th>
-                  <th data-sort="unit">Unit</th>
-                  <th data-sort="stock" data-sort-type="number">Stock</th>
-                  <th data-sort="cost" data-sort-type="number">Unit Cost</th>
-                  <th data-sort="value" data-sort-type="number">Total Value</th>
-                  <th data-sort="status">Status</th>
+                  <th data-sort="name">ชื่อสินค้า</th>
+                  <th data-sort="category">หมวดหมู่</th>
+                  <th data-sort="unit">หน่วย</th>
+                  <th data-sort="stock" data-sort-type="number">สต็อก</th>
+                  <th data-sort="cost" data-sort-type="number">ต้นทุนต่อหน่วย</th>
+                  <th data-sort="value" data-sort-type="number">มูลค่ารวม</th>
+                  <th data-sort="status">สถานะ</th>
                 </tr>
               </thead>
               <tbody id="reportTableBody">
@@ -160,6 +160,7 @@
     <script src="/assets/js/esc-close.js"></script>
     <script src="../assets/js/modal.js"></script>
     <script src="../assets/js/enter-save.js"></script>
+    <script src="/modules/backend/assets/js/supabase-client.js"></script>
     <script src="/modules/backend/assets/js/auth-guard.js"></script>
     <script>requireAuth();</script>
     <script src="../assets/js/sidebar-menu.js"></script>

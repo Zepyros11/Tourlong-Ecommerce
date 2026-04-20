@@ -14,100 +14,101 @@
 // ============================================================
 
 var frontendLink = {
-  label: "Go to Frontend",
+  label: "ไปหน้าร้าน",
   icon: "arrow-right-circle",
   href: "/modules/frontend/page-management/main-page.html",
 };
 
 var sidebarMenu = [
   {
-    group: "Inventory",
+    group: "คลังสินค้า",
     icon: "package",
     basePath: "/modules/backend/inventory/product-management/",
     items: [
-      { name: "Dashboard",      icon: "bar-chart-3",    href: "dashboard.html" },
-      { name: "หน่วยนับ",       icon: "ruler",          href: "unit-of-measure.html" },
-      { name: "คลังสินค้า",     icon: "warehouse",      href: "warehouses.html" },
-      { name: "หมวดหมู่สินค้า", icon: "layout-grid",    href: "products-category-list.html" },
-      { name: "รายการสินค้า",   icon: "shopping-bag",   href: "products-list.html" },
-      { name: "สต็อกเริ่มต้น",   icon: "clipboard-list", href: "products-initial.html" },
-      { name: "เคลื่อนไหวสินค้า", icon: "repeat",        href: "stock-movement.html" },
+      { name: "แดชบอร์ด",         icon: "bar-chart-3",    href: "dashboard.html" },
+      { name: "รายการสินค้า",     icon: "shopping-bag",   href: "products-list.html" },
+      { name: "สต็อกเริ่มต้น",     icon: "clipboard-list", href: "products-initial.html" },
+      { name: "เคลื่อนไหวสินค้า",  icon: "repeat",         href: "stock-movement.html" },
+      { name: "หน่วยนับ",          icon: "ruler",          href: "unit-of-measure.html" },
+      { name: "คลังสินค้า",        icon: "warehouse",      href: "warehouses.html" },
+      { name: "หมวดหมู่สินค้า",    icon: "layout-grid",    href: "products-category-list.html" },
     ],
   },
   {
-    group: "Sales",
-    icon: "credit-card",
-    basePath: "/modules/backend/sales/",
-    items: [
-      { name: "Dashboard",      icon: "bar-chart-3",    href: "dashboard.html" },
-      { name: "ลูกค้า",         icon: "users",          href: "customers.html" },
-      { name: "คำสั่งซื้อ (SO)", icon: "shopping-cart",  href: "sales-orders.html" },
-      { name: "ใบแจ้งหนี้",     icon: "receipt",        href: "invoices.html" },
-      { name: "รับคืนสินค้า",    icon: "undo-2",         href: "sales-returns.html" },
-    ],
-  },
-  {
-    group: "Purchasing",
-    icon: "shopping-cart",
-    basePath: "/modules/backend/purchasing/",
-    items: [
-      { name: "Dashboard",      icon: "bar-chart-3",  href: "dashboard.html" },
-      { name: "ผู้ขาย",         icon: "store",        href: "suppliers.html" },
-      { name: "ใบสั่งซื้อ (PO)", icon: "file-text",    href: "purchase-orders.html" },
-      { name: "รับสินค้า (GR)",  icon: "package-check", href: "goods-receive.html" },
-      { name: "ส่งคืนสินค้า",    icon: "undo-2",       href: "purchase-returns.html" },
-    ],
-  },
-  {
-    group: "Promotions",
+    group: "โปรโมชั่น",
     icon: "tag",
     basePath: "/modules/backend/promotions/",
     items: [
-      { name: "คูปองส่วนลด",    icon: "ticket",   href: "coupons.html" },
-      { name: "โปรโมชั่นลดราคา", icon: "percent",  href: "discounts.html" },
+      { name: "แพ็คเกจโปรโมชั่น", icon: "package-plus", href: "promotion-packages.html" },
+      { name: "คูปองส่วนลด",     icon: "ticket",       href: "coupons.html" },
+      { name: "โปรโมชั่นลดราคา",  icon: "percent",      href: "discounts.html" },
     ],
   },
   {
-    group: "Shipping",
+    group: "การขาย",
+    icon: "credit-card",
+    basePath: "/modules/backend/sales/",
+    items: [
+      { name: "แดชบอร์ด",        icon: "bar-chart-3",    href: "dashboard.html" },
+      { name: "ลูกค้า",           icon: "users",          href: "customers.html" },
+      { name: "คำสั่งซื้อ (SO)",  icon: "shopping-cart",  href: "sales-orders.html" },
+      { name: "ใบแจ้งหนี้",       icon: "receipt",        href: "invoices.html" },
+      { name: "รับคืนสินค้า",     icon: "undo-2",         href: "sales-returns.html" },
+    ],
+  },
+  {
+    group: "การจัดซื้อ",
+    icon: "shopping-cart",
+    basePath: "/modules/backend/purchasing/",
+    items: [
+      { name: "แดชบอร์ด",         icon: "bar-chart-3",   href: "dashboard.html" },
+      { name: "ผู้ขาย",            icon: "store",         href: "suppliers.html" },
+      { name: "ใบสั่งซื้อ (PO)",  icon: "file-text",     href: "purchase-orders.html" },
+      { name: "รับสินค้า (GR)",   icon: "package-check", href: "goods-receive.html" },
+      { name: "ส่งคืนสินค้า",     icon: "undo-2",        href: "purchase-returns.html" },
+    ],
+  },
+  {
+    group: "การจัดส่ง",
     icon: "truck",
     basePath: "/modules/backend/shipping/",
     items: [
-      { name: "การจัดส่ง",      icon: "package",    href: "shipments.html" },
-      { name: "อัตราค่าขนส่ง",  icon: "calculator", href: "shipping-rates.html" },
+      { name: "การจัดส่ง",     icon: "package",    href: "shipments.html" },
+      { name: "อัตราค่าขนส่ง", icon: "calculator", href: "shipping-rates.html" },
     ],
   },
   {
-    group: "Reports",
+    group: "รายงาน",
     icon: "bar-chart-2",
     basePath: "/modules/backend/reports/",
     items: [
-      { name: "รายงานยอดขาย",    icon: "trending-up",  href: "sales-report.html" },
-      { name: "รายงานสินค้าคงเหลือ", icon: "package",   href: "inventory-report.html" },
-      { name: "รายงานการจัดซื้อ",  icon: "shopping-cart", href: "purchase-report.html" },
-      { name: "กำไร-ขาดทุน",     icon: "calculator",   href: "profit-loss.html" },
+      { name: "รายงานยอดขาย",       icon: "trending-up",   href: "sales-report.html" },
+      { name: "รายงานสินค้าคงเหลือ", icon: "package",       href: "inventory-report.html" },
+      { name: "รายงานการจัดซื้อ",    icon: "shopping-cart", href: "purchase-report.html" },
+      { name: "กำไร-ขาดทุน",        icon: "calculator",    href: "profit-loss.html" },
     ],
   },
   {
-    group: "Finance",
+    group: "การเงิน",
     icon: "wallet",
     basePath: "/modules/backend/finance/",
     items: [
-      { name: "Dashboard",       icon: "bar-chart-3",  href: "dashboard.html" },
-      { name: "รายรับ",           icon: "credit-card",  href: "payments.html" },
-      { name: "รายจ่าย",          icon: "receipt",      href: "expenses.html" },
-      { name: "บัญชีธนาคาร",     icon: "landmark",     href: "bank-accounts.html" },
+      { name: "แดชบอร์ด",     icon: "bar-chart-3",  href: "dashboard.html" },
+      { name: "รายรับ",       icon: "credit-card",  href: "payments.html" },
+      { name: "รายจ่าย",      icon: "receipt",      href: "expenses.html" },
+      { name: "บัญชีธนาคาร",  icon: "landmark",     href: "bank-accounts.html" },
     ],
   },
   {
-    group: "Settings",
+    group: "ตั้งค่า",
     icon: "settings",
     basePath: "/modules/backend/settings/",
     items: [
-      { name: "ข้อมูลบริษัท", icon: "building-2", href: "company-info.html" },
-      { name: "ผู้ใช้งาน",       icon: "users",      href: "users.html" },
-      { name: "สิทธิ์การใช้งาน", icon: "shield",     href: "roles-permissions.html" },
+      { name: "ข้อมูลบริษัท",     icon: "building-2", href: "company-info.html" },
+      { name: "ผู้ใช้งาน",         icon: "users",      href: "users.html" },
+      { name: "สิทธิ์การใช้งาน",   icon: "shield",     href: "roles-permissions.html" },
       { name: "ประวัติการใช้งาน", icon: "file-text",  href: "activity-log.html" },
-      { name: "ตั้งค่าขั้นสูง",   icon: "sliders",    href: "advance-settings.html" },
+      { name: "ตั้งค่าขั้นสูง",     icon: "sliders",    href: "advance-settings.html" },
     ],
   },
 ];
@@ -133,6 +134,7 @@ function renderSidebarMenu() {
 
   sidebarMenu.forEach(function (group, idx) {
     var hasActive = group.items.some(function (item) {
+      if (item.type === "divider") return false;
       var fullPath = (group.basePath || "") + item.href;
       return currentPath.indexOf(fullPath) !== -1;
     });
@@ -145,6 +147,10 @@ function renderSidebarMenu() {
     html += "</div>";
     html += '<div class="sidebar-group-items' + (hasActive ? " open" : "") + '" data-group-items="' + idx + '">';
     group.items.forEach(function (item) {
+      if (item.type === "divider") {
+        html += '<div class="sidebar-subgroup-label" style="font-size:9px;font-weight:800;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:0.6px;padding:10px 16px 4px;margin-top:4px;border-top:1px solid rgba(255,255,255,0.12);">' + item.label + '</div>';
+        return;
+      }
       var fullHref = (group.basePath || "") + item.href;
       var isActive = currentPath.indexOf(fullHref) !== -1;
       html += '<a href="' + fullHref + '" class="sidebar-nav-item' + (isActive ? " active" : "") + '">';

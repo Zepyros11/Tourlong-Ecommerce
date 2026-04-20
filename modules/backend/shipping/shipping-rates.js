@@ -1,174 +1,179 @@
 // ============================================================
-// shipping-rates.js — logic เฉพาะหน้า Shipping Rates
-// ------------------------------------------------------------
-// ใช้ร่วมกับ: modal.js, confirm.js
+// shipping-rates.js — Shipping Rates (Supabase)
 // ============================================================
 
-// ============ Mock Database ============
-let rates = [];
+var rates = [];
 
-// ============ Update Stat Cards ============
+function fmtMoney(n) { return "฿" + Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+
 function updateStats() {
   document.getElementById("statAll").textContent = rates.length;
-  document.getElementById("statActive").textContent = rates.filter((r) => r.status === "active").length;
+  document.getElementById("statActive").textContent = rates.filter(function (r) { return r.status === "active"; }).length;
 }
 
-// ============ Render Table ============
 function renderTable(data) {
   updateStats();
-  const tbody = document.getElementById("rateTableBody");
-  tbody.innerHTML = data
-    .map(
-      (r, i) => `
-    <tr>
-      <td>${i + 1}</td>
-      <td>${r.carrier}</td>
-      <td>${r.zone}</td>
-      <td>${r.weightMin}-${r.weightMax} kg</td>
-      <td>฿${r.baseRate.toLocaleString()}</td>
-      <td>฿${r.perKg.toLocaleString()}</td>
-      <td>${r.days}</td>
-      <td><span class="badge badge-${r.status === "active" ? "active" : "inactive"}">${r.status === "active" ? "Active" : "Inactive"}</span></td>
-      <td>
-        <div class="table-actions">
-          <button class="btn-icon-sm" onclick="editRate(${r.id})"><i data-lucide="pencil"></i></button>
-          <button class="btn-icon-sm btn-danger" onclick="deleteRate(${r.id})"><i data-lucide="trash-2"></i></button>
-        </div>
-      </td>
-    </tr>
-  `
-    )
-    .join("");
+  var tbody = document.getElementById("rateTableBody");
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:#94a3b8;font-size:11px;">ยังไม่มีอัตราค่าขนส่ง</td></tr>';
+    lucide.createIcons();
+    return;
+  }
+  tbody.innerHTML = data.map(function (r, i) {
+    return '<tr>' +
+      '<td>' + (i + 1) + '</td>' +
+      '<td>' + (r.carrier || "") + '</td>' +
+      '<td>' + (r.zone || "") + '</td>' +
+      '<td>' + r.weight_min + '-' + r.weight_max + ' kg</td>' +
+      '<td>' + fmtMoney(r.base_rate) + '</td>' +
+      '<td>' + fmtMoney(r.per_kg) + '</td>' +
+      '<td>' + (r.days || "—") + '</td>' +
+      '<td><span class="badge badge-' + (r.status === "active" ? "active" : "inactive") + '">' + (r.status === "active" ? "Active" : "Inactive") + '</span></td>' +
+      '<td><div class="table-actions">' +
+        '<button class="btn-icon-sm" onclick="editRate(' + r.id + ')"><i data-lucide="pencil"></i></button>' +
+        '<button class="btn-icon-sm btn-danger" onclick="deleteRate(' + r.id + ')"><i data-lucide="trash-2"></i></button>' +
+      '</div></td>' +
+    '</tr>';
+  }).join("");
   lucide.createIcons();
   if (typeof refreshSortableHeaders === "function") refreshSortableHeaders();
 }
 
-// ============ Add / Edit Modal ============
 function openRateModal(title, r) {
   document.getElementById("modalTitle").textContent = title;
   document.getElementById("editId").value = r ? r.id : "";
   document.getElementById("inputCarrier").value = r ? r.carrier : "Kerry Express";
   document.getElementById("inputZone").value = r ? r.zone : "กรุงเทพและปริมณฑล";
-  document.getElementById("inputWeightMin").value = r ? r.weightMin : "";
-  document.getElementById("inputWeightMax").value = r ? r.weightMax : "";
-  document.getElementById("inputBaseRate").value = r ? r.baseRate : "";
-  document.getElementById("inputPerKg").value = r ? r.perKg : "";
-  document.getElementById("inputDays").value = r ? r.days : "";
-  document.getElementById("inputStatus").checked = r ? r.status === "active" : true;
-  var _lbl = document.getElementById("inputStatusLabel"); if(_lbl) { _lbl.textContent = (r ? r.status === "active" : true) ? "Active" : "Inactive"; _lbl.classList.toggle("active-label", r ? r.status === "active" : true); }
-  openModalById("rateModal", function () {
-    document.getElementById("inputCarrier").focus();
-  });
+  document.getElementById("inputWeightMin").value = r ? r.weight_min : "";
+  document.getElementById("inputWeightMax").value = r ? r.weight_max : "";
+  document.getElementById("inputBaseRate").value = r ? r.base_rate : "";
+  document.getElementById("inputPerKg").value = r ? r.per_kg : "";
+  document.getElementById("inputDays").value = r ? (r.days || "") : "";
+  var active = r ? r.status === "active" : true;
+  document.getElementById("inputStatus").checked = active;
+  var lbl = document.getElementById("inputStatusLabel");
+  if (lbl) { lbl.textContent = active ? "Active" : "Inactive"; lbl.classList.toggle("active-label", active); }
+  openModalById("rateModal", function () { document.getElementById("inputCarrier").focus(); });
 }
 
 function saveRate() {
-  const id = document.getElementById("editId").value;
-  const carrier = document.getElementById("inputCarrier").value;
-  const zone = document.getElementById("inputZone").value;
-  const weightMin = Number(document.getElementById("inputWeightMin").value);
-  const weightMax = Number(document.getElementById("inputWeightMax").value);
-  const baseRate = Number(document.getElementById("inputBaseRate").value);
-  const perKg = Number(document.getElementById("inputPerKg").value);
-  const days = document.getElementById("inputDays").value.trim();
-  const status = document.getElementById("inputStatus").checked ? "active" : "inactive";
+  var id = document.getElementById("editId").value;
+  var days = document.getElementById("inputDays").value.trim();
   if (!days) return document.getElementById("inputDays").focus();
 
-  if (id) {
-    const r = rates.find((item) => item.id === Number(id));
-    if (r) {
-      r.carrier = carrier;
-      r.zone = zone;
-      r.weightMin = weightMin;
-      r.weightMax = weightMax;
-      r.baseRate = baseRate;
-      r.perKg = perKg;
-      r.days = days;
-      r.status = status;
-    }
-  } else {
-    const newId = rates.length ? Math.max(...rates.map((item) => item.id)) + 1 : 1;
-    rates.push({ id: newId, carrier, zone, weightMin, weightMax, baseRate, perKg, days, status });
-  }
-  closeModalById("rateModal");
-  applyFilters();
+  var payload = {
+    carrier: document.getElementById("inputCarrier").value,
+    zone: document.getElementById("inputZone").value,
+    weight_min: Number(document.getElementById("inputWeightMin").value) || 0,
+    weight_max: Number(document.getElementById("inputWeightMax").value) || 0,
+    base_rate: Number(document.getElementById("inputBaseRate").value) || 0,
+    per_kg: Number(document.getElementById("inputPerKg").value) || 0,
+    days: days,
+    status: document.getElementById("inputStatus").checked ? "active" : "inactive",
+  };
+
+  var op = id ? updateShippingRateDB(Number(id), payload) : createShippingRateDB(payload);
+  op.then(function () { return reloadRates(); })
+    .then(function () {
+      closeModalById("rateModal");
+      applyFilters();
+    })
+    .catch(function (err) { console.error(err); });
 }
 
 function editRate(id) {
-  const r = rates.find((item) => item.id === id);
+  var r = rates.find(function (x) { return x.id === id; });
   if (r) openRateModal("Edit Rate", r);
 }
 
-// ============ Delete (ใช้ confirm.js) ============
 function deleteRate(id) {
-  const r = rates.find((item) => item.id === id);
+  var r = rates.find(function (x) { return x.id === id; });
   if (!r) return;
   showConfirm({
     title: "Confirm Delete",
     message: "ต้องการลบอัตราค่าขนส่ง <strong>" + r.carrier + " — " + r.zone + "</strong> ใช่ไหม?",
-    okText: "Delete",
-    okColor: "#ef4444",
+    okText: "Delete", okColor: "#ef4444",
     onConfirm: function () {
-      rates = rates.filter((item) => item.id !== id);
-      applyFilters();
+      deleteShippingRateDB(id)
+        .then(function () { return reloadRates(); })
+        .then(function () { applyFilters(); })
+        .catch(function (err) { console.error(err); });
     },
   });
 }
 
-// ============ Filter & Sort ============
-let currentSort = "default";
-
+var currentSort = "default";
 function getFilteredData() {
-  const keyword = document.querySelector(".filter-search-input").value.toLowerCase();
-  let data = rates;
-
+  var keyword = document.querySelector(".filter-search-input").value.toLowerCase();
+  var data = rates.slice();
   if (keyword) {
-    data = data.filter(
-      (r) =>
-        r.carrier.toLowerCase().includes(keyword) ||
-        r.zone.toLowerCase().includes(keyword)
-    );
+    data = data.filter(function (r) {
+      return (r.carrier || "").toLowerCase().includes(keyword) || (r.zone || "").toLowerCase().includes(keyword);
+    });
   }
-
   switch (currentSort) {
-    case "name-asc":
-      data = [...data].sort((a, b) => a.carrier.localeCompare(b.carrier));
-      break;
-    case "price-asc":
-      data = [...data].sort((a, b) => a.baseRate - b.baseRate);
-      break;
-    case "price-desc":
-      data = [...data].sort((a, b) => b.baseRate - a.baseRate);
-      break;
+    case "name-asc":    data = data.slice().sort(function (a, b) { return (a.carrier || "").localeCompare(b.carrier || ""); }); break;
+    case "price-asc":   data = data.slice().sort(function (a, b) { return Number(a.base_rate) - Number(b.base_rate); }); break;
+    case "price-desc":  data = data.slice().sort(function (a, b) { return Number(b.base_rate) - Number(a.base_rate); }); break;
   }
-
   return data;
 }
 
-function applyFilters() {
-  renderTable(getFilteredData());
+function applyFilters() { renderTable(getFilteredData()); }
+
+function reloadRates() {
+  return (typeof fetchShippingRatesDB === "function" ? fetchShippingRatesDB() : Promise.resolve([]))
+    .then(function (rows) {
+      rates = (rows || []).map(function (r) {
+        return {
+          id: r.id, carrier: r.carrier || "", zone: r.zone || "",
+          weight_min: Number(r.weight_min) || 0, weight_max: Number(r.weight_max) || 0,
+          base_rate: Number(r.base_rate) || 0, per_kg: Number(r.per_kg) || 0,
+          days: r.days || "", status: r.status || "active",
+        };
+      });
+    });
 }
 
-// ============ Init ============
+// ============ Random fill (dev) ============
+if (typeof registerRandomFill === "function") {
+  registerRandomFill({
+    target: "#rateModal",
+    fill: function () {
+      pickRandomSelectOption("inputCarrier", { includeEmpty: false });
+      pickRandomSelectOption("inputZone", { includeEmpty: false });
+      var wMin = rdInt(0, 5);
+      var wMax = rdInt(6, 30);
+      setFieldValue("inputWeightMin", wMin);
+      setFieldValue("inputWeightMax", wMax);
+      setFieldValue("inputBaseRate", randomMoney(30, 150));
+      setFieldValue("inputPerKg", randomMoney(10, 50));
+      setFieldValue("inputDays", rdPick(["1-2", "2-3", "3-5", "1-3", "2-4"]));
+      var sw = document.getElementById("inputStatus");
+      if (sw) { sw.checked = rdBool(0.85); sw.dispatchEvent(new Event("change", { bubbles: true })); }
+    },
+  });
+}
+
 document.addEventListener("DOMContentLoaded", function () {
   document.querySelector(".filter-search-input").addEventListener("input", applyFilters);
-
   document.getElementById("sortSelect").addEventListener("change", function () {
     currentSort = this.value;
     applyFilters();
   });
-
   document.getElementById("addRateBtn").addEventListener("click", function () {
     openRateModal("Add Rate", null);
   });
 
-  // Status toggle listener
   var statusToggle = document.getElementById("inputStatus");
   if (statusToggle) {
-    statusToggle.addEventListener("change", function() {
+    statusToggle.addEventListener("change", function () {
       var lbl = document.getElementById("inputStatusLabel");
       if (lbl) { lbl.textContent = this.checked ? "Active" : "Inactive"; lbl.classList.toggle("active-label", this.checked); }
     });
   }
 
-  renderTable(rates);
+  reloadRates()
+    .then(function () { applyFilters(); })
+    .catch(function (err) { console.error(err); applyFilters(); });
 });

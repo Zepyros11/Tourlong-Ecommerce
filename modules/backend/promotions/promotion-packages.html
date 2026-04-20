@@ -3,13 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pathara - Products</title>
+    <title>Pathara - Promotion Packages</title>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link
       href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="../../assets/backend.css" />
+    <link rel="stylesheet" href="../assets/backend.css" />
   </head>
   <body>
     <div class="layout">
@@ -43,13 +43,15 @@
         <div class="content">
           <div class="content-header">
             <div>
-              <h2 class="content-title">Products</h2>
-              <p class="content-subtitle">จัดการสินค้าทั้งหมด</p>
+              <h2 class="content-title">Promotion Packages</h2>
+              <p class="content-subtitle">แพ็คเกจโปรโมชั่น — เลือกสินค้า กำหนดจำนวน + ราคาโปร คำนวณต้นทุน/กำไรอัตโนมัติ</p>
             </div>
-            <a href="products-form.html" class="btn-primary" style="text-decoration:none;">
-              <i data-lucide="plus" class="btn-icon"></i>
-              Add Product
-            </a>
+            <div class="content-header-actions">
+              <a href="promotion-package-form.html" class="btn-primary" style="text-decoration:none;display:inline-flex;align-items:center;">
+                <i data-lucide="plus" class="btn-icon"></i>
+                Create Package
+              </a>
+            </div>
           </div>
 
           <!-- Status Cards -->
@@ -59,7 +61,7 @@
                 <i data-lucide="package" class="stat-icon"></i>
               </div>
               <div>
-                <p class="stat-card-label">All Products</p>
+                <p class="stat-card-label">All Packages</p>
                 <p class="stat-card-value" id="statAll">0</p>
               </div>
             </div>
@@ -70,6 +72,15 @@
               <div>
                 <p class="stat-card-label">Active</p>
                 <p class="stat-card-value" id="statActive">0</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-icon" style="background-color:#ecfdf5;color:#10b981;">
+                <i data-lucide="trending-up" class="stat-icon"></i>
+              </div>
+              <div>
+                <p class="stat-card-label">Total Profit</p>
+                <p class="stat-card-value" id="statProfit">฿0</p>
               </div>
             </div>
             <div class="stat-card">
@@ -91,7 +102,7 @@
               <button class="filter-btn" data-status="inactive">Inactive</button>
               <div class="filter-search">
                 <i data-lucide="search" class="filter-search-icon"></i>
-                <input type="text" placeholder="Search product..." class="filter-search-input" />
+                <input type="text" placeholder="Search package..." class="filter-search-input" />
               </div>
             </div>
             <div class="filter-group">
@@ -99,28 +110,30 @@
                 <option value="default">Sort by</option>
                 <option value="name-asc">Name A-Z</option>
                 <option value="name-desc">Name Z-A</option>
-                <option value="price-desc">Price: High-Low</option>
-                <option value="price-asc">Price: Low-High</option>
+                <option value="profit-desc">Profit High-Low</option>
+                <option value="profit-asc">Profit Low-High</option>
               </select>
             </div>
           </div>
 
-          <!-- Products Table -->
+          <!-- Packages Table -->
           <div class="table-container">
             <table class="table">
               <thead>
                 <tr>
                   <th>#</th>
-                  <th data-sort="name">ชื่อสินค้า</th>
-                  <th data-sort="category">หมวดหมู่</th>
-                  <th data-sort="price" data-sort-type="number">ราคา</th>
-                  <th>หน่วย</th>
-                  <th>ตัวเลือก</th>
+                  <th data-sort="name">ชื่อแพ็คเกจ</th>
+                  <th data-sort="items" data-sort-type="number">รายการ</th>
+                  <th data-sort="start" data-sort-type="date">วันเริ่มต้น</th>
+                  <th data-sort="end" data-sort-type="date">วันสิ้นสุด</th>
+                  <th data-sort="revenue" data-sort-type="number">รายได้</th>
+                  <th data-sort="cost" data-sort-type="number">ต้นทุน</th>
+                  <th data-sort="profit" data-sort-type="number">กำไร</th>
                   <th data-sort="status">สถานะ</th>
                   <th>จัดการ</th>
                 </tr>
               </thead>
-              <tbody id="productTableBody">
+              <tbody id="pkgTableBody">
                 <!-- render จาก JS -->
               </tbody>
             </table>
@@ -156,18 +169,19 @@
       </div>
     </div>
 
-    <script src="../../assets/js/table.js"></script>
+    <script src="../assets/js/table.js"></script>
     <script src="/assets/js/esc-close.js"></script>
-    <script src="../../assets/js/modal.js"></script>
-    <script src="../../assets/js/enter-save.js"></script>
-    <script src="../../assets/js/confirm.js"></script>
+    <script src="../assets/js/modal.js"></script>
+    <script src="../assets/js/enter-save.js"></script>
+    <script src="../assets/js/confirm.js"></script>
+    <script src="/modules/backend/assets/js/toast.js"></script>
     <script src="/modules/backend/assets/js/supabase-client.js"></script>
     <script src="/modules/backend/assets/js/auth-guard.js"></script>
     <script>requireAuth();</script>
-    <script src="../../assets/js/sidebar-menu.js"></script>
-    <script>renderSidebarMenu("products-list.html");</script>
+    <script src="../assets/js/sidebar-menu.js"></script>
+    <script>renderSidebarMenu("promotion-packages.html");</script>
     <script src="/assets/js/topbar.js"></script>
-    <script>renderTopbar({ group: "Inventory", page: "รายการสินค้า" });</script>
-    <script src="products-list.js"></script>
+    <script>renderTopbar({ group: "Promotions", page: "แพ็คเกจโปรโมชั่น" });</script>
+    <script src="promotion-packages.js"></script>
   </body>
 </html>

@@ -44,7 +44,7 @@
 
         <button class="sidebar-logout">
           <i data-lucide="log-out" class="sidebar-icon-xs"></i>
-          <span>Go Out</span>
+          <span>ออกจากระบบ</span>
         </button>
       </aside>
 
@@ -135,12 +135,12 @@
               <thead>
                 <tr>
                   <th>#</th>
-                  <th data-sort="month">Month</th>
-                  <th data-sort="revenue" data-sort-type="number">Revenue</th>
-                  <th data-sort="cogs" data-sort-type="number">Cost of Goods</th>
-                  <th data-sort="gross" data-sort-type="number">Gross Profit</th>
-                  <th data-sort="expenses" data-sort-type="number">Expenses</th>
-                  <th data-sort="net" data-sort-type="number">Net Profit</th>
+                  <th data-sort="month">เดือน</th>
+                  <th data-sort="revenue" data-sort-type="number">รายได้</th>
+                  <th data-sort="cogs" data-sort-type="number">ต้นทุนสินค้า</th>
+                  <th data-sort="gross" data-sort-type="number">กำไรขั้นต้น</th>
+                  <th data-sort="expenses" data-sort-type="number">รายจ่าย</th>
+                  <th data-sort="net" data-sort-type="number">กำไรสุทธิ</th>
                 </tr>
               </thead>
               <tbody id="reportTableBody">
@@ -166,6 +166,7 @@
     <script src="/assets/js/esc-close.js"></script>
     <script src="../assets/js/modal.js"></script>
     <script src="../assets/js/enter-save.js"></script>
+    <script src="/modules/backend/assets/js/supabase-client.js"></script>
     <script src="/modules/backend/assets/js/auth-guard.js"></script>
     <script>requireAuth();</script>
     <script src="../assets/js/sidebar-menu.js"></script>

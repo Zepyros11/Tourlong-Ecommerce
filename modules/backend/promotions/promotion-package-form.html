@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pathara - Promotion Package</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../assets/backend.css" />
+    <style>
+      .form-section { background:#fff; border:1px solid #f1f5f9; border-radius:14px; padding:18px; margin-bottom:14px; box-shadow:0 10px 40px -10px rgba(0,0,0,0.04); }
+      .form-section-title { font-size:12px; font-weight:800; color:#1e293b; margin:0 0 14px; display:flex; align-items:center; gap:6px; }
+      .form-section-title i { width:14px; height:14px; color:#47b8b4; }
+      .items-table { width:100%; border-collapse:collapse; font-size:10px; }
+      .items-table thead tr { color:#64748b; text-transform:uppercase; font-size:9px; letter-spacing:0.4px; }
+      .items-table th { padding:8px; text-align:left; background:#f8fafc; }
+      .items-table td { padding:6px; border-bottom:1px solid #f1f5f9; }
+      .items-table tbody tr:last-child td { border-bottom:none; }
+      .summary-grid { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:14px; }
+      .summary-card { background:#fff; border:1px solid #f1f5f9; border-radius:12px; padding:14px; }
+      .summary-label { font-size:10px; color:#64748b; text-transform:uppercase; letter-spacing:0.5px; font-weight:700; margin:0 0 6px; }
+      .summary-value { font-size:18px; font-weight:800; margin:0; }
+      .form-actions { display:flex; align-items:center; justify-content:space-between; padding:16px 0; }
+      .form-actions-right { display:flex; gap:8px; }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="sidebar-logo">
+          <div class="sidebar-logo-icon"><i data-lucide="zap" class="sidebar-icon-sm"></i></div>
+          <h1 class="sidebar-logo-text">Pathara</h1>
+        </div>
+        <nav class="sidebar-nav"></nav>
+        <button class="sidebar-logout">
+          <i data-lucide="log-out" class="sidebar-icon-xs"></i>
+          <span>ออกจากระบบ</span>
+        </button>
+      </aside>
+
+      <div class="main-area">
+        <header class="topbar"></header>
+
+        <div class="content">
+          <!-- Header -->
+          <div class="content-header">
+            <div>
+              <h2 class="content-title" id="pageTitle">Create Package</h2>
+              <p class="content-subtitle" id="pageSubtitle">สร้างแพ็คเกจโปรโมชั่นใหม่</p>
+            </div>
+            <a href="promotion-packages.html" class="btn-outline" style="text-decoration:none;">
+              <i data-lucide="arrow-left" class="btn-icon"></i> กลับรายการแพ็คเกจ
+            </a>
+          </div>
+
+          <!-- Package Info -->
+          <div class="form-section">
+            <h3 class="form-section-title"><i data-lucide="info"></i> ข้อมูลแพ็คเกจ</h3>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+              <div class="form-group">
+                <label class="form-label">Package Name <span style="color:#ef4444;">*</span></label>
+                <input type="text" class="form-input" id="inputName" placeholder="เช่น แพ็คน้ำพริกรวม 3 รส..." />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Status</label>
+                <select class="form-select" id="inputStatus">
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+              <div class="form-group">
+                <label class="form-label">Start Date</label>
+                <input type="date" class="form-input" id="inputStartDate" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">End Date</label>
+                <input type="date" class="form-input" id="inputEndDate" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Note</label>
+              <input type="text" class="form-input" id="inputNote" placeholder="หมายเหตุ..." />
+            </div>
+          </div>
+
+          <!-- Line Items -->
+          <div class="form-section">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+              <h3 class="form-section-title" style="margin:0;"><i data-lucide="package"></i> รายการสินค้าในแพ็คเกจ</h3>
+              <button class="btn-outline" type="button" onclick="addPkgItemRow()" style="padding:6px 14px;font-size:10px;">
+                <i data-lucide="plus" style="width:12px;height:12px;display:inline;vertical-align:-2px;"></i> เพิ่มสินค้า
+              </button>
+            </div>
+
+            <div style="overflow-x:auto;">
+              <table class="items-table">
+                <thead>
+                  <tr>
+                    <th style="min-width:220px;">สินค้า</th>
+                    <th style="text-align:right;width:90px;">จำนวน</th>
+                    <th style="text-align:right;width:110px;" title="ต้นทุนจากการรับสินค้าล่าสุด">ต้นทุน/หน่วย</th>
+                    <th style="text-align:right;width:120px;">ราคาโปรโมชั่น</th>
+                    <th style="text-align:right;width:110px;">ต้นทุนย่อย</th>
+                    <th style="text-align:right;width:120px;">รายได้ย่อย</th>
+                    <th style="text-align:right;width:110px;">กำไร</th>
+                    <th style="width:40px;"></th>
+                  </tr>
+                </thead>
+                <tbody id="pkgItemsBody"></tbody>
+              </table>
+            </div>
+            <p id="emptyHint" style="display:none;margin:12px 0 0;text-align:center;color:#94a3b8;font-size:11px;">ยังไม่มีสินค้า — กด "เพิ่มสินค้า" เพื่อเริ่ม</p>
+          </div>
+
+          <!-- Summary -->
+          <div class="form-section">
+            <h3 class="form-section-title"><i data-lucide="calculator"></i> สรุปยอด</h3>
+            <div class="summary-grid">
+              <div class="summary-card">
+                <p class="summary-label">Total Revenue</p>
+                <p class="summary-value" id="sumRevenue" style="color:#1e293b;">฿0.00</p>
+              </div>
+              <div class="summary-card">
+                <p class="summary-label">Total Cost</p>
+                <p class="summary-value" id="sumCost" style="color:#ef4444;">฿0.00</p>
+              </div>
+              <div class="summary-card">
+                <p class="summary-label">Profit</p>
+                <p class="summary-value" id="sumProfit" style="color:#10b981;">฿0.00</p>
+              </div>
+              <div class="summary-card">
+                <p class="summary-label">Margin</p>
+                <p class="summary-value" id="sumMargin" style="color:#64748b;">0.0%</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="form-actions">
+            <div></div>
+            <div class="form-actions-right">
+              <a href="promotion-packages.html" class="btn-secondary" style="text-decoration:none;display:inline-flex;align-items:center;">Cancel</a>
+              <button class="btn-primary" id="saveBtn" onclick="savePkg()">Save</button>
+            </div>
+          </div>
+        </div>
+
+        <footer class="footer">
+          <p class="footer-text">&copy; 2026 Pathara. All rights reserved.</p>
+          <nav class="footer-nav">
+            <a href="#" class="footer-link">Privacy Policy</a>
+            <a href="#" class="footer-link">Terms of Service</a>
+            <a href="#" class="footer-link">Support</a>
+          </nav>
+        </footer>
+      </div>
+    </div>
+
+    <!-- Saving Overlay -->
+    <div id="savingOverlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.4);backdrop-filter:blur(2px);z-index:998;align-items:center;justify-content:center;">
+      <div style="background:#fff;border-radius:14px;padding:20px 28px;box-shadow:0 20px 50px rgba(0,0,0,0.2);display:flex;align-items:center;gap:14px;">
+        <div style="width:28px;height:28px;border:3px solid #e2e8f0;border-top-color:#47b8b4;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+        <span style="font-size:12px;font-weight:700;color:#1e293b;">กำลังบันทึก...</span>
+      </div>
+    </div>
+    <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+
+    <!-- Confirm Modal -->
+    <div class="modal-overlay" id="confirmModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title" id="confirmTitle">Confirm</h3>
+          <button class="modal-close"><i data-lucide="x"></i></button>
+        </div>
+        <div class="modal-body">
+          <p id="confirmMessage" style="font-size: 12px; color: #64748b;"></p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" id="confirmCancelBtn">Cancel</button>
+          <button class="btn-primary" id="confirmOkBtn">OK</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="/assets/js/esc-close.js"></script>
+    <script src="../assets/js/modal.js"></script>
+    <script src="../assets/js/enter-save.js"></script>
+    <script src="../assets/js/confirm.js"></script>
+    <script src="/modules/backend/assets/js/toast.js"></script>
+    <script src="/modules/backend/assets/js/supabase-client.js"></script>
+    <script src="/modules/backend/assets/js/auth-guard.js"></script>
+    <script>requireAuth();</script>
+    <script src="../assets/js/sidebar-menu.js"></script>
+    <script>renderSidebarMenu();</script>
+    <script src="/assets/js/topbar.js"></script>
+    <script>renderTopbar({ group: "Promotions", page: "แพ็คเกจโปรโมชั่น" });</script>
+    <script src="/modules/backend/assets/js/random-data.js"></script>
+    <script src="promotion-package-form.js"></script>
+  </body>
+</html>

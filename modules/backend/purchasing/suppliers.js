@@ -1,99 +1,89 @@
 // ============================================================
-// suppliers.js — logic เฉพาะหน้า Suppliers
-// ------------------------------------------------------------
-// ใช้ร่วมกับ: modal.js, confirm.js
+// suppliers.js — Suppliers (Supabase)
 // ============================================================
 
-// ============ Mock Database ============
-let suppliers = [];
+var suppliers = [];
 
-// ============ Update Stat Cards ============
+// ============ Stats ============
 function updateStats() {
   document.getElementById("statAll").textContent = suppliers.length;
-  document.getElementById("statActive").textContent = suppliers.filter((s) => s.status === "active").length;
-  document.getElementById("statInactive").textContent = suppliers.filter((s) => s.status === "inactive").length;
+  document.getElementById("statActive").textContent = suppliers.filter(function (s) { return s.status === "active"; }).length;
+  document.getElementById("statInactive").textContent = suppliers.filter(function (s) { return s.status === "inactive"; }).length;
 }
 
-// ============ Render Table ============
+// ============ Render ============
 function renderTable(data) {
   updateStats();
-  const tbody = document.getElementById("supplierTableBody");
-  tbody.innerHTML = data
-    .map(
-      (s, i) => `
-    <tr>
-      <td>${i + 1}</td>
-      <td>${s.name}</td>
-      <td>${s.contact}</td>
-      <td>${s.phone}</td>
-      <td>${s.email}</td>
-      <td><span class="badge badge-${s.status === "active" ? "active" : "inactive"}">${s.status === "active" ? "Active" : "Inactive"}</span></td>
-      <td>
-        <div class="table-actions">
-          <button class="btn-icon-sm" onclick="editSupplier(${s.id})"><i data-lucide="pencil"></i></button>
-          <button class="btn-icon-sm btn-danger" onclick="deleteSupplier(${s.id})"><i data-lucide="trash-2"></i></button>
-        </div>
-      </td>
-    </tr>
-  `
-    )
-    .join("");
+  var tbody = document.getElementById("supplierTableBody");
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:#94a3b8;font-size:11px;">ยังไม่มีผู้ขาย</td></tr>';
+    lucide.createIcons();
+    return;
+  }
+  tbody.innerHTML = data.map(function (s, i) {
+    return '<tr>' +
+      '<td>' + (i + 1) + '</td>' +
+      '<td>' + (s.name || "") + '</td>' +
+      '<td>' + (s.contact || "—") + '</td>' +
+      '<td>' + (s.phone || "—") + '</td>' +
+      '<td>' + (s.email || "—") + '</td>' +
+      '<td><span class="badge badge-' + (s.status === "active" ? "active" : "inactive") + '">' + (s.status === "active" ? "Active" : "Inactive") + '</span></td>' +
+      '<td><div class="table-actions">' +
+        '<button class="btn-icon-sm" onclick="editSupplier(' + s.id + ')"><i data-lucide="pencil"></i></button>' +
+        '<button class="btn-icon-sm btn-danger" onclick="deleteSupplier(' + s.id + ')"><i data-lucide="trash-2"></i></button>' +
+      '</div></td>' +
+    '</tr>';
+  }).join("");
   lucide.createIcons();
   if (typeof refreshSortableHeaders === "function") refreshSortableHeaders();
 }
 
-// ============ Add / Edit Modal ============
+// ============ Modal ============
 function openSupplierModal(title, s) {
   document.getElementById("modalTitle").textContent = title;
   document.getElementById("editId").value = s ? s.id : "";
-  document.getElementById("inputName").value = s ? s.name : "";
-  document.getElementById("inputContact").value = s ? s.contact : "";
-  document.getElementById("inputPhone").value = s ? s.phone : "";
-  document.getElementById("inputEmail").value = s ? s.email : "";
-  document.getElementById("inputAddress").value = s ? s.address : "";
-  document.getElementById("inputStatus").checked = s ? s.status === "active" : true;
-  var _lbl = document.getElementById("inputStatusLabel"); if(_lbl) { _lbl.textContent = (s ? s.status === "active" : true) ? "Active" : "Inactive"; _lbl.classList.toggle("active-label", s ? s.status === "active" : true); }
-  openModalById("supplierModal", function () {
-    document.getElementById("inputName").focus();
-  });
+  document.getElementById("inputName").value = s ? (s.name || "") : "";
+  document.getElementById("inputContact").value = s ? (s.contact || "") : "";
+  document.getElementById("inputPhone").value = s ? (s.phone || "") : "";
+  document.getElementById("inputEmail").value = s ? (s.email || "") : "";
+  document.getElementById("inputAddress").value = s ? (s.address || "") : "";
+  var active = s ? s.status === "active" : true;
+  document.getElementById("inputStatus").checked = active;
+  var lbl = document.getElementById("inputStatusLabel");
+  if (lbl) { lbl.textContent = active ? "Active" : "Inactive"; lbl.classList.toggle("active-label", active); }
+  openModalById("supplierModal", function () { document.getElementById("inputName").focus(); });
 }
 
 function saveSupplier() {
-  const id = document.getElementById("editId").value;
-  const name = document.getElementById("inputName").value.trim();
-  const contact = document.getElementById("inputContact").value.trim();
-  const phone = document.getElementById("inputPhone").value.trim();
-  const email = document.getElementById("inputEmail").value.trim();
-  const address = document.getElementById("inputAddress").value.trim();
-  const status = document.getElementById("inputStatus").checked ? "active" : "inactive";
+  var id = document.getElementById("editId").value;
+  var name = document.getElementById("inputName").value.trim();
   if (!name) return document.getElementById("inputName").focus();
 
-  if (id) {
-    const s = suppliers.find((item) => item.id === Number(id));
-    if (s) {
-      s.name = name;
-      s.contact = contact;
-      s.phone = phone;
-      s.email = email;
-      s.address = address;
-      s.status = status;
-    }
-  } else {
-    const newId = suppliers.length ? Math.max(...suppliers.map((item) => item.id)) + 1 : 1;
-    suppliers.push({ id: newId, name, contact, phone, email, address, status });
-  }
-  closeModalById("supplierModal");
-  applyFilters();
+  var payload = {
+    name: name,
+    contact: document.getElementById("inputContact").value.trim() || null,
+    phone: document.getElementById("inputPhone").value.trim() || null,
+    email: document.getElementById("inputEmail").value.trim() || null,
+    address: document.getElementById("inputAddress").value.trim() || null,
+    status: document.getElementById("inputStatus").checked ? "active" : "inactive",
+  };
+
+  var op = id ? updateSupplierDB(Number(id), payload) : createSupplierDB(payload);
+  op.then(function () { return reloadSuppliers(); })
+    .then(function () {
+      closeModalById("supplierModal");
+      applyFilters();
+    })
+    .catch(function (err) { console.error(err); });
 }
 
 function editSupplier(id) {
-  const s = suppliers.find((item) => item.id === id);
+  var s = suppliers.find(function (x) { return x.id === id; });
   if (s) openSupplierModal("Edit Supplier", s);
 }
 
-// ============ Delete (ใช้ confirm.js) ============
 function deleteSupplier(id) {
-  const s = suppliers.find((item) => item.id === id);
+  var s = suppliers.find(function (x) { return x.id === id; });
   if (!s) return;
   showConfirm({
     title: "Confirm Delete",
@@ -101,48 +91,74 @@ function deleteSupplier(id) {
     okText: "Delete",
     okColor: "#ef4444",
     onConfirm: function () {
-      suppliers = suppliers.filter((item) => item.id !== id);
-      applyFilters();
+      deleteSupplierDB(id)
+        .then(function () { return reloadSuppliers(); })
+        .then(function () { applyFilters(); })
+        .catch(function (err) { console.error(err); });
     },
   });
 }
 
 // ============ Filter & Sort ============
-let currentFilter = "all";
-let currentSort = "default";
+var currentFilter = "all";
+var currentSort = "default";
 
 function getFilteredData() {
-  const keyword = document.querySelector(".filter-search-input").value.toLowerCase();
-  let data = suppliers;
+  var keyword = document.querySelector(".filter-search-input").value.toLowerCase();
+  var data = suppliers.slice();
 
-  if (currentFilter !== "all") {
-    data = data.filter((s) => s.status === currentFilter);
-  }
+  if (currentFilter !== "all") data = data.filter(function (s) { return s.status === currentFilter; });
 
   if (keyword) {
-    data = data.filter(
-      (s) =>
-        s.name.toLowerCase().includes(keyword) ||
-        s.contact.toLowerCase().includes(keyword) ||
-        s.phone.toLowerCase().includes(keyword) ||
-        s.email.toLowerCase().includes(keyword)
-    );
+    data = data.filter(function (s) {
+      return (s.name || "").toLowerCase().includes(keyword) ||
+             (s.contact || "").toLowerCase().includes(keyword) ||
+             (s.phone || "").toLowerCase().includes(keyword) ||
+             (s.email || "").toLowerCase().includes(keyword);
+    });
   }
 
   switch (currentSort) {
-    case "name-asc":
-      data = [...data].sort((a, b) => a.name.localeCompare(b.name));
-      break;
-    case "name-desc":
-      data = [...data].sort((a, b) => b.name.localeCompare(a.name));
-      break;
+    case "name-asc":  data = data.slice().sort(function (a, b) { return (a.name || "").localeCompare(b.name || ""); }); break;
+    case "name-desc": data = data.slice().sort(function (a, b) { return (b.name || "").localeCompare(a.name || ""); }); break;
   }
-
   return data;
 }
 
-function applyFilters() {
-  renderTable(getFilteredData());
+function applyFilters() { renderTable(getFilteredData()); }
+
+// ============ Load ============
+function reloadSuppliers() {
+  return (typeof fetchSuppliersDB === "function" ? fetchSuppliersDB() : Promise.resolve([]))
+    .then(function (rows) {
+      suppliers = (rows || []).map(function (r) {
+        return {
+          id: r.id,
+          name: r.name || "",
+          contact: r.contact || "",
+          phone: r.phone || "",
+          email: r.email || "",
+          address: r.address || "",
+          status: r.status || "active",
+        };
+      });
+    });
+}
+
+// ============ Random fill (dev) ============
+if (typeof registerRandomFill === "function") {
+  registerRandomFill({
+    target: "#supplierModal",
+    fill: function () {
+      setFieldValue("inputName", randomCompanyName());
+      setFieldValue("inputContact", randomPersonName());
+      setFieldValue("inputPhone", randomPhone());
+      setFieldValue("inputEmail", randomEmail());
+      setFieldValue("inputAddress", randomAddress());
+      var sw = document.getElementById("inputStatus");
+      if (sw) { sw.checked = rdBool(0.85); sw.dispatchEvent(new Event("change", { bubbles: true })); }
+    },
+  });
 }
 
 // ============ Init ============
@@ -151,7 +167,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   document.querySelectorAll(".filter-btn").forEach(function (btn) {
     btn.addEventListener("click", function () {
-      document.querySelectorAll(".filter-btn").forEach((b) => b.classList.remove("active"));
+      document.querySelectorAll(".filter-btn").forEach(function (b) { b.classList.remove("active"); });
       this.classList.add("active");
       currentFilter = this.dataset.status;
       applyFilters();
@@ -167,14 +183,15 @@ document.addEventListener("DOMContentLoaded", function () {
     openSupplierModal("Add Supplier", null);
   });
 
-  // Status toggle listener
   var statusToggle = document.getElementById("inputStatus");
   if (statusToggle) {
-    statusToggle.addEventListener("change", function() {
+    statusToggle.addEventListener("change", function () {
       var lbl = document.getElementById("inputStatusLabel");
       if (lbl) { lbl.textContent = this.checked ? "Active" : "Inactive"; lbl.classList.toggle("active-label", this.checked); }
     });
   }
 
-  renderTable(suppliers);
+  reloadSuppliers()
+    .then(function () { applyFilters(); })
+    .catch(function (err) { console.error(err); applyFilters(); });
 });

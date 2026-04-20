@@ -28,7 +28,7 @@
 
         <button class="sidebar-logout">
           <i data-lucide="log-out" class="sidebar-icon-xs"></i>
-          <span>Go Out</span>
+          <span>ออกจากระบบ</span>
         </button>
       </aside>
 
@@ -100,14 +100,14 @@
               <thead>
                 <tr>
                   <th>#</th>
-                  <th data-sort="carrier">Carrier</th>
-                  <th data-sort="zone">Zone</th>
-                  <th>Weight Range</th>
-                  <th data-sort="base" data-sort-type="number">Base Rate</th>
-                  <th data-sort="perkg" data-sort-type="number">Per KG Rate</th>
-                  <th>Est. Days</th>
-                  <th data-sort="status">Status</th>
-                  <th>Actions</th>
+                  <th data-sort="carrier">ผู้ให้บริการ</th>
+                  <th data-sort="zone">โซน</th>
+                  <th>ช่วงน้ำหนัก</th>
+                  <th data-sort="base" data-sort-type="number">ค่าบริการพื้นฐาน</th>
+                  <th data-sort="perkg" data-sort-type="number">ค่าบริการต่อ กก.</th>
+                  <th>ระยะเวลา (วัน)</th>
+                  <th data-sort="status">สถานะ</th>
+                  <th>จัดการ</th>
                 </tr>
               </thead>
               <tbody id="rateTableBody">
@@ -219,12 +219,14 @@
     <script src="../assets/js/modal.js"></script>
     <script src="../assets/js/enter-save.js"></script>
     <script src="../assets/js/confirm.js"></script>
+    <script src="/modules/backend/assets/js/supabase-client.js"></script>
     <script src="/modules/backend/assets/js/auth-guard.js"></script>
     <script>requireAuth();</script>
     <script src="../assets/js/sidebar-menu.js"></script>
     <script>renderSidebarMenu("shipping-rates.html");</script>
     <script src="/assets/js/topbar.js"></script>
     <script>renderTopbar({ group: "Shipping", page: "อัตราค่าขนส่ง" });</script>
+    <script src="/modules/backend/assets/js/random-data.js"></script>
     <script src="shipping-rates.js"></script>
   </body>
 </html>

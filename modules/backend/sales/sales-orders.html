@@ -28,7 +28,7 @@
 
         <button class="sidebar-logout">
           <i data-lucide="log-out" class="sidebar-icon-xs"></i>
-          <span>Go Out</span>
+          <span>ออกจากระบบ</span>
         </button>
       </aside>
 
@@ -123,13 +123,13 @@
               <thead>
                 <tr>
                   <th>#</th>
-                  <th data-sort="order">Order No.</th>
-                  <th data-sort="customer">Customer</th>
-                  <th data-sort="date" data-sort-type="date">Date</th>
-                  <th data-sort="items" data-sort-type="number">Items</th>
-                  <th data-sort="amount" data-sort-type="number">Total Amount</th>
-                  <th data-sort="status">Status</th>
-                  <th>Actions</th>
+                  <th data-sort="order">เลขที่ SO</th>
+                  <th data-sort="customer">ลูกค้า</th>
+                  <th data-sort="date" data-sort-type="date">วันที่</th>
+                  <th data-sort="items" data-sort-type="number">รายการ</th>
+                  <th data-sort="amount" data-sort-type="number">ยอดรวม</th>
+                  <th data-sort="status">สถานะ</th>
+                  <th>จัดการ</th>
                 </tr>
               </thead>
               <tbody id="soTableBody">
@@ -153,49 +153,73 @@
 
     <!-- Modal Add/Edit SO -->
     <div class="modal-overlay" id="soModal">
-      <div class="modal">
+      <div class="modal" style="max-width:720px;">
         <div class="modal-header">
           <h3 class="modal-title" id="modalTitle">Create Order</h3>
           <button class="modal-close"><i data-lucide="x"></i></button>
         </div>
         <div class="modal-body">
           <input type="hidden" id="editId" />
-          <div class="form-group">
-            <label class="form-label">Order No.</label>
-            <input type="text" class="form-input" id="inputSONumber" placeholder="เลข SO..." readonly />
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Order No.</label>
+              <input type="text" class="form-input" id="inputSONumber" readonly />
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Date</label>
+              <input type="date" class="form-input" id="inputDate" />
+            </div>
           </div>
-          <div class="form-group">
-            <label class="form-label">Customer</label>
-            <select class="form-select" id="inputCustomer">
-              <option value="บ.เอบีซี จำกัด">บ.เอบีซี จำกัด</option>
-              <option value="คุณสมศรี จันทร์ดี">คุณสมศรี จันทร์ดี</option>
-              <option value="บ.XYZ เทรดดิ้ง">บ.XYZ เทรดดิ้ง</option>
-              <option value="คุณธนา ใจงาม">คุณธนา ใจงาม</option>
-              <option value="คุณนภา รักดี">คุณนภา รักดี</option>
-              <option value="คุณวิชัย สุขสม">คุณวิชัย สุขสม</option>
-              <option value="บ.สตาร์มาร์ท จำกัด">บ.สตาร์มาร์ท จำกัด</option>
-              <option value="บ.แฮปปี้โฮม จำกัด">บ.แฮปปี้โฮม จำกัด</option>
-            </select>
+          <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;margin-bottom:10px;">
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Customer</label>
+              <select class="form-select" id="inputCustomer"></select>
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Warehouse</label>
+              <select class="form-select" id="inputWarehouse"></select>
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Status</label>
+              <select class="form-select" id="inputStatus">
+                <option value="processing">Processing</option>
+                <option value="completed">Completed (ตัด stock)</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
           </div>
-          <div class="form-group">
-            <label class="form-label">Date</label>
-            <input type="date" class="form-input" id="inputDate" />
+
+          <!-- Line Items -->
+          <div style="margin-top:14px;padding-top:10px;border-top:1px solid #e2e8f0;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <label class="form-label" style="margin:0;">รายการสินค้า</label>
+              <button class="btn-outline" type="button" onclick="addSOItemRow()" style="padding:4px 12px;font-size:9px;">+ เพิ่มรายการ</button>
+            </div>
+            <div style="background:#f8fafc;border-radius:10px;padding:8px;overflow-x:auto;">
+              <table style="width:100%;border-collapse:collapse;font-size:10px;">
+                <thead><tr style="color:#64748b;text-transform:uppercase;font-size:9px;">
+                  <th style="padding:6px;text-align:left;">สินค้า</th>
+                  <th style="padding:6px;text-align:right;width:80px;">จำนวน</th>
+                  <th style="padding:6px;text-align:right;width:100px;">ราคา/หน่วย</th>
+                  <th style="padding:6px;text-align:right;width:110px;">ยอดย่อย</th>
+                  <th style="padding:6px;width:30px;"></th>
+                </tr></thead>
+                <tbody id="soItemsBody"></tbody>
+              </table>
+            </div>
           </div>
-          <div class="form-group">
-            <label class="form-label">Items</label>
-            <input type="number" class="form-input" id="inputItems" placeholder="จำนวนรายการ..." />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Total Amount</label>
-            <input type="number" class="form-input" id="inputAmount" placeholder="ยอดรวม..." />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Status</label>
-            <select class="form-select" id="inputStatus">
-              <option value="processing">Processing</option>
-              <option value="completed">Completed</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
+
+          <div style="margin-top:12px;padding-top:10px;border-top:1px solid #e2e8f0;display:grid;grid-template-columns:1fr 220px;gap:20px;">
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Note</label>
+              <input type="text" class="form-input" id="inputNote" placeholder="หมายเหตุ..." />
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px;font-size:11px;">
+              <div style="display:flex;justify-content:space-between;color:#64748b;"><span>Subtotal:</span><span id="sumSubtotal">฿0.00</span></div>
+              <div style="display:flex;justify-content:space-between;align-items:center;color:#64748b;"><span>Discount (฿):</span><input type="number" class="form-input" id="inputDiscount" value="0" min="0" step="0.01" oninput="recalcTotals()" style="width:100px;padding:4px 8px;font-size:10px;text-align:right;" /></div>
+              <div style="display:flex;justify-content:space-between;align-items:center;color:#64748b;"><span>Tax (฿):</span><input type="number" class="form-input" id="inputTax" value="0" min="0" step="0.01" oninput="recalcTotals()" style="width:100px;padding:4px 8px;font-size:10px;text-align:right;" /></div>
+              <div style="display:flex;justify-content:space-between;font-weight:800;color:#1e293b;font-size:13px;border-top:1px solid #e2e8f0;padding-top:4px;"><span>Total:</span><span id="sumTotal">฿0.00</span></div>
+            </div>
           </div>
         </div>
         <div class="modal-footer">
@@ -227,12 +251,14 @@
     <script src="../assets/js/modal.js"></script>
     <script src="../assets/js/enter-save.js"></script>
     <script src="../assets/js/confirm.js"></script>
+    <script src="/modules/backend/assets/js/supabase-client.js"></script>
     <script src="/modules/backend/assets/js/auth-guard.js"></script>
     <script>requireAuth();</script>
     <script src="../assets/js/sidebar-menu.js"></script>
     <script>renderSidebarMenu("sales-orders.html");</script>
     <script src="/assets/js/topbar.js"></script>
     <script>renderTopbar({ group: "Sales", page: "คำสั่งซื้อ" });</script>
+    <script src="/modules/backend/assets/js/random-data.js"></script>
     <script src="sales-orders.js"></script>
   </body>
 </html>

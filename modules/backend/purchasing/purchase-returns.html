@@ -28,7 +28,7 @@
 
         <button class="sidebar-logout">
           <i data-lucide="log-out" class="sidebar-icon-xs"></i>
-          <span>Go Out</span>
+          <span>ออกจากระบบ</span>
         </button>
       </aside>
 
@@ -111,13 +111,13 @@
               <thead>
                 <tr>
                   <th>#</th>
-                  <th data-sort="return">Return Number</th>
-                  <th data-sort="poref">PO Reference</th>
-                  <th data-sort="supplier">Supplier</th>
-                  <th data-sort="date" data-sort-type="date">Date</th>
-                  <th data-sort="reason">Reason</th>
-                  <th data-sort="status">Status</th>
-                  <th>Actions</th>
+                  <th data-sort="return">เลขที่คืนสินค้า</th>
+                  <th data-sort="poref">อ้างอิง PO</th>
+                  <th data-sort="supplier">ผู้ขาย</th>
+                  <th data-sort="date" data-sort-type="date">วันที่</th>
+                  <th data-sort="reason">เหตุผล</th>
+                  <th data-sort="status">สถานะ</th>
+                  <th>จัดการ</th>
                 </tr>
               </thead>
               <tbody id="returnTableBody">
@@ -141,48 +141,79 @@
 
     <!-- Modal Add/Edit Return -->
     <div class="modal-overlay" id="returnModal">
-      <div class="modal">
+      <div class="modal" style="max-width:720px;">
         <div class="modal-header">
           <h3 class="modal-title" id="modalTitle">Create Return</h3>
           <button class="modal-close"><i data-lucide="x"></i></button>
         </div>
         <div class="modal-body">
           <input type="hidden" id="editId" />
-          <div class="form-group">
-            <label class="form-label">Return Number</label>
-            <input type="text" class="form-input" id="inputReturnNumber" readonly />
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Return Number</label>
+              <input type="text" class="form-input" id="inputReturnNumber" readonly />
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Date</label>
+              <input type="date" class="form-input" id="inputDate" />
+            </div>
           </div>
-          <div class="form-group">
-            <label class="form-label">PO Reference</label>
-            <select class="form-select" id="inputPO">
-              <option value="PO-2026-001">PO-2026-001</option>
-              <option value="PO-2026-002">PO-2026-002</option>
-              <option value="PO-2026-003">PO-2026-003</option>
-              <option value="PO-2026-004">PO-2026-004</option>
-              <option value="PO-2026-005">PO-2026-005</option>
-              <option value="PO-2026-006">PO-2026-006</option>
-              <option value="PO-2026-007">PO-2026-007</option>
-              <option value="PO-2026-008">PO-2026-008</option>
-            </select>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">GR Reference (optional)</label>
+              <select class="form-select" id="inputGR" onchange="onGRChange()"></select>
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Supplier</label>
+              <select class="form-select" id="inputSupplier"></select>
+            </div>
           </div>
-          <div class="form-group">
-            <label class="form-label">Supplier</label>
-            <input type="text" class="form-input" id="inputSupplier" placeholder="ชื่อซัพพลายเออร์..." />
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Warehouse (ส่งออกจาก)</label>
+              <select class="form-select" id="inputWarehouse"></select>
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Status</label>
+              <select class="form-select" id="inputStatus">
+                <option value="pending">Pending</option>
+                <option value="approved">Approved (ตัด stock)</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
           </div>
-          <div class="form-group">
-            <label class="form-label">Date</label>
-            <input type="date" class="form-input" id="inputDate" />
-          </div>
-          <div class="form-group">
+
+          <div class="form-group" style="margin-bottom:10px;">
             <label class="form-label">Reason</label>
             <input type="text" class="form-input" id="inputReason" placeholder="เหตุผลการส่งคืน..." />
           </div>
-          <div class="form-group">
-            <label class="form-label">Status</label>
-            <select class="form-select" id="inputStatus">
-              <option value="pending">Pending</option>
-              <option value="approved">Approved</option>
-            </select>
+
+          <!-- Line Items -->
+          <div style="margin-top:14px;padding-top:10px;border-top:1px solid #e2e8f0;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <label class="form-label" style="margin:0;">รายการที่ส่งคืน</label>
+              <button class="btn-outline" type="button" onclick="addPRItemRow()" style="padding:4px 12px;font-size:9px;">+ เพิ่มรายการ</button>
+            </div>
+            <div style="background:#f8fafc;border-radius:10px;padding:8px;overflow-x:auto;">
+              <table style="width:100%;border-collapse:collapse;font-size:10px;">
+                <thead><tr style="color:#64748b;text-transform:uppercase;font-size:9px;">
+                  <th style="padding:6px;text-align:left;">สินค้า</th>
+                  <th style="padding:6px;text-align:right;width:80px;">จำนวน</th>
+                  <th style="padding:6px;text-align:right;width:100px;">ต้นทุน/หน่วย</th>
+                  <th style="padding:6px;text-align:right;width:110px;">ยอดย่อย</th>
+                  <th style="padding:6px;width:30px;"></th>
+                </tr></thead>
+                <tbody id="prItemsBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div style="margin-top:12px;padding-top:10px;border-top:1px solid #e2e8f0;display:grid;grid-template-columns:1fr 200px;gap:20px;">
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Note</label>
+              <input type="text" class="form-input" id="inputNote" placeholder="หมายเหตุ..." />
+            </div>
+            <div style="display:flex;justify-content:space-between;font-weight:800;color:#1e293b;font-size:13px;align-items:flex-end;"><span>Total:</span><span id="sumTotal">฿0.00</span></div>
           </div>
         </div>
         <div class="modal-footer">
@@ -214,12 +245,14 @@
     <script src="../assets/js/modal.js"></script>
     <script src="../assets/js/enter-save.js"></script>
     <script src="../assets/js/confirm.js"></script>
+    <script src="/modules/backend/assets/js/supabase-client.js"></script>
     <script src="/modules/backend/assets/js/auth-guard.js"></script>
     <script>requireAuth();</script>
     <script src="../assets/js/sidebar-menu.js"></script>
     <script>renderSidebarMenu("purchase-returns.html");</script>
     <script src="/assets/js/topbar.js"></script>
     <script>renderTopbar({ group: "Purchasing", page: "ส่งคืนสินค้า" });</script>
+    <script src="/modules/backend/assets/js/random-data.js"></script>
     <script src="purchase-returns.js"></script>
   </body>
 </html>

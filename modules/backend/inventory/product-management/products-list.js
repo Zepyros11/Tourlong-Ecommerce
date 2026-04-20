@@ -52,9 +52,6 @@ function renderTable(data) {
     var variantBadge = p.variants && p.variants.length
       ? '<span class="badge" style="background-color:#eff6ff;color:#3b82f6;">' + p.variants.length + ' variants</span>'
       : '<span style="font-size:10px;color:#cbd5e1;">—</span>';
-    var skuDisplay = p.variants && p.variants.length
-      ? '<span style="font-size:10px;color:#8b5cf6;font-weight:600;">' + p.sku + '-*</span>'
-      : '<span style="font-size:10px;color:#64748b;font-weight:600;">' + (p.sku || '—') + '</span>';
     var unitName = getUnitName(p.unit_id);
     var unitDisplay = unitName
       ? '<span style="font-size:10px;font-weight:600;color:#47b8b4;">' + unitName + '</span>'
@@ -62,7 +59,6 @@ function renderTable(data) {
     return '<tr>' +
       '<td>' + (i + 1) + '</td>' +
       '<td>' + p.name + '</td>' +
-      '<td>' + skuDisplay + '</td>' +
       '<td>' + p.category + '</td>' +
       '<td>฿' + p.price.toLocaleString() + '</td>' +
       '<td>' + unitDisplay + '</td>' +
@@ -89,9 +85,14 @@ function deleteProduct(id) {
   if (!p) return;
   showConfirm({
     title: "Confirm Delete",
-    message: "ต้องการลบสินค้า <strong>" + p.name + "</strong>" + (p.sku ? " (" + p.sku + ")" : "") + " ใช่ไหม?",
+    message: "ต้องการลบสินค้า <strong>" + p.name + "</strong> ใช่ไหม?",
     okText: "Delete", okColor: "#ef4444",
-    onConfirm: function() { products = products.filter(function(x) { return x.id !== id; }); applyFilters(); }
+    onConfirm: function() {
+      deleteProductDB(id)
+        .then(function () { return reloadProducts(); })
+        .then(function () { applyFilters(); })
+        .catch(function (err) { console.error(err); });
+    }
   });
 }
 
@@ -104,7 +105,7 @@ function getFilteredData() {
   var data = products;
   if (currentFilter !== "all") data = data.filter(function(p) { return p.status === currentFilter; });
   if (keyword) data = data.filter(function(p) {
-    return p.name.toLowerCase().includes(keyword) || p.category.toLowerCase().includes(keyword) || (p.sku || "").toLowerCase().includes(keyword);
+    return p.name.toLowerCase().includes(keyword) || p.category.toLowerCase().includes(keyword);
   });
   switch (currentSort) {
     case "name-asc": data = data.slice().sort(function(a, b) { return a.name.localeCompare(b.name); }); break;
@@ -134,6 +135,22 @@ document.addEventListener("DOMContentLoaded", function() {
     currentSort = this.value;
     applyFilters();
   });
+
+  // แสดง loading state ระหว่างโหลดครั้งแรก
+  var tbody = document.getElementById("productTableBody");
+  if (tbody) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:#94a3b8;font-size:11px;">' +
+      '<span style="display:inline-flex;align-items:center;gap:10px;">' +
+      '<span style="width:14px;height:14px;border:2px solid #e2e8f0;border-top-color:#47b8b4;border-radius:50%;display:inline-block;animation:spin 0.8s linear infinite;"></span>' +
+      'กำลังโหลดข้อมูล...</span></td></tr>';
+  }
+  // ensure keyframes exist
+  if (!document.getElementById("products-list-spin-style")) {
+    var s = document.createElement("style");
+    s.id = "products-list-spin-style";
+    s.textContent = "@keyframes spin { to { transform: rotate(360deg); } }";
+    document.head.appendChild(s);
+  }
 
   // โหลดข้อมูลจาก Supabase
   reloadProducts()

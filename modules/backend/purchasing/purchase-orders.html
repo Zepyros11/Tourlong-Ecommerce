@@ -28,7 +28,7 @@
 
         <button class="sidebar-logout">
           <i data-lucide="log-out" class="sidebar-icon-xs"></i>
-          <span>Go Out</span>
+          <span>ออกจากระบบ</span>
         </button>
       </aside>
 
@@ -47,10 +47,10 @@
               <p class="content-subtitle">จัดการใบสั่งซื้อ</p>
             </div>
             <div class="content-header-actions">
-              <button class="btn-primary" id="addPOBtn">
+              <a href="purchase-order-form.html" class="btn-primary" style="text-decoration:none;">
                 <i data-lucide="plus" class="btn-icon"></i>
                 Create PO
-              </button>
+              </a>
             </div>
           </div>
 
@@ -123,13 +123,13 @@
               <thead>
                 <tr>
                   <th>#</th>
-                  <th data-sort="po">PO Number</th>
-                  <th data-sort="supplier">Supplier</th>
-                  <th data-sort="date" data-sort-type="date">Date</th>
-                  <th data-sort="items" data-sort-type="number">Items</th>
-                  <th data-sort="amount" data-sort-type="number">Total Amount</th>
-                  <th data-sort="status">Status</th>
-                  <th>Actions</th>
+                  <th data-sort="po">เลขที่ PO</th>
+                  <th data-sort="supplier">ผู้ขาย</th>
+                  <th data-sort="date" data-sort-type="date">วันที่</th>
+                  <th data-sort="items" data-sort-type="number">รายการ</th>
+                  <th data-sort="amount" data-sort-type="number">ยอดรวม</th>
+                  <th data-sort="status">สถานะ</th>
+                  <th>จัดการ</th>
                 </tr>
               </thead>
               <tbody id="poTableBody">
@@ -148,58 +148,6 @@
             <a href="#" class="footer-link">Support</a>
           </nav>
         </footer>
-      </div>
-    </div>
-
-    <!-- Modal Add/Edit PO -->
-    <div class="modal-overlay" id="poModal">
-      <div class="modal">
-        <div class="modal-header">
-          <h3 class="modal-title" id="modalTitle">Create PO</h3>
-          <button class="modal-close"><i data-lucide="x"></i></button>
-        </div>
-        <div class="modal-body">
-          <input type="hidden" id="editId" />
-          <div class="form-group">
-            <label class="form-label">PO Number</label>
-            <input type="text" class="form-input" id="inputPONumber" placeholder="เลข PO..." readonly />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Supplier</label>
-            <select class="form-select" id="inputSupplier">
-              <option value="บ.สยามซัพพลาย">บ.สยามซัพพลาย</option>
-              <option value="บ.ไทยเทรด">บ.ไทยเทรด</option>
-              <option value="บ.แกรนด์โลจิสติกส์">บ.แกรนด์โลจิสติกส์</option>
-              <option value="บ.เอเชียซัพพลาย">บ.เอเชียซัพพลาย</option>
-              <option value="บ.โกลบอลเทค">บ.โกลบอลเทค</option>
-              <option value="บ.พรีเมียมกู๊ดส์">บ.พรีเมียมกู๊ดส์</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Date</label>
-            <input type="date" class="form-input" id="inputDate" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Items</label>
-            <input type="number" class="form-input" id="inputItems" placeholder="จำนวนรายการ..." />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Total Amount</label>
-            <input type="number" class="form-input" id="inputAmount" placeholder="ยอดรวม..." />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Status</label>
-            <select class="form-select" id="inputStatus">
-              <option value="pending">Pending</option>
-              <option value="approved">Approved</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button class="btn-secondary" onclick="closeModalById('poModal')">Cancel</button>
-          <button class="btn-primary" onclick="savePO()">Save</button>
-        </div>
       </div>
     </div>
 
@@ -225,6 +173,7 @@
     <script src="../assets/js/modal.js"></script>
     <script src="../assets/js/enter-save.js"></script>
     <script src="../assets/js/confirm.js"></script>
+    <script src="/modules/backend/assets/js/supabase-client.js"></script>
     <script src="/modules/backend/assets/js/auth-guard.js"></script>
     <script>requireAuth();</script>
     <script src="../assets/js/sidebar-menu.js"></script>

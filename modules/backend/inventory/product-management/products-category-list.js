@@ -168,6 +168,19 @@ function applyFilters() {
   renderTable(getFilteredData());
 }
 
+// ============ Random fill (dev) ============
+if (typeof registerRandomFill === "function") {
+  registerRandomFill({
+    target: "#categoryModal",
+    fill: function () {
+      setFieldValue("inputName", randomCategoryName());
+      setFieldValue("inputDesc", randomNote());
+      var sw = document.getElementById("inputStatus");
+      if (sw) { sw.checked = rdBool(0.85); sw.dispatchEvent(new Event("change", { bubbles: true })); }
+    },
+  });
+}
+
 // ============ Init ============
 document.addEventListener("DOMContentLoaded", function () {
   // Search

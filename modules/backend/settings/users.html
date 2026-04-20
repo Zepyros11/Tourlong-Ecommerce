@@ -28,7 +28,7 @@
 
         <button class="sidebar-logout">
           <i data-lucide="log-out" class="sidebar-icon-xs"></i>
-          <span>Go Out</span>
+          <span>ออกจากระบบ</span>
         </button>
       </aside>
 
@@ -110,12 +110,12 @@
               <thead>
                 <tr>
                   <th>#</th>
-                  <th data-sort="name">Name</th>
-                  <th data-sort="email">Email</th>
-                  <th data-sort="role">Role</th>
-                  <th data-sort="status">Status</th>
-                  <th data-sort="login" data-sort-type="date">Last Login</th>
-                  <th>Actions</th>
+                  <th data-sort="name">ชื่อ</th>
+                  <th data-sort="email">อีเมล</th>
+                  <th data-sort="role">บทบาท</th>
+                  <th data-sort="status">สถานะ</th>
+                  <th data-sort="login" data-sort-type="date">เข้าใช้ล่าสุด</th>
+                  <th>จัดการ</th>
                 </tr>
               </thead>
               <tbody id="userTableBody">
@@ -277,6 +277,7 @@
     <script>renderSidebarMenu();</script>
     <script src="/assets/js/topbar.js"></script>
     <script>renderTopbar({ group: "Settings", page: "Users" });</script>
+    <script src="/modules/backend/assets/js/random-data.js"></script>
     <script src="users.js"></script>
   </body>
 </html>

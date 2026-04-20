@@ -28,7 +28,7 @@
 
         <button class="sidebar-logout">
           <i data-lucide="log-out" class="sidebar-icon-xs"></i>
-          <span>Go Out</span>
+          <span>ออกจากระบบ</span>
         </button>
       </aside>
 
@@ -111,12 +111,12 @@
               <thead>
                 <tr>
                   <th>#</th>
-                  <th data-sort="name">Supplier Name</th>
-                  <th data-sort="contact">Contact Person</th>
-                  <th data-sort="phone">Phone</th>
-                  <th data-sort="email">Email</th>
-                  <th data-sort="status">Status</th>
-                  <th>Actions</th>
+                  <th data-sort="name">ชื่อผู้ขาย</th>
+                  <th data-sort="contact">ผู้ติดต่อ</th>
+                  <th data-sort="phone">เบอร์โทร</th>
+                  <th data-sort="email">อีเมล</th>
+                  <th data-sort="status">สถานะ</th>
+                  <th>จัดการ</th>
                 </tr>
               </thead>
               <tbody id="supplierTableBody">
@@ -147,34 +147,40 @@
         </div>
         <div class="modal-body">
           <input type="hidden" id="editId" />
-          <div class="form-group">
-            <label class="form-label">Supplier Name</label>
-            <input type="text" class="form-input" id="inputName" placeholder="ชื่อผู้ขาย..." />
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Supplier Name</label>
+              <input type="text" class="form-input" id="inputName" placeholder="ชื่อผู้ขาย..." />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Contact Person</label>
+              <input type="text" class="form-input" id="inputContact" placeholder="ชื่อผู้ติดต่อ..." />
+            </div>
           </div>
-          <div class="form-group">
-            <label class="form-label">Contact Person</label>
-            <input type="text" class="form-input" id="inputContact" placeholder="ชื่อผู้ติดต่อ..." />
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Phone</label>
+              <input type="text" class="form-input" id="inputPhone" placeholder="เบอร์โทร..." />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input type="text" class="form-input" id="inputEmail" placeholder="อีเมล..." />
+            </div>
           </div>
-          <div class="form-group">
-            <label class="form-label">Phone</label>
-            <input type="text" class="form-input" id="inputPhone" placeholder="เบอร์โทร..." />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Email</label>
-            <input type="text" class="form-input" id="inputEmail" placeholder="อีเมล..." />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Address</label>
-            <input type="text" class="form-input" id="inputAddress" placeholder="ที่อยู่..." />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Status</label>
-            <div class="status-toggle">
-              <label class="toggle">
-                <input type="checkbox" id="inputStatus" checked />
-                <span class="toggle-slider"></span>
-              </label>
-              <span class="status-toggle-label active-label" id="inputStatusLabel">Active</span>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Address</label>
+              <input type="text" class="form-input" id="inputAddress" placeholder="ที่อยู่..." />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Status</label>
+              <div class="status-toggle">
+                <label class="toggle">
+                  <input type="checkbox" id="inputStatus" checked />
+                  <span class="toggle-slider"></span>
+                </label>
+                <span class="status-toggle-label active-label" id="inputStatusLabel">Active</span>
+              </div>
             </div>
           </div>
         </div>
@@ -207,12 +213,14 @@
     <script src="../assets/js/modal.js"></script>
     <script src="../assets/js/enter-save.js"></script>
     <script src="../assets/js/confirm.js"></script>
+    <script src="/modules/backend/assets/js/supabase-client.js"></script>
     <script src="/modules/backend/assets/js/auth-guard.js"></script>
     <script>requireAuth();</script>
     <script src="../assets/js/sidebar-menu.js"></script>
     <script>renderSidebarMenu("suppliers.html");</script>
     <script src="/assets/js/topbar.js"></script>
     <script>renderTopbar({ group: "Purchasing", page: "ผู้ขาย" });</script>
+    <script src="/modules/backend/assets/js/random-data.js"></script>
     <script src="suppliers.js"></script>
   </body>
 </html>

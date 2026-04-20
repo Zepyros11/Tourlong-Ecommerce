@@ -28,7 +28,7 @@
 
         <button class="sidebar-logout">
           <i data-lucide="log-out" class="sidebar-icon-xs"></i>
-          <span>Go Out</span>
+          <span>ออกจากระบบ</span>
         </button>
       </aside>
 
@@ -111,13 +111,13 @@
               <thead>
                 <tr>
                   <th>#</th>
-                  <th data-sort="name">Customer Name</th>
-                  <th data-sort="contact">Contact</th>
-                  <th data-sort="phone">Phone</th>
-                  <th data-sort="email">Email</th>
-                  <th data-sort="type">Type</th>
-                  <th data-sort="status">Status</th>
-                  <th>Actions</th>
+                  <th data-sort="name">ชื่อลูกค้า</th>
+                  <th data-sort="contact">ผู้ติดต่อ</th>
+                  <th data-sort="phone">เบอร์โทร</th>
+                  <th data-sort="email">อีเมล</th>
+                  <th data-sort="type">ประเภท</th>
+                  <th data-sort="status">สถานะ</th>
+                  <th>จัดการ</th>
                 </tr>
               </thead>
               <tbody id="customerTableBody">
@@ -215,12 +215,14 @@
     <script src="../assets/js/modal.js"></script>
     <script src="../assets/js/enter-save.js"></script>
     <script src="../assets/js/confirm.js"></script>
+    <script src="/modules/backend/assets/js/supabase-client.js"></script>
     <script src="/modules/backend/assets/js/auth-guard.js"></script>
     <script>requireAuth();</script>
     <script src="../assets/js/sidebar-menu.js"></script>
     <script>renderSidebarMenu("customers.html");</script>
     <script src="/assets/js/topbar.js"></script>
     <script>renderTopbar({ group: "Sales", page: "ลูกค้า" });</script>
+    <script src="/modules/backend/assets/js/random-data.js"></script>
     <script src="customers.js"></script>
   </body>
 </html>

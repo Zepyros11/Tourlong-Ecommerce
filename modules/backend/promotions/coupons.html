@@ -28,7 +28,7 @@
 
         <button class="sidebar-logout">
           <i data-lucide="log-out" class="sidebar-icon-xs"></i>
-          <span>Go Out</span>
+          <span>ออกจากระบบ</span>
         </button>
       </aside>
 
@@ -112,14 +112,14 @@
               <thead>
                 <tr>
                   <th>#</th>
-                  <th data-sort="code">Coupon Code</th>
-                  <th data-sort="discount" data-sort-type="number">Discount</th>
-                  <th data-sort="type">Type</th>
-                  <th data-sort="min" data-sort-type="number">Min Purchase</th>
-                  <th>Usage/Limit</th>
-                  <th data-sort="expiry" data-sort-type="date">Expiry Date</th>
-                  <th data-sort="status">Status</th>
-                  <th>Actions</th>
+                  <th data-sort="code">รหัสคูปอง</th>
+                  <th data-sort="discount" data-sort-type="number">ส่วนลด</th>
+                  <th data-sort="type">ประเภท</th>
+                  <th data-sort="min" data-sort-type="number">ยอดซื้อขั้นต่ำ</th>
+                  <th>การใช้งาน/จำกัด</th>
+                  <th data-sort="expiry" data-sort-type="date">วันหมดอายุ</th>
+                  <th data-sort="status">สถานะ</th>
+                  <th>จัดการ</th>
                 </tr>
               </thead>
               <tbody id="couponTableBody">
@@ -216,6 +216,7 @@
     <script src="/assets/js/esc-close.js"></script>
     <script src="../assets/js/modal.js"></script>
     <script src="../assets/js/enter-save.js"></script>
+    <script src="/modules/backend/assets/js/supabase-client.js"></script>
     <script src="../assets/js/confirm.js"></script>
     <script src="/modules/backend/assets/js/auth-guard.js"></script>
     <script>requireAuth();</script>
@@ -223,6 +224,7 @@
     <script>renderSidebarMenu("coupons.html");</script>
     <script src="/assets/js/topbar.js"></script>
     <script>renderTopbar({ group: "Promotions", page: "คูปองส่วนลด" });</script>
+    <script src="/modules/backend/assets/js/random-data.js"></script>
     <script src="coupons.js"></script>
   </body>
 </html>

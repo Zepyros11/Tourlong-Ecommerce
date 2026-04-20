@@ -28,7 +28,7 @@
 
         <button class="sidebar-logout">
           <i data-lucide="log-out" class="sidebar-icon-xs"></i>
-          <span>Go Out</span>
+          <span>ออกจากระบบ</span>
         </button>
       </aside>
 
@@ -109,13 +109,13 @@
               <thead>
                 <tr>
                   <th>#</th>
-                  <th data-sort="name">Promotion Name</th>
-                  <th data-sort="discount" data-sort-type="number">Discount</th>
-                  <th data-sort="apply">Apply To</th>
-                  <th data-sort="start" data-sort-type="date">Start Date</th>
-                  <th data-sort="end" data-sort-type="date">End Date</th>
-                  <th data-sort="status">Status</th>
-                  <th>Actions</th>
+                  <th data-sort="name">ชื่อโปรโมชั่น</th>
+                  <th data-sort="discount" data-sort-type="number">ส่วนลด</th>
+                  <th data-sort="apply">ใช้กับ</th>
+                  <th data-sort="start" data-sort-type="date">วันเริ่มต้น</th>
+                  <th data-sort="end" data-sort-type="date">วันสิ้นสุด</th>
+                  <th data-sort="status">สถานะ</th>
+                  <th>จัดการ</th>
                 </tr>
               </thead>
               <tbody id="discountTableBody">
@@ -216,6 +216,7 @@
     <script src="/assets/js/esc-close.js"></script>
     <script src="../assets/js/modal.js"></script>
     <script src="../assets/js/enter-save.js"></script>
+    <script src="/modules/backend/assets/js/supabase-client.js"></script>
     <script src="../assets/js/confirm.js"></script>
     <script src="/modules/backend/assets/js/auth-guard.js"></script>
     <script>requireAuth();</script>
@@ -223,6 +224,7 @@
     <script>renderSidebarMenu("discounts.html");</script>
     <script src="/assets/js/topbar.js"></script>
     <script>renderTopbar({ group: "Promotions", page: "โปรโมชั่นลดราคา" });</script>
+    <script src="/modules/backend/assets/js/random-data.js"></script>
     <script src="discounts.js"></script>
   </body>
 </html>

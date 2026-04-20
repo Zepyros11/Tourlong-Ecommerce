@@ -365,6 +365,24 @@ function applyFilters() {
   renderTable(getFilteredData());
 }
 
+// ============ Random fill (dev) ============
+if (typeof registerRandomFill === "function") {
+  registerRandomFill({
+    target: "#unitModal",
+    fill: function () {
+      var u = randomUnit();
+      setFieldValue("inputName", u.name);
+      setFieldValue("inputAbbr", u.abbr);
+      setFieldValue("inputDesc", randomNote());
+      // Base unit = empty (ให้ตัวเองเป็น base unit) — factor group ซ่อนอยู่
+      var baseSel = document.getElementById("inputBaseUnit");
+      if (baseSel) { baseSel.value = ""; baseSel.dispatchEvent(new Event("change", { bubbles: true })); }
+      var sw = document.getElementById("inputStatus");
+      if (sw) { sw.checked = rdBool(0.85); sw.dispatchEvent(new Event("change", { bubbles: true })); }
+    },
+  });
+}
+
 // ============ Init ============
 document.addEventListener("DOMContentLoaded", function () {
   document.querySelector(".filter-search-input").addEventListener("input", applyFilters);

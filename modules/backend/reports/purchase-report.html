@@ -44,7 +44,7 @@
 
         <button class="sidebar-logout">
           <i data-lucide="log-out" class="sidebar-icon-xs"></i>
-          <span>Go Out</span>
+          <span>ออกจากระบบ</span>
         </button>
       </aside>
 
@@ -141,12 +141,12 @@
               <thead>
                 <tr>
                   <th>#</th>
-                  <th data-sort="date" data-sort-type="date">Date</th>
-                  <th data-sort="po">PO Number</th>
-                  <th data-sort="supplier">Supplier</th>
-                  <th data-sort="items" data-sort-type="number">Items</th>
-                  <th data-sort="amount" data-sort-type="number">Amount</th>
-                  <th data-sort="status">Status</th>
+                  <th data-sort="date" data-sort-type="date">วันที่</th>
+                  <th data-sort="po">เลขที่ใบสั่งซื้อ</th>
+                  <th data-sort="supplier">ผู้ขาย</th>
+                  <th data-sort="items" data-sort-type="number">รายการ</th>
+                  <th data-sort="amount" data-sort-type="number">ยอดรวม</th>
+                  <th data-sort="status">สถานะ</th>
                 </tr>
               </thead>
               <tbody id="reportTableBody">
@@ -172,6 +172,7 @@
     <script src="/assets/js/esc-close.js"></script>
     <script src="../assets/js/modal.js"></script>
     <script src="../assets/js/enter-save.js"></script>
+    <script src="/modules/backend/assets/js/supabase-client.js"></script>
     <script src="/modules/backend/assets/js/auth-guard.js"></script>
     <script>requireAuth();</script>
     <script src="../assets/js/sidebar-menu.js"></script>

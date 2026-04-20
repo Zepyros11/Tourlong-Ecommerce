@@ -33,7 +33,7 @@
 
         <button class="sidebar-logout">
           <i data-lucide="log-out" class="sidebar-icon-xs"></i>
-          <span>Go Out</span>
+          <span>ออกจากระบบ</span>
         </button>
       </aside>
 
@@ -102,11 +102,11 @@
               <thead>
                 <tr>
                   <th>#</th>
-                  <th data-sort="name">Role Name</th>
-                  <th data-sort="desc">Description</th>
-                  <th data-sort="users" data-sort-type="number">Users</th>
-                  <th data-sort="permissions" data-sort-type="number">Permissions</th>
-                  <th>Actions</th>
+                  <th data-sort="name">ชื่อบทบาท</th>
+                  <th data-sort="desc">รายละเอียด</th>
+                  <th data-sort="users" data-sort-type="number">ผู้ใช้</th>
+                  <th data-sort="permissions" data-sort-type="number">สิทธิ์</th>
+                  <th>จัดการ</th>
                 </tr>
               </thead>
               <tbody id="roleTableBody">
@@ -186,6 +186,7 @@
     <script src="/assets/js/esc-close.js"></script>
     <script src="../assets/js/modal.js"></script>
     <script src="../assets/js/enter-save.js"></script>
+    <script src="/modules/backend/assets/js/supabase-client.js"></script>
     <script src="../assets/js/confirm.js"></script>
     <script src="/modules/backend/assets/js/auth-guard.js"></script>
     <script>requireAuth();</script>
@@ -193,6 +194,7 @@
     <script>renderSidebarMenu("roles-permissions.html");</script>
     <script src="/assets/js/topbar.js"></script>
     <script>renderTopbar({ group: "Settings", page: "สิทธิ์การใช้งาน" });</script>
+    <script src="/modules/backend/assets/js/random-data.js"></script>
     <script src="roles-permissions.js"></script>
   </body>
 </html>

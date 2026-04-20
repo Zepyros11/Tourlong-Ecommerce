@@ -170,19 +170,19 @@ function addProductBlock(data) {
     html += '<div class="form-group" style="margin-bottom:10px;"><label class="form-label">Description</label><textarea class="form-input b-desc" rows="2" placeholder="รายละเอียดสินค้า..." style="resize:vertical;">' + (d.description || '') + '</textarea></div>';
   }
 
-  // SKU & Price + Variant Toggle
+  // Barcode & Price + Variant Toggle
   html += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding-top:8px;border-top:1px solid #f1f5f9;">';
-  html += '<span style="font-size:10px;font-weight:800;color:#1e293b;">SKU & ราคา</span>';
+  html += '<span style="font-size:10px;font-weight:800;color:#1e293b;">Barcode & ราคา</span>';
   html += '<label class="toggle"><input type="checkbox" class="b-variant-toggle" onchange="toggleBlockVariant(' + idx + ')" /><span class="toggle-slider"></span></label>';
   html += '<span style="font-size:10px;font-weight:700;color:#64748b;">มี Variants</span>';
   html += '<button class="btn-outline b-add-variant-btn" type="button" onclick="addBlockVariantRow(' + idx + ')" style="margin-left:auto;padding:4px 12px;font-size:9px;display:none;">+ เพิ่ม Variant</button>';
   html += '</div>';
 
-  // Single SKU
+  // Single SKU (hidden — auto-generated, saved to DB)
   html += '<div class="b-single-sku">';
-  html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">';
   var autoSku = d.sku || (!d._isEdit ? generateSku() : '');
-  html += '<div class="form-group" style="margin:0;"><label class="form-label">SKU</label><input type="text" class="form-input b-sku" placeholder="SKU-00001" value="' + autoSku + '" /></div>';
+  html += '<input type="hidden" class="b-sku" value="' + autoSku + '" />';
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">';
   var autoBarcode = d.barcode || (!d._isEdit ? generateBarcode() : '');
   html += '<div class="form-group" style="margin:0;"><label class="form-label">Barcode</label><div class="barcode-input-wrap"><input type="text" class="form-input b-barcode" placeholder="EAN / UPC..." value="' + autoBarcode + '" oninput="renderBarcodePreview(this)" /><div class="barcode-preview b-barcode-preview" onclick="showBarcodePopup(this.previousElementSibling)"></div></div></div>';
   html += '<div class="form-group" style="margin:0;"><label class="form-label">Price (฿)</label><input type="number" class="form-input b-price" placeholder="0.00" min="0" step="0.01" value="' + (d.price || '') + '" /></div>';
@@ -191,9 +191,9 @@ function addProductBlock(data) {
   // Variant section
   html += '<div class="b-variant-section" style="display:none;">';
   var autoBaseSku = d.baseSku || (!d._isEdit ? autoSku : '');
-  html += '<div class="form-group" style="margin-bottom:8px;"><label class="form-label">Base SKU</label><input type="text" class="form-input b-base-sku" placeholder="เช่น SKU-00001 → SKU-00001-S" oninput="autoFillBlockSku(' + idx + ')" value="' + autoBaseSku + '" /></div>';
+  html += '<input type="hidden" class="b-base-sku" value="' + autoBaseSku + '" />';
   html += '<div style="background:#f8fafc;border-radius:10px;padding:8px;overflow-x:auto;">';
-  html += '<table class="variant-table"><thead><tr><th>Variant</th><th>SKU</th><th>Barcode</th><th>Price (฿)</th><th style="width:30px;"></th></tr></thead>';
+  html += '<table class="variant-table"><thead><tr><th>Variant</th><th style="display:none;">SKU</th><th>Barcode</th><th>Price (฿)</th><th style="width:30px;"></th></tr></thead>';
   html += '<tbody class="b-variant-body"></tbody></table>';
   html += '<div style="text-align:center;padding-top:8px;"><button class="btn-outline" type="button" onclick="addBlockVariantRow(' + idx + ')" style="padding:4px 14px;font-size:9px;">+ เพิ่ม Variant</button></div>';
   html += '</div></div>';
@@ -206,7 +206,7 @@ function addProductBlock(data) {
 
   // Base unit dropdown
   html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px;">';
-  html += '<div class="form-group" style="margin:0;"><label class="form-label">หน่วยนับหลัก (Base Unit)</label>';
+  html += '<div class="form-group" style="margin:0;"><label class="form-label">หน่วยนับของสินค้า</label>';
   html += '<select class="form-select b-base-unit" onchange="onBaseUnitChange(' + idx + ')">';
   html += '<option value="">— เลือกหน่วยหลัก —</option>';
   html += '</select></div>';
@@ -320,7 +320,7 @@ function addBlockVariantRow(idx, data) {
   var d = data || {};
   tr.innerHTML =
     '<td><input type="text" class="form-input v-name" placeholder="S, M, L..." value="' + (d.variant || '') + '" oninput="autoFillBlockSku(' + idx + ')" /></td>' +
-    '<td><input type="text" class="form-input v-sku" placeholder="auto" style="color:#8b5cf6;" value="' + (d.sku || '') + '" /></td>' +
+    '<td style="display:none;"><input type="text" class="form-input v-sku" value="' + (d.sku || '') + '" /></td>' +
     '<td><div class="barcode-input-wrap"><input type="text" class="form-input v-barcode" placeholder="EAN..." value="' + (d.barcode || generateBarcode()) + '" oninput="renderBarcodePreview(this)" /><div class="barcode-preview v-barcode-preview" onclick="showBarcodePopup(this.previousElementSibling)"></div></div></td>' +
     '<td><input type="number" class="form-input v-price" placeholder="0" min="0" step="0.01" value="' + (d.price || '') + '" /></td>' +
     '<td><button class="btn-icon-sm btn-danger" onclick="this.closest(\'tr\').remove()" style="width:20px;height:20px;"><i data-lucide="x" style="width:10px;height:10px;"></i></button></td>';
@@ -396,23 +396,26 @@ function initImageDragDrop(idx) {
   var grid = document.getElementById("imgGrid-" + idx);
   if (!grid) return;
 
-  // --- Drop files from desktop ---
-  grid.addEventListener("dragover", function(e) {
-    e.preventDefault();
-    grid.classList.add("drag-over");
-  });
-  grid.addEventListener("dragleave", function(e) {
-    if (!grid.contains(e.relatedTarget)) grid.classList.remove("drag-over");
-  });
-  grid.addEventListener("drop", function(e) {
-    e.preventDefault();
-    grid.classList.remove("drag-over");
-    var files = e.dataTransfer.files;
-    if (files && files.length) {
-      handleImgDrop(idx, files);
-      return;
-    }
-  });
+  // --- Drop files from desktop --- (register once)
+  if (!grid.dataset.fileDropBound) {
+    grid.dataset.fileDropBound = "1";
+    grid.addEventListener("dragover", function(e) {
+      e.preventDefault();
+      grid.classList.add("drag-over");
+    });
+    grid.addEventListener("dragleave", function(e) {
+      if (!grid.contains(e.relatedTarget)) grid.classList.remove("drag-over");
+    });
+    grid.addEventListener("drop", function(e) {
+      e.preventDefault();
+      grid.classList.remove("drag-over");
+      var files = e.dataTransfer.files;
+      if (files && files.length) {
+        handleImgDrop(idx, files);
+        return;
+      }
+    });
+  }
 
   // --- Reorder by dragging within grid ---
   var dragSrcIdx = null;
@@ -599,57 +602,147 @@ function collectBlockData(block) {
   return result;
 }
 
+function buildProductPayload(d) {
+  var cat = allCategories.find(function (c) { return c.name === d.category; });
+  var baseConv = (d.unitConversions || []).find(function (c) { return c.is_base; });
+  return {
+    name: d.name,
+    description: d.description || "",
+    sku: d.sku || "",
+    barcode: d.barcode || "",
+    price: d.price || 0,
+    category_id: cat ? cat.id : null,
+    unit_id: baseConv ? baseConv.unit_id : null,
+    images: d.images || [],
+    variants: d.variants || [],
+    status: d.status || "active",
+  };
+}
+
+function setSavingState(isSaving) {
+  var btn = document.getElementById("saveProductBtn");
+  var overlay = document.getElementById("savingOverlay");
+  if (btn) {
+    btn.disabled = isSaving;
+    btn.style.opacity = isSaving ? "0.6" : "";
+    btn.style.cursor = isSaving ? "not-allowed" : "";
+    btn.innerHTML = isSaving
+      ? '<span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:12px;height:12px;border:2px solid rgba(255,255,255,0.4);border-top-color:#fff;border-radius:50%;animation:spin 0.8s linear infinite;"></span>กำลังบันทึก...</span>'
+      : "Save";
+  }
+  if (overlay) overlay.style.display = isSaving ? "flex" : "none";
+}
+
 function saveAllProducts() {
   var blocks = document.querySelectorAll(".product-block");
-  var products = [];
+  var items = [];
   var firstEmpty = null;
 
   blocks.forEach(function(block) {
     var data = collectBlockData(block);
     if (data) {
-      products.push(data);
+      items.push(data);
     } else if (!firstEmpty) {
       firstEmpty = block.querySelector(".b-name");
     }
   });
 
-  if (!products.length) {
+  if (!items.length) {
     if (firstEmpty) firstEmpty.focus();
     return;
   }
 
-  // Mock save
-  var names = products.map(function(p) { return p.name; }).join(", ");
-  showToast("บันทึกสำเร็จ!", "บันทึก " + products.length + " สินค้า: " + names, function() {
-    window.location.href = "products-list.html";
-  });
+  var params = new URLSearchParams(window.location.search);
+  var editId = params.get("id");
+  var isEdit = !!editId;
+
+  setSavingState(true);
+
+  var saveOps;
+  if (isEdit) {
+    var d = items[0];
+    saveOps = updateProductDB(editId, buildProductPayload(d)).then(function (updated) {
+      if (!updated || !updated.id) throw new Error("Update failed");
+      return saveProductUnitConversions(updated.id, d.unitConversions || []);
+    });
+  } else {
+    saveOps = Promise.all(items.map(function (d) {
+      return createProductDB(buildProductPayload(d)).then(function (created) {
+        if (!created || !created.id) throw new Error("Create failed");
+        return saveProductUnitConversions(created.id, d.unitConversions || []);
+      });
+    }));
+  }
+
+  saveOps
+    .then(function () {
+      var names = items.map(function(p) { return p.name; }).join(", ");
+      showToast("บันทึกสำเร็จ!", "บันทึก " + items.length + " สินค้า: " + names, function() {
+        window.location.href = "products-list.html";
+      });
+    })
+    .catch(function (err) {
+      console.error(err);
+      setSavingState(false);
+      showToast("เกิดข้อผิดพลาด", err.message || "บันทึกไม่สำเร็จ");
+    });
 }
 
 // ============ Edit Mode ============
 function checkEditMode() {
   var params = new URLSearchParams(window.location.search);
   var editId = params.get("id");
-  if (!editId) return false;
+  if (!editId) return Promise.resolve(false);
 
   document.getElementById("pageTitle").textContent = "Edit Product";
   document.getElementById("pageSubtitle").textContent = "แก้ไขข้อมูลสินค้า";
 
-  var mockProducts = {
-    "3": { name: "เสื้อลายหมี", category: "Clothing", description: "เสื้อยืดลายหมี Cotton 100%", sku: "BEAR", baseSku: "BEAR", barcode: "", price: 450, variants: [
-      { variant: "S", sku: "BEAR-S", barcode: "8851234567900", price: 450 },
-      { variant: "M", sku: "BEAR-M", barcode: "8851234567901", price: 450 },
-      { variant: "L", sku: "BEAR-L", barcode: "8851234567902", price: 490 },
-      { variant: "XL", sku: "BEAR-XL", barcode: "8851234567903", price: 520 },
-    ]},
-    "1": { name: "Wireless Headphones", category: "Electronics", description: "หูฟังไร้สายคุณภาพสูง", sku: "WH-001", barcode: "8851234567890", price: 2590, variants: [] },
-  };
+  return Promise.all([
+    typeof fetchProductById === "function" ? fetchProductById(editId) : Promise.resolve(null),
+    typeof fetchProductUnitConversions === "function" ? fetchProductUnitConversions(editId) : Promise.resolve([]),
+  ]).then(function (results) {
+    var p = results[0];
+    if (!p) return true;
+    var conversions = (results[1] || []).map(function (c) {
+      return { unit_id: c.unit_id, factor: Number(c.factor), is_base: !!c.is_base };
+    });
+    addProductBlock({
+      _isEdit: true,
+      name: p.name || "",
+      category: p.categories ? p.categories.name : "",
+      description: p.description || "",
+      sku: p.sku || "",
+      baseSku: p.sku || "",
+      barcode: p.barcode || "",
+      price: Number(p.price) || 0,
+      variants: p.variants || [],
+      images: p.images || [],
+      unitConversions: conversions,
+    });
+    return true;
+  });
+}
 
-  var p = mockProducts[editId];
-  if (p) {
-    p._isEdit = true;
-    addProductBlock(p);
-  }
-  return true;
+// ============ Random fill (dev) ============
+if (typeof registerRandomFill === "function") {
+  registerRandomFill({
+    target: "page",
+    fill: function () {
+      var firstBlock = document.querySelector(".product-block");
+      if (!firstBlock) return;
+      var nameEl = firstBlock.querySelector(".b-name");
+      var catEl = firstBlock.querySelector(".b-category");
+      var priceEl = firstBlock.querySelector(".b-price");
+      var descEl = firstBlock.querySelector(".b-desc");
+      if (nameEl) { nameEl.value = randomProductName(); nameEl.dispatchEvent(new Event("input", { bubbles: true })); }
+      if (priceEl) { priceEl.value = rdFloat(50, 2000, 2); priceEl.dispatchEvent(new Event("input", { bubbles: true })); }
+      if (descEl) { descEl.value = "สินค้าคุณภาพดี " + randomProductName() + " พร้อมส่ง"; descEl.dispatchEvent(new Event("input", { bubbles: true })); }
+      if (catEl && catEl.options.length > 1) {
+        var opts = Array.prototype.slice.call(catEl.options).filter(function (o) { return o.value !== ""; });
+        if (opts.length) { catEl.value = rdPick(opts).value; catEl.dispatchEvent(new Event("change", { bubbles: true })); }
+      }
+    },
+  });
 }
 
 // ============ Init ============
@@ -673,7 +766,9 @@ document.addEventListener("DOMContentLoaded", function() {
     })
     .catch(function () { allUnits = []; allProducts = []; })
     .then(function () {
-      var isEdit = checkEditMode();
+      return checkEditMode();
+    })
+    .then(function (isEdit) {
       if (!isEdit) addProductBlock();
       // Populate unit dropdowns สำหรับทุก block
       document.querySelectorAll(".product-block").forEach(function (block) {

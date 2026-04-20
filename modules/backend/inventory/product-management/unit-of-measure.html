@@ -28,7 +28,7 @@
 
         <button class="sidebar-logout">
           <i data-lucide="log-out" class="sidebar-icon-xs"></i>
-          <span>Go Out</span>
+          <span>ออกจากระบบ</span>
         </button>
       </aside>
 
@@ -53,6 +53,57 @@
               </button>
             </div>
           </div>
+
+          <!-- Info Banner: Best Practice ของ Base Unit -->
+          <div id="unitInfoBanner" style="background:linear-gradient(135deg,#eef2ff,#f0f9ff);border:1px solid #c7d2fe;border-radius:12px;padding:12px 16px;margin-bottom:16px;">
+            <div style="display:flex;gap:12px;align-items:center;cursor:pointer;" onclick="toggleUnitInfo()">
+              <div style="flex-shrink:0;width:28px;height:28px;background:#6366f1;border-radius:8px;display:flex;align-items:center;justify-content:center;">
+                <i data-lucide="info" style="width:14px;height:14px;color:#fff;"></i>
+              </div>
+              <p style="flex:1;font-size:12px;font-weight:800;color:#1e293b;margin:0;">💡 วิธีตั้งหน่วยนับให้ถูกต้อง</p>
+              <button type="button" class="btn-icon-sm" id="unitInfoToggleBtn" style="background:transparent;border:none;width:24px;height:24px;"><i data-lucide="chevron-down" style="width:14px;height:14px;color:#6366f1;"></i></button>
+            </div>
+            <div id="unitInfoBody" style="margin-top:10px;padding-left:40px;display:none;">
+              <p style="font-size:11px;color:#475569;margin:0 0 10px;line-height:1.7;">
+                ให้เลือก <strong>หน่วยที่เล็กที่สุด</strong> ของสินค้าเป็น <span style="color:#10b981;font-weight:700;">"หน่วยหลัก" (Base Unit)</span>
+                — พอขายย่อยได้ทีละชิ้น ระบบก็จะนับได้เป็นเลข<strong>จำนวนเต็ม</strong> ไม่งง
+              </p>
+              <div style="font-size:11px;color:#64748b;background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:10px 14px;line-height:1.8;">
+                <p style="margin:0 0 6px;color:#10b981;font-weight:700;">✅ ตั้งแบบนี้ถูก</p>
+                <p style="margin:0 0 10px;color:#475569;">
+                  สมมติขายน้ำพริก → มีทั้ง <strong>ห่อ, แพ็ค (6 ห่อ), ลัง (50 ห่อ)</strong><br/>
+                  ให้ตั้ง <span style="color:#10b981;font-weight:700;">"ห่อ"</span> เป็นหน่วยหลัก (เล็กสุด)
+                  → พอขาย 1 ห่อ สต็อกก็ลด 1 ห่อ ตรงๆ<br/>
+                  ถ้าขาย 1 ลัง ระบบแปลงให้เอง = ลด 50 ห่อ
+                </p>
+                <p style="margin:0 0 6px;color:#ef4444;font-weight:700;">❌ อย่าตั้งแบบนี้</p>
+                <p style="margin:0;color:#475569;">
+                  ถ้าตั้ง <strong>"ลัง"</strong> เป็นหน่วยหลักแทน → พอขายแค่ 1 ห่อ ระบบจะบอกว่าเหลือ "<strong>0.98 ลัง</strong>"
+                  → ทั้งพนักงานและลูกค้าอ่านแล้วงง ว่าจริงๆ เหลือกี่ห่อกันแน่
+                </p>
+              </div>
+            </div>
+          </div>
+          <script>
+            (function(){
+              var KEY = "unit_info_collapsed";
+              window.toggleUnitInfo = function () {
+                var body = document.getElementById("unitInfoBody");
+                var btn = document.getElementById("unitInfoToggleBtn");
+                if (!body || !btn) return;
+                var hidden = body.style.display === "none";
+                body.style.display = hidden ? "block" : "none";
+                btn.innerHTML = '<i data-lucide="' + (hidden ? "chevron-up" : "chevron-down") + '" style="width:14px;height:14px;color:#6366f1;"></i>';
+                if (typeof lucide !== "undefined") lucide.createIcons();
+                try { localStorage.setItem(KEY, hidden ? "0" : "1"); } catch (e) {}
+              };
+              document.addEventListener("DOMContentLoaded", function () {
+                try {
+                  if (localStorage.getItem(KEY) === "0") toggleUnitInfo();
+                } catch (e) {}
+              });
+            })();
+          </script>
 
           <!-- Status Cards -->
           <div class="stat-cards">
@@ -99,12 +150,12 @@
               <thead>
                 <tr>
                   <th>#</th>
-                  <th data-sort="name">Unit Name</th>
-                  <th data-sort="abbr">Abbreviation</th>
-                  <th>Conversion</th>
-                  <th data-sort="desc">Description</th>
-                  <th data-sort="status">Status</th>
-                  <th>Actions</th>
+                  <th data-sort="name">ชื่อหน่วย</th>
+                  <th data-sort="abbr">อักษรย่อ</th>
+                  <th>การแปลงหน่วย</th>
+                  <th data-sort="desc">รายละเอียด</th>
+                  <th data-sort="status">สถานะ</th>
+                  <th>จัดการ</th>
                 </tr>
               </thead>
               <tbody id="unitTableBody">
@@ -152,12 +203,18 @@
             <select class="form-select" id="inputBaseUnit">
               <option value="">— ไม่มี (ตัวเองเป็น base unit) —</option>
             </select>
-            <p class="form-hint" style="font-size:10px;color:#94a3b8;margin:4px 0 0;">เลือกหน่วยที่จะใช้แปลงค่า เช่น "ลัง" → base = "ห่อ"</p>
+            <p class="form-hint" style="font-size:10px;color:#64748b;margin:4px 0 0;line-height:1.5;">
+              ถ้าหน่วยนี้เป็น<strong>หน่วยเล็กที่สุด</strong> → เว้นว่าง (ให้เป็น base)<br/>
+              ถ้าเป็น<strong>หน่วยใหญ่กว่า</strong> → เลือก base unit ที่ใหญ่ขึ้นมาแปลงเข้าหา
+            </p>
           </div>
           <div class="form-group" id="factorGroup" style="display:none;">
             <label class="form-label">1 หน่วยนี้ = กี่ <span id="factorBaseLabel">base unit</span>?</label>
-            <input type="number" class="form-input" id="inputFactor" placeholder="เช่น 12" min="0.000001" step="any" />
-            <p class="form-hint" style="font-size:10px;color:#94a3b8;margin:4px 0 0;">ตัวอย่าง: 1 ลัง = 12 ห่อ → ใส่ 12</p>
+            <input type="number" class="form-input" id="inputFactor" placeholder="เช่น 50" min="0.000001" step="any" />
+            <p class="form-hint" style="font-size:10px;color:#64748b;margin:4px 0 0;line-height:1.5;">
+              ตัวอย่าง: 1 <strong>ลัง</strong> = 50 <strong>ห่อ</strong> → ใส่ <strong>50</strong><br/>
+              <span style="color:#ef4444;">⚠️ ค่าควร ≥ 1 เสมอ</span> (หน่วยนี้ต้องใหญ่กว่า base)
+            </p>
           </div>
           <div class="form-group">
             <label class="form-label">Status</label>
@@ -207,6 +264,7 @@
     <script>renderSidebarMenu("unit-of-measure.html");</script>
     <script src="/assets/js/topbar.js"></script>
     <script>renderTopbar({ group: "Inventory", page: "หน่วยนับ" });</script>
+    <script src="/modules/backend/assets/js/random-data.js"></script>
     <script src="unit-of-measure.js"></script>
   </body>
 </html>

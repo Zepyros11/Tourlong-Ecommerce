@@ -1,177 +1,182 @@
 // ============================================================
-// discounts.js — logic เฉพาะหน้า Discounts
-// ------------------------------------------------------------
-// ใช้ร่วมกับ: modal.js, confirm.js
+// discounts.js — Discounts (Supabase)
 // ============================================================
 
-// ============ Mock Database ============
-let discounts = [];
+var discounts = [];
 
-// ============ Update Stat Cards ============
 function updateStats() {
   document.getElementById("statAll").textContent = discounts.length;
-  document.getElementById("statActive").textContent = discounts.filter((d) => d.status === "active").length;
-  document.getElementById("statInactive").textContent = discounts.filter((d) => d.status === "inactive").length;
+  document.getElementById("statActive").textContent = discounts.filter(function (d) { return d.status === "active"; }).length;
+  document.getElementById("statInactive").textContent = discounts.filter(function (d) { return d.status === "inactive"; }).length;
 }
 
-// ============ Discount Display ============
 function formatDiscount(d) {
   if (d.type === "percent") return d.discount + "%";
-  return "฿" + d.discount;
+  return "฿" + Number(d.discount || 0).toLocaleString();
 }
 
-// ============ ApplyTo Badge ============
 function applyToBadge(applyTo) {
   switch (applyTo) {
     case "all":      return '<span class="badge badge-active">ทั้งหมด</span>';
-    case "category": return '<span class="badge" style="background-color: #eff6ff; color: #3b82f6;">หมวดหมู่</span>';
-    case "product":  return '<span class="badge" style="background-color: #fffbeb; color: #f59e0b;">เฉพาะสินค้า</span>';
+    case "category": return '<span class="badge" style="background-color:#eff6ff;color:#3b82f6;">หมวดหมู่</span>';
+    case "product":  return '<span class="badge" style="background-color:#fffbeb;color:#f59e0b;">เฉพาะสินค้า</span>';
     default:         return '<span class="badge">' + applyTo + "</span>";
   }
 }
 
-// ============ Render Table ============
 function renderTable(data) {
   updateStats();
-  const tbody = document.getElementById("discountTableBody");
-  tbody.innerHTML = data
-    .map(
-      (d, i) => `
-    <tr>
-      <td>${i + 1}</td>
-      <td>${d.name}</td>
-      <td>${formatDiscount(d)}</td>
-      <td>${applyToBadge(d.applyTo)}</td>
-      <td>${d.startDate}</td>
-      <td>${d.endDate}</td>
-      <td><span class="badge badge-${d.status === "active" ? "active" : "inactive"}">${d.status === "active" ? "Active" : "Inactive"}</span></td>
-      <td>
-        <div class="table-actions">
-          <button class="btn-icon-sm" onclick="editDiscount(${d.id})"><i data-lucide="pencil"></i></button>
-          <button class="btn-icon-sm btn-danger" onclick="deleteDiscount(${d.id})"><i data-lucide="trash-2"></i></button>
-        </div>
-      </td>
-    </tr>
-  `
-    )
-    .join("");
+  var tbody = document.getElementById("discountTableBody");
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:#94a3b8;font-size:11px;">ยังไม่มีส่วนลด</td></tr>';
+    lucide.createIcons();
+    return;
+  }
+  tbody.innerHTML = data.map(function (d, i) {
+    return '<tr>' +
+      '<td>' + (i + 1) + '</td>' +
+      '<td>' + (d.name || "") + '</td>' +
+      '<td>' + formatDiscount(d) + '</td>' +
+      '<td>' + applyToBadge(d.apply_to) + '</td>' +
+      '<td>' + (d.start_date || "—") + '</td>' +
+      '<td>' + (d.end_date || "—") + '</td>' +
+      '<td><span class="badge badge-' + (d.status === "active" ? "active" : "inactive") + '">' + (d.status === "active" ? "Active" : "Inactive") + '</span></td>' +
+      '<td><div class="table-actions">' +
+        '<button class="btn-icon-sm" onclick="editDiscount(' + d.id + ')"><i data-lucide="pencil"></i></button>' +
+        '<button class="btn-icon-sm btn-danger" onclick="deleteDiscount(' + d.id + ')"><i data-lucide="trash-2"></i></button>' +
+      '</div></td>' +
+    '</tr>';
+  }).join("");
   lucide.createIcons();
   if (typeof refreshSortableHeaders === "function") refreshSortableHeaders();
 }
 
-// ============ Add / Edit Modal ============
 function openDiscountModal(title, d) {
   document.getElementById("modalTitle").textContent = title;
   document.getElementById("editId").value = d ? d.id : "";
-  document.getElementById("inputName").value = d ? d.name : "";
+  document.getElementById("inputName").value = d ? (d.name || "") : "";
   document.getElementById("inputDiscount").value = d ? d.discount : "";
   document.getElementById("inputType").value = d ? d.type : "percent";
-  document.getElementById("inputApplyTo").value = d ? d.applyTo : "all";
-  document.getElementById("inputStartDate").value = d ? d.startDate : "";
-  document.getElementById("inputEndDate").value = d ? d.endDate : "";
-  document.getElementById("inputStatus").checked = d ? d.status === "active" : true;
-  var _lbl = document.getElementById("inputStatusLabel"); if(_lbl) { _lbl.textContent = (d ? d.status === "active" : true) ? "Active" : "Inactive"; _lbl.classList.toggle("active-label", d ? d.status === "active" : true); }
-  openModalById("discountModal", function () {
-    document.getElementById("inputName").focus();
-  });
+  document.getElementById("inputApplyTo").value = d ? d.apply_to : "all";
+  document.getElementById("inputStartDate").value = d ? (d.start_date || "") : "";
+  document.getElementById("inputEndDate").value = d ? (d.end_date || "") : "";
+  var active = d ? d.status === "active" : true;
+  document.getElementById("inputStatus").checked = active;
+  var lbl = document.getElementById("inputStatusLabel");
+  if (lbl) { lbl.textContent = active ? "Active" : "Inactive"; lbl.classList.toggle("active-label", active); }
+  openModalById("discountModal", function () { document.getElementById("inputName").focus(); });
 }
 
 function saveDiscount() {
-  const id = document.getElementById("editId").value;
-  const name = document.getElementById("inputName").value.trim();
-  const discount = document.getElementById("inputDiscount").value.trim();
-  const type = document.getElementById("inputType").value;
-  const applyTo = document.getElementById("inputApplyTo").value;
-  const startDate = document.getElementById("inputStartDate").value;
-  const endDate = document.getElementById("inputEndDate").value;
-  const status = document.getElementById("inputStatus").checked ? "active" : "inactive";
+  var id = document.getElementById("editId").value;
+  var name = document.getElementById("inputName").value.trim();
+  var discount = document.getElementById("inputDiscount").value.trim();
+  var startDate = document.getElementById("inputStartDate").value;
+  var endDate = document.getElementById("inputEndDate").value;
+
   if (!name) return document.getElementById("inputName").focus();
   if (!discount) return document.getElementById("inputDiscount").focus();
   if (!startDate) return document.getElementById("inputStartDate").focus();
   if (!endDate) return document.getElementById("inputEndDate").focus();
 
-  if (id) {
-    const d = discounts.find((item) => item.id === Number(id));
-    if (d) {
-      d.name = name;
-      d.discount = Number(discount);
-      d.type = type;
-      d.applyTo = applyTo;
-      d.startDate = startDate;
-      d.endDate = endDate;
-      d.status = status;
-    }
-  } else {
-    const newId = discounts.length ? Math.max(...discounts.map((item) => item.id)) + 1 : 1;
-    discounts.push({ id: newId, name, discount: Number(discount), type, applyTo, startDate, endDate, status });
-  }
-  closeModalById("discountModal");
-  applyFilters();
+  var payload = {
+    name: name,
+    type: document.getElementById("inputType").value,
+    discount: Number(discount),
+    apply_to: document.getElementById("inputApplyTo").value,
+    start_date: startDate,
+    end_date: endDate,
+    status: document.getElementById("inputStatus").checked ? "active" : "inactive",
+  };
+
+  var op = id ? updateDiscountDB(Number(id), payload) : createDiscountDB(payload);
+  op.then(function () { return reloadDiscounts(); })
+    .then(function () {
+      closeModalById("discountModal");
+      applyFilters();
+    })
+    .catch(function (err) { console.error(err); });
 }
 
 function editDiscount(id) {
-  const d = discounts.find((item) => item.id === id);
+  var d = discounts.find(function (x) { return x.id === id; });
   if (d) openDiscountModal("Edit Discount", d);
 }
 
-// ============ Delete (ใช้ confirm.js) ============
 function deleteDiscount(id) {
-  const d = discounts.find((item) => item.id === id);
+  var d = discounts.find(function (x) { return x.id === id; });
   if (!d) return;
   showConfirm({
     title: "Confirm Delete",
-    message: "ต้องการลบโปรโมชั่น <strong>" + d.name + "</strong> ใช่ไหม?",
-    okText: "Delete",
-    okColor: "#ef4444",
+    message: "ต้องการลบส่วนลด <strong>" + d.name + "</strong> ใช่ไหม?",
+    okText: "Delete", okColor: "#ef4444",
     onConfirm: function () {
-      discounts = discounts.filter((item) => item.id !== id);
-      applyFilters();
+      deleteDiscountDB(id)
+        .then(function () { return reloadDiscounts(); })
+        .then(function () { applyFilters(); })
+        .catch(function (err) { console.error(err); });
     },
   });
 }
 
-// ============ Filter & Sort ============
-let currentFilter = "all";
-let currentSort = "default";
+var currentFilter = "all";
+var currentSort = "default";
 
 function getFilteredData() {
-  const keyword = document.querySelector(".filter-search-input").value.toLowerCase();
-  let data = discounts;
-
-  if (currentFilter !== "all") {
-    data = data.filter((d) => d.status === currentFilter);
-  }
-
-  if (keyword) {
-    data = data.filter(
-      (d) =>
-        d.name.toLowerCase().includes(keyword)
-    );
-  }
-
+  var keyword = document.querySelector(".filter-search-input").value.toLowerCase();
+  var data = discounts.slice();
+  if (currentFilter !== "all") data = data.filter(function (d) { return d.status === currentFilter; });
+  if (keyword) data = data.filter(function (d) { return (d.name || "").toLowerCase().includes(keyword); });
   switch (currentSort) {
-    case "name-asc":
-      data = [...data].sort((a, b) => a.name.localeCompare(b.name));
-      break;
-    case "name-desc":
-      data = [...data].sort((a, b) => b.name.localeCompare(a.name));
-      break;
+    case "name-asc":  data = data.slice().sort(function (a, b) { return (a.name || "").localeCompare(b.name || ""); }); break;
+    case "name-desc": data = data.slice().sort(function (a, b) { return (b.name || "").localeCompare(a.name || ""); }); break;
   }
-
   return data;
 }
 
-function applyFilters() {
-  renderTable(getFilteredData());
+function applyFilters() { renderTable(getFilteredData()); }
+
+function reloadDiscounts() {
+  return (typeof fetchDiscountsDB === "function" ? fetchDiscountsDB() : Promise.resolve([]))
+    .then(function (rows) {
+      discounts = (rows || []).map(function (r) {
+        return {
+          id: r.id,
+          name: r.name || "",
+          type: r.type || "percent",
+          discount: Number(r.discount) || 0,
+          apply_to: r.apply_to || "all",
+          start_date: r.start_date || "",
+          end_date: r.end_date || "",
+          status: r.status || "active",
+        };
+      });
+    });
 }
 
-// ============ Init ============
+if (typeof registerRandomFill === "function") {
+  registerRandomFill({
+    target: "#discountModal",
+    fill: function () {
+      setFieldValue("inputName", "โปรโมชั่น " + randomProductName());
+      var type = rdPick(["percent", "fixed"]);
+      setFieldValue("inputType", type);
+      setFieldValue("inputDiscount", type === "percent" ? rdInt(5, 50) : randomMoney(50, 500));
+      setFieldValue("inputApplyTo", rdPick(["all", "category", "product"]));
+      setFieldValue("inputStartDate", randomPastDate(30));
+      setFieldValue("inputEndDate", randomFutureDate(60));
+      var sw = document.getElementById("inputStatus");
+      if (sw) { sw.checked = rdBool(0.85); sw.dispatchEvent(new Event("change", { bubbles: true })); }
+    },
+  });
+}
+
 document.addEventListener("DOMContentLoaded", function () {
   document.querySelector(".filter-search-input").addEventListener("input", applyFilters);
 
   document.querySelectorAll(".filter-btn").forEach(function (btn) {
     btn.addEventListener("click", function () {
-      document.querySelectorAll(".filter-btn").forEach((b) => b.classList.remove("active"));
+      document.querySelectorAll(".filter-btn").forEach(function (b) { b.classList.remove("active"); });
       this.classList.add("active");
       currentFilter = this.dataset.status;
       applyFilters();
@@ -187,14 +192,15 @@ document.addEventListener("DOMContentLoaded", function () {
     openDiscountModal("Add Discount", null);
   });
 
-  // Status toggle listener
   var statusToggle = document.getElementById("inputStatus");
   if (statusToggle) {
-    statusToggle.addEventListener("change", function() {
+    statusToggle.addEventListener("change", function () {
       var lbl = document.getElementById("inputStatusLabel");
       if (lbl) { lbl.textContent = this.checked ? "Active" : "Inactive"; lbl.classList.toggle("active-label", this.checked); }
     });
   }
 
-  renderTable(discounts);
+  reloadDiscounts()
+    .then(function () { applyFilters(); })
+    .catch(function (err) { console.error(err); applyFilters(); });
 });

@@ -28,7 +28,7 @@
 
         <button class="sidebar-logout">
           <i data-lucide="log-out" class="sidebar-icon-xs"></i>
-          <span>Go Out</span>
+          <span>ออกจากระบบ</span>
         </button>
       </aside>
 
@@ -106,11 +106,11 @@
               <thead>
                 <tr>
                   <th>#</th>
-                  <th data-sort="date" data-sort-type="date">Date & Time</th>
-                  <th data-sort="user">User</th>
-                  <th data-sort="action">Action</th>
-                  <th data-sort="module">Module</th>
-                  <th data-sort="desc">Description</th>
+                  <th data-sort="date" data-sort-type="date">วันที่และเวลา</th>
+                  <th data-sort="user">ผู้ใช้</th>
+                  <th data-sort="action">กิจกรรม</th>
+                  <th data-sort="module">โมดูล</th>
+                  <th data-sort="desc">รายละเอียด</th>
                 </tr>
               </thead>
               <tbody id="logTableBody">
@@ -136,6 +136,7 @@
     <script src="/assets/js/esc-close.js"></script>
     <script src="../assets/js/modal.js"></script>
     <script src="../assets/js/enter-save.js"></script>
+    <script src="/modules/backend/assets/js/supabase-client.js"></script>
     <script src="/modules/backend/assets/js/auth-guard.js"></script>
     <script>requireAuth();</script>
     <script src="../assets/js/sidebar-menu.js"></script>
