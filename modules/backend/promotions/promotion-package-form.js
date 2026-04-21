@@ -118,7 +118,7 @@ function savePkg() {
   var name = document.getElementById("inputName").value.trim();
   var startDate = document.getElementById("inputStartDate").value || null;
   var endDate = document.getElementById("inputEndDate").value || null;
-  var status = document.getElementById("inputStatus").value;
+  var status = document.getElementById("inputStatus").checked ? "active" : "inactive";
   var note = document.getElementById("inputNote").value.trim();
   var items = collectItems();
 
@@ -155,7 +155,7 @@ function populateForm(p) {
   document.getElementById("inputName").value = p.name || "";
   document.getElementById("inputStartDate").value = p.start_date || "";
   document.getElementById("inputEndDate").value = p.end_date || "";
-  document.getElementById("inputStatus").value = p.status || "active";
+  document.getElementById("inputStatus").checked = (p.status || "active") === "active";
   document.getElementById("inputNote").value = p.note || "";
 
   var tbody = document.getElementById("pkgItemsBody");
@@ -186,7 +186,7 @@ if (typeof registerRandomFill === "function") {
       setFieldValue("inputStartDate", randomPastDate(15));
       setFieldValue("inputEndDate", randomFutureDate(60));
       setFieldValue("inputNote", randomNote());
-      pickRandomSelectOption("inputStatus", { includeEmpty: true });
+      setCheckboxValue("inputStatus", rdBool(0.85));
       document.getElementById("pkgItemsBody").innerHTML = "";
       var n = rdInt(2, 4);
       for (var i = 0; i < n; i++) {

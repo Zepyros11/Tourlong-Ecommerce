@@ -47,10 +47,10 @@
               <p class="content-subtitle">รับสินค้าเข้าคลัง</p>
             </div>
             <div class="content-header-actions">
-              <button class="btn-primary" id="addGRBtn">
+              <a href="goods-receive-form.html" class="btn-primary" style="text-decoration:none;">
                 <i data-lucide="plus" class="btn-icon"></i>
-                Create GR
-              </button>
+                สร้าง GR
+              </a>
             </div>
           </div>
 
@@ -61,7 +61,7 @@
                 <i data-lucide="package-check" class="stat-icon"></i>
               </div>
               <div>
-                <p class="stat-card-label">All GR</p>
+                <p class="stat-card-label">GR ทั้งหมด</p>
                 <p class="stat-card-value" id="statAll">0</p>
               </div>
             </div>
@@ -70,8 +70,17 @@
                 <i data-lucide="check-circle" class="stat-icon"></i>
               </div>
               <div>
-                <p class="stat-card-label">Completed</p>
+                <p class="stat-card-label">สำเร็จ</p>
                 <p class="stat-card-value" id="statCompleted">0</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-icon" style="background-color:#ffedd5;color:#ea580c;">
+                <i data-lucide="package-minus" class="stat-icon"></i>
+              </div>
+              <div>
+                <p class="stat-card-label">รับบางส่วน</p>
+                <p class="stat-card-value" id="statPartial">0</p>
               </div>
             </div>
             <div class="stat-card">
@@ -79,7 +88,7 @@
                 <i data-lucide="clock" class="stat-icon"></i>
               </div>
               <div>
-                <p class="stat-card-label">Pending</p>
+                <p class="stat-card-label">รอดำเนินการ</p>
                 <p class="stat-card-value" id="statPending">0</p>
               </div>
             </div>
@@ -88,19 +97,20 @@
           <!-- Filter Bar -->
           <div class="filter-bar">
             <div class="filter-group">
-              <button class="filter-btn active" data-status="all">All</button>
-              <button class="filter-btn" data-status="completed">Completed</button>
-              <button class="filter-btn" data-status="pending">Pending</button>
+              <button class="filter-btn active" data-status="all">ทั้งหมด</button>
+              <button class="filter-btn" data-status="completed">สำเร็จ</button>
+              <button class="filter-btn" data-status="partial">รับบางส่วน</button>
+              <button class="filter-btn" data-status="pending">รอดำเนินการ</button>
               <div class="filter-search">
                 <i data-lucide="search" class="filter-search-icon"></i>
-                <input type="text" placeholder="Search GR..." class="filter-search-input" />
+                <input type="text" placeholder="ค้นหา GR..." class="filter-search-input" />
               </div>
             </div>
             <div class="filter-group">
               <select class="form-select filter-sort" id="sortSelect">
-                <option value="default">Sort by</option>
-                <option value="date-desc">Date Newest</option>
-                <option value="date-asc">Date Oldest</option>
+                <option value="default">เรียงตาม</option>
+                <option value="date-desc">วันที่: ใหม่ล่าสุด</option>
+                <option value="date-asc">วันที่: เก่าสุด</option>
               </select>
             </div>
           </div>
@@ -136,85 +146,6 @@
             <a href="#" class="footer-link">Support</a>
           </nav>
         </footer>
-      </div>
-    </div>
-
-    <!-- Modal Add/Edit GR -->
-    <div class="modal-overlay" id="grModal">
-      <div class="modal" style="max-width:720px;">
-        <div class="modal-header">
-          <h3 class="modal-title" id="modalTitle">Create GR</h3>
-          <button class="modal-close"><i data-lucide="x"></i></button>
-        </div>
-        <div class="modal-body">
-          <input type="hidden" id="editId" />
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
-            <div class="form-group" style="margin:0;">
-              <label class="form-label">GR Number</label>
-              <input type="text" class="form-input" id="inputGRNumber" readonly />
-            </div>
-            <div class="form-group" style="margin:0;">
-              <label class="form-label">Receive Date</label>
-              <input type="date" class="form-input" id="inputDate" />
-            </div>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
-            <div class="form-group" style="margin:0;">
-              <label class="form-label">PO Reference (optional)</label>
-              <select class="form-select" id="inputPO" onchange="onPOChange()"></select>
-            </div>
-            <div class="form-group" style="margin:0;">
-              <label class="form-label">Supplier</label>
-              <select class="form-select" id="inputSupplier"></select>
-            </div>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
-            <div class="form-group" style="margin:0;">
-              <label class="form-label">Warehouse (รับเข้า)</label>
-              <select class="form-select" id="inputWarehouse"></select>
-            </div>
-            <div class="form-group" style="margin:0;">
-              <label class="form-label">Status</label>
-              <select class="form-select" id="inputStatus">
-                <option value="completed">Completed (update stock)</option>
-                <option value="pending">Pending</option>
-                <option value="cancelled">Cancelled</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- Line Items -->
-          <div style="margin-top:14px;padding-top:10px;border-top:1px solid #e2e8f0;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-              <label class="form-label" style="margin:0;">รายการที่รับ</label>
-              <button class="btn-outline" type="button" onclick="addGRItemRow()" style="padding:4px 12px;font-size:9px;">+ เพิ่มรายการ</button>
-            </div>
-            <div style="background:#f8fafc;border-radius:10px;padding:8px;overflow-x:auto;">
-              <table style="width:100%;border-collapse:collapse;font-size:10px;">
-                <thead><tr style="color:#64748b;text-transform:uppercase;font-size:9px;">
-                  <th style="padding:6px;text-align:left;">สินค้า</th>
-                  <th style="padding:6px;text-align:right;width:80px;">จำนวน</th>
-                  <th style="padding:6px;text-align:right;width:100px;">ต้นทุน/หน่วย</th>
-                  <th style="padding:6px;text-align:right;width:110px;">ยอดย่อย</th>
-                  <th style="padding:6px;width:30px;"></th>
-                </tr></thead>
-                <tbody id="grItemsBody"></tbody>
-              </table>
-            </div>
-          </div>
-
-          <div style="margin-top:12px;padding-top:10px;border-top:1px solid #e2e8f0;display:grid;grid-template-columns:1fr 200px;gap:20px;">
-            <div class="form-group" style="margin:0;">
-              <label class="form-label">Note</label>
-              <input type="text" class="form-input" id="inputNote" placeholder="หมายเหตุ..." />
-            </div>
-            <div style="display:flex;justify-content:space-between;font-weight:800;color:#1e293b;font-size:13px;align-items:flex-end;"><span>Total:</span><span id="sumTotal">฿0.00</span></div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button class="btn-secondary" onclick="closeModalById('grModal')">Cancel</button>
-          <button class="btn-primary" onclick="saveGR()">Save</button>
-        </div>
       </div>
     </div>
 

@@ -43,13 +43,13 @@
         <div class="content">
           <div class="content-header">
             <div>
-              <h2 class="content-title">Purchase Orders</h2>
+              <h2 class="content-title">ใบสั่งซื้อ</h2>
               <p class="content-subtitle">จัดการใบสั่งซื้อ</p>
             </div>
             <div class="content-header-actions">
               <a href="purchase-order-form.html" class="btn-primary" style="text-decoration:none;">
                 <i data-lucide="plus" class="btn-icon"></i>
-                Create PO
+                สร้าง PO
               </a>
             </div>
           </div>
@@ -61,7 +61,7 @@
                 <i data-lucide="file-text" class="stat-icon"></i>
               </div>
               <div>
-                <p class="stat-card-label">All POs</p>
+                <p class="stat-card-label">PO ทั้งหมด</p>
                 <p class="stat-card-value" id="statAll">0</p>
               </div>
             </div>
@@ -70,7 +70,7 @@
                 <i data-lucide="check-circle" class="stat-icon"></i>
               </div>
               <div>
-                <p class="stat-card-label">Approved</p>
+                <p class="stat-card-label">อนุมัติแล้ว</p>
                 <p class="stat-card-value" id="statApproved">0</p>
               </div>
             </div>
@@ -79,7 +79,7 @@
                 <i data-lucide="clock" class="stat-icon"></i>
               </div>
               <div>
-                <p class="stat-card-label">Pending</p>
+                <p class="stat-card-label">รอดำเนินการ</p>
                 <p class="stat-card-value" id="statPending">0</p>
               </div>
             </div>
@@ -88,7 +88,7 @@
                 <i data-lucide="x-circle" class="stat-icon"></i>
               </div>
               <div>
-                <p class="stat-card-label">Cancelled</p>
+                <p class="stat-card-label">ยกเลิก</p>
                 <p class="stat-card-value" id="statCancelled">0</p>
               </div>
             </div>
@@ -97,22 +97,22 @@
           <!-- Filter Bar -->
           <div class="filter-bar">
             <div class="filter-group">
-              <button class="filter-btn active" data-status="all">All</button>
-              <button class="filter-btn" data-status="approved">Approved</button>
-              <button class="filter-btn" data-status="pending">Pending</button>
-              <button class="filter-btn" data-status="cancelled">Cancelled</button>
+              <button class="filter-btn active" data-status="all">ทั้งหมด</button>
+              <button class="filter-btn" data-status="approved">อนุมัติแล้ว</button>
+              <button class="filter-btn" data-status="pending">รอดำเนินการ</button>
+              <button class="filter-btn" data-status="cancelled">ยกเลิก</button>
               <div class="filter-search">
                 <i data-lucide="search" class="filter-search-icon"></i>
-                <input type="text" placeholder="Search PO..." class="filter-search-input" />
+                <input type="text" placeholder="ค้นหา PO..." class="filter-search-input" />
               </div>
             </div>
             <div class="filter-group">
               <select class="form-select filter-sort" id="sortSelect">
-                <option value="default">Sort by</option>
-                <option value="date-desc">Date: Newest</option>
-                <option value="date-asc">Date: Oldest</option>
-                <option value="amount-desc">Amount: High-Low</option>
-                <option value="amount-asc">Amount: Low-High</option>
+                <option value="default">เรียงตาม</option>
+                <option value="date-desc">วันที่: ใหม่ล่าสุด</option>
+                <option value="date-asc">วันที่: เก่าสุด</option>
+                <option value="amount-desc">ยอด: มาก-น้อย</option>
+                <option value="amount-asc">ยอด: น้อย-มาก</option>
               </select>
             </div>
           </div>
@@ -123,7 +123,6 @@
               <thead>
                 <tr>
                   <th>#</th>
-                  <th data-sort="po">เลขที่ PO</th>
                   <th data-sort="supplier">ผู้ขาย</th>
                   <th data-sort="date" data-sort-type="date">วันที่</th>
                   <th data-sort="items" data-sort-type="number">รายการ</th>

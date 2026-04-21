@@ -8,9 +8,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="../assets/backend.css" />
     <style>
-      .form-section { background:#fff; border:1px solid #f1f5f9; border-radius:14px; padding:18px; margin-bottom:14px; box-shadow:0 10px 40px -10px rgba(0,0,0,0.04); }
-      .form-section-title { font-size:12px; font-weight:800; color:#1e293b; margin:0 0 14px; display:flex; align-items:center; gap:6px; }
-      .form-section-title i { width:14px; height:14px; color:#47b8b4; }
       .items-table { width:100%; border-collapse:collapse; font-size:10px; }
       .items-table thead tr { color:#64748b; text-transform:uppercase; font-size:9px; letter-spacing:0.4px; }
       .items-table th { padding:8px; text-align:left; background:#f8fafc; }
@@ -64,10 +61,13 @@
               </div>
               <div class="form-group">
                 <label class="form-label">Status</label>
-                <select class="form-select" id="inputStatus">
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                </select>
+                <div class="status-toggle">
+                  <label class="toggle">
+                    <input type="checkbox" id="inputStatus" checked />
+                    <span class="toggle-slider"></span>
+                  </label>
+                  <span class="status-toggle-label active-label" id="inputStatusLabel">Active</span>
+                </div>
               </div>
             </div>
 
@@ -90,12 +90,7 @@
 
           <!-- Line Items -->
           <div class="form-section">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-              <h3 class="form-section-title" style="margin:0;"><i data-lucide="package"></i> รายการสินค้าในแพ็คเกจ</h3>
-              <button class="btn-outline" type="button" onclick="addPkgItemRow()" style="padding:6px 14px;font-size:10px;">
-                <i data-lucide="plus" style="width:12px;height:12px;display:inline;vertical-align:-2px;"></i> เพิ่มสินค้า
-              </button>
-            </div>
+            <h3 class="form-section-title"><i data-lucide="package"></i> รายการสินค้าในแพ็คเกจ</h3>
 
             <div style="overflow-x:auto;">
               <table class="items-table">
@@ -115,6 +110,11 @@
               </table>
             </div>
             <p id="emptyHint" style="display:none;margin:12px 0 0;text-align:center;color:#94a3b8;font-size:11px;">ยังไม่มีสินค้า — กด "เพิ่มสินค้า" เพื่อเริ่ม</p>
+            <div style="display:flex;justify-content:center;margin-top:12px;">
+              <button class="btn-outline" type="button" onclick="addPkgItemRow()" style="padding:8px 18px;font-size:11px;">
+                <i data-lucide="plus" style="width:14px;height:14px;"></i> เพิ่มสินค้า
+              </button>
+            </div>
           </div>
 
           <!-- Summary -->

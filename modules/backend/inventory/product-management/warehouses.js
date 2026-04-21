@@ -49,7 +49,6 @@ function renderTable(data) {
     return '<tr>' +
       '<td>' + (i + 1) + '</td>' +
       '<td style="font-weight:600;">' + w.name + '</td>' +
-      '<td><span style="font-size:10px;font-weight:700;color:#3b82f6;background:#eff6ff;padding:2px 8px;border-radius:6px;">' + (w.code || '—') + '</span></td>' +
       '<td style="font-size:11px;color:#64748b;">' + (w.location || '—') + '</td>' +
       '<td style="font-size:11px;color:#64748b;">' + (w.manager || '—') + '</td>' +
       '<td>' +
@@ -63,7 +62,7 @@ function renderTable(data) {
         '<button class="btn-icon-sm btn-danger" onclick="deleteWarehouse(' + w.id + ')"><i data-lucide="trash-2"></i></button>' +
       '</div></td>' +
     '</tr>';
-  }).join("") || '<tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:30px;">ยังไม่มีคลังสินค้า</td></tr>';
+  }).join("") || '<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:30px;">ยังไม่มีคลังสินค้า</td></tr>';
   lucide.createIcons();
   if (typeof refreshSortableHeaders === "function") refreshSortableHeaders();
 }

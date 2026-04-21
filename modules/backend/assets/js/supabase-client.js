@@ -798,7 +798,7 @@ function deletePurchaseOrderDB(id) {
 // ===================== Goods Receipts =====================
 
 function fetchGoodsReceiptsDB() {
-  return fetch(SUPABASE_URL + "/rest/v1/goods_receipts?select=*,suppliers(name),warehouses(name),purchase_orders(po_number),goods_receipt_items(id,product_id,qty,cost,subtotal,products(name,sku))&order=id.desc", {
+  return fetch(SUPABASE_URL + "/rest/v1/goods_receipts?select=*,suppliers(name),warehouses(name),purchase_orders(po_number),goods_receipt_items(id,po_item_id,product_id,qty,cost,subtotal,products(name,sku))&order=id.desc", {
     headers: supabaseHeaders,
   }).then(function (res) { return res.json(); });
 }
@@ -814,7 +814,7 @@ function createGoodsReceiptDB(header, items) {
       if (!gr || !gr.id) throw new Error("Create GR failed");
       if (!items || !items.length) return gr;
       var rowsToInsert = items.map(function (it) {
-        return { gr_id: gr.id, product_id: it.product_id, qty: it.qty, cost: it.cost };
+        return { gr_id: gr.id, po_item_id: it.po_item_id || null, product_id: it.product_id, qty: it.qty, cost: it.cost };
       });
       return fetch(SUPABASE_URL + "/rest/v1/goods_receipt_items", {
         method: "POST",
@@ -840,7 +840,7 @@ function updateGoodsReceiptDB(id, header, items) {
     .then(function () {
       if (!items || !items.length) return null;
       var rowsToInsert = items.map(function (it) {
-        return { gr_id: Number(id), product_id: it.product_id, qty: it.qty, cost: it.cost };
+        return { gr_id: Number(id), po_item_id: it.po_item_id || null, product_id: it.product_id, qty: it.qty, cost: it.cost };
       });
       return fetch(SUPABASE_URL + "/rest/v1/goods_receipt_items", {
         method: "POST",

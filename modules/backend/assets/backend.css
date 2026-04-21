@@ -34,11 +34,168 @@ body {
   font-weight: 800;
   color: #1e293b;
   margin-bottom: 3px;
+  padding-left: 12px;
+  border-left: 4px solid #47b8b4;
+  line-height: 1.1;
 }
 
 .content-subtitle {
   font-size: 11px;
   color: #94a3b8;
+  padding-left: 12px;
+}
+
+/* ===== Shared form-section style (pill header like frontend builder) ===== */
+.form-section {
+  background: #fff;
+  border: 1px solid #f1f5f9;
+  border-radius: 14px;
+  padding: 0 20px 18px;
+  margin-bottom: 14px;
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+}
+.form-section-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: #0f766e;
+  margin: 0 -20px 16px;
+  padding: 14px 20px;
+  background: linear-gradient(135deg, rgba(71, 184, 180, 0.32) 0%, rgba(45, 212, 191, 0.18) 100%);
+  border-bottom: 1px solid rgba(71, 184, 180, 0.35);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.form-section-title i {
+  width: 14px;
+  height: 14px;
+  color: #fff;
+  padding: 7px;
+  background: linear-gradient(135deg, #47b8b4, #2dd4bf);
+  border-radius: 8px;
+  box-sizing: content-box;
+  box-shadow: 0 4px 10px rgba(71, 184, 180, 0.28);
+}
+
+/* ===== Product Block (products-form — same pill header treatment) ===== */
+.product-block {
+  position: relative;
+  background: #fff;
+  border: 1px solid #f1f5f9;
+  border-radius: 14px;
+  padding: 0 18px 18px;
+  margin-bottom: 12px;
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+}
+.product-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 -18px 14px;
+  padding: 14px 18px;
+  background: linear-gradient(135deg, rgba(71, 184, 180, 0.32) 0%, rgba(45, 212, 191, 0.18) 100%);
+  border-bottom: 1px solid rgba(71, 184, 180, 0.35);
+}
+.product-block-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: #0f766e;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.product-block-title i {
+  width: 14px;
+  height: 14px;
+  color: #fff;
+  padding: 6px;
+  background: linear-gradient(135deg, #47b8b4, #2dd4bf);
+  border-radius: 8px;
+  box-sizing: content-box;
+  box-shadow: 0 4px 10px rgba(71, 184, 180, 0.28);
+}
+.product-block-remove {
+  width: 24px;
+  height: 24px;
+  background: rgba(239, 68, 68, 0.12);
+  border: none;
+  border-radius: 6px;
+  color: #ef4444;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  transition: background 0.2s;
+}
+.product-block-remove:hover {
+  background: rgba(239, 68, 68, 0.2);
+}
+.block-divider {
+  border: none;
+  border-top: 2px dashed #e2e8f0;
+  margin: 0 0 12px;
+}
+
+/* ===== Line items table (shared across PO, GR, Package forms) ===== */
+.line-items-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+.line-items-table thead tr {
+  color: #64748b;
+  text-transform: uppercase;
+  font-size: 9px;
+  letter-spacing: 0.5px;
+}
+.line-items-table th {
+  padding: 6px 8px;
+  text-align: left;
+  font-weight: 700;
+}
+.line-items-table td {
+  padding: 4px 6px;
+  vertical-align: middle;
+}
+.line-items-table input,
+.line-items-table select {
+  font-size: 11px;
+  padding: 6px 8px;
+  width: 100%;
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* ===== Locked input (auto-generated numbers: PO#, GR#, etc) ===== */
+.input-locked { position: relative; }
+.input-locked .form-input {
+  background-color: #f1f5f9;
+  color: #64748b;
+  cursor: not-allowed;
+  padding-right: 32px;
+  font-weight: 600;
+}
+.input-locked .form-input:focus {
+  outline: none;
+  border-color: #e2e8f0;
+  box-shadow: none;
+}
+.input-locked-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 12px;
+  height: 12px;
+  color: #94a3b8;
+  pointer-events: none;
 }
 .shadow-soft {
   box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.04);
@@ -770,6 +927,15 @@ body {
   background-color: #fee2e2;
 }
 
+.btn-icon-sm.btn-receive {
+  color: #0d9488;
+  background-color: #ccfbf1;
+}
+
+.btn-icon-sm.btn-receive:hover {
+  background-color: #99f6e4;
+}
+
 /* ===================== Table ===================== */
 .table-container {
   background-color: #ffffff;
@@ -886,6 +1052,37 @@ body {
 .badge-inactive {
   background-color: #fef2f2;
   color: #ef4444;
+}
+
+/* Inline editable status select (looks like a badge, acts like a dropdown) */
+.status-select {
+  border: none;
+  outline: none;
+  padding: 4px 22px 4px 10px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+  background-size: 8px;
+  transition: box-shadow 0.15s ease, transform 0.1s ease;
+}
+.status-select:hover {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  transform: translateY(-1px);
+}
+.status-select:focus {
+  box-shadow: 0 0 0 3px rgba(71, 184, 180, 0.25);
+}
+.status-select option {
+  padding: 6px 12px;
+  font-weight: 700;
 }
 
 /* ===================== Dashboard ===================== */
@@ -1309,14 +1506,18 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px 12px;
-  border-bottom: 1px solid #f1f5f9;
+  padding: 14px 20px;
+  border-bottom: 1px solid rgba(71, 184, 180, 0.35);
+  background: linear-gradient(135deg, rgba(71, 184, 180, 0.32) 0%, rgba(45, 212, 191, 0.18) 100%);
+  border-top-left-radius: 18px;
+  border-top-right-radius: 18px;
 }
 
 .modal-title {
   font-size: 13px;
   font-weight: 800;
-  color: #1e293b;
+  color: #0f766e;
+  line-height: 1.2;
 }
 
 .modal-close {
@@ -1362,8 +1563,15 @@ body {
   gap: 12px;
 }
 
+.form-row-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+
 @media (max-width: 640px) {
-  .form-row {
+  .form-row,
+  .form-row-3 {
     grid-template-columns: 1fr;
   }
 }

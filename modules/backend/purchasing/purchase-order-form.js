@@ -99,9 +99,12 @@ function recalcTotals() {
     tr.querySelector(".po-subtotal").textContent = fmtMoney(sub);
     subtotal += sub;
   });
-  var tax = parseFloat(document.getElementById("inputTax").value) || 0;
+  var taxPercent = parseFloat(document.getElementById("inputTaxPercent").value) || 0;
+  var shipping = parseFloat(document.getElementById("inputShipping").value) || 0;
+  var taxAmount = subtotal * (taxPercent / 100);
   document.getElementById("sumSubtotal").textContent = fmtMoney(subtotal);
-  document.getElementById("sumTotal").textContent = fmtMoney(subtotal + tax);
+  document.getElementById("sumTaxAmount").textContent = fmtMoney(taxAmount);
+  document.getElementById("sumTotal").textContent = fmtMoney(subtotal + taxAmount + shipping);
 }
 
 // ============ Fill form ============
@@ -112,7 +115,14 @@ function fillForm(po) {
   var yr = dateVal && dateVal.length >= 4 ? Number(dateVal.slice(0, 4)) : new Date().getFullYear();
   document.getElementById("inputPONumber").value = po ? po.po_number : generatePONumber(yr);
   document.getElementById("inputStatus").value = po ? po.status : "pending";
-  document.getElementById("inputTax").value = po ? po.tax : 0;
+  var taxPercent = 7;
+  if (po) {
+    if (po.tax_percent != null) taxPercent = Number(po.tax_percent);
+    else if (po.subtotal > 0 && po.tax) taxPercent = Math.round((Number(po.tax) / Number(po.subtotal)) * 10000) / 100;
+    else taxPercent = 0;
+  }
+  document.getElementById("inputTaxPercent").value = taxPercent;
+  document.getElementById("inputShipping").value = po ? (po.shipping || 0) : 0;
   document.getElementById("inputNote").value = po ? (po.note || "") : "";
   populateSupplierDropdown(po ? po.supplier_id : null);
 
@@ -147,7 +157,8 @@ function savePO() {
   var supplierId = Number(document.getElementById("inputSupplier").value) || null;
   var date = document.getElementById("inputDate").value;
   var status = document.getElementById("inputStatus").value;
-  var tax = parseFloat(document.getElementById("inputTax").value) || 0;
+  var taxPercent = parseFloat(document.getElementById("inputTaxPercent").value) || 0;
+  var shipping = parseFloat(document.getElementById("inputShipping").value) || 0;
   var note = document.getElementById("inputNote").value.trim();
   var items = collectItems();
 
@@ -156,14 +167,17 @@ function savePO() {
   if (!items.length) { showToast("กรุณาเพิ่มรายการสินค้าอย่างน้อย 1 รายการ", "warning"); return; }
 
   var subtotal = items.reduce(function (s, it) { return s + it.qty * it.cost; }, 0);
-  var total = subtotal + tax;
+  var taxAmount = subtotal * (taxPercent / 100);
+  var total = subtotal + taxAmount + shipping;
 
   var header = {
     po_number: poNumber,
     supplier_id: supplierId,
     date: date,
     subtotal: subtotal,
-    tax: tax,
+    tax: taxAmount,
+    tax_percent: taxPercent,
+    shipping: shipping,
     total: total,
     status: status,
     note: note || null,
@@ -200,7 +214,8 @@ if (typeof registerRandomFill === "function") {
       pickRandomSelectOption("inputSupplier");
       pickRandomSelectOption("inputStatus", { includeEmpty: true });
       setFieldValue("inputNote", randomNote());
-      setFieldValue("inputTax", rdInt(0, 500));
+      setFieldValue("inputTaxPercent", rdPick([0, 7, 10]));
+      setFieldValue("inputShipping", rdPick([0, 50, 100, 200, 500]));
       // clear + add 1-3 random line items
       document.getElementById("poItemsBody").innerHTML = "";
       var n = rdInt(1, 3);
@@ -249,7 +264,10 @@ document.addEventListener("DOMContentLoaded", function () {
           po_number: editingPO.po_number || "",
           supplier_id: editingPO.supplier_id,
           date: editingPO.date || "",
+          subtotal: Number(editingPO.subtotal) || 0,
           tax: Number(editingPO.tax) || 0,
+          tax_percent: editingPO.tax_percent != null ? Number(editingPO.tax_percent) : null,
+          shipping: Number(editingPO.shipping) || 0,
           status: editingPO.status || "pending",
           note: editingPO.note || "",
           purchase_order_items: editingPO.purchase_order_items || [],

@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pathara - Purchase Order Form</title>
+    <title>Pathara - Goods Receive Form</title>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link
       href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
@@ -11,16 +11,15 @@
     />
     <link rel="stylesheet" href="../assets/backend.css" />
     <style>
-      .po-summary { display:grid; grid-template-columns:1fr 260px; gap:24px; align-items:start; }
-      .po-summary-totals { display:flex; flex-direction:column; gap:6px; font-size:12px; }
-      .po-summary-row { display:flex; justify-content:space-between; align-items:center; color:#64748b; }
-      .po-summary-row.total { font-weight:800; color:#1e293b; font-size:14px; border-top:1px solid #e2e8f0; padding-top:8px; margin-top:4px; }
-      .po-summary-row input { width:120px; padding:6px 8px; font-size:11px; text-align:right; }
+      .gr-summary { display:grid; grid-template-columns:1fr 260px; gap:24px; align-items:start; }
+      .gr-summary-total { display:flex; justify-content:space-between; align-items:center; padding:12px 18px; background:linear-gradient(135deg,rgba(71,184,180,0.18),rgba(45,212,191,0.08)); border-radius:12px; border:1px solid rgba(71,184,180,0.32); }
+      .gr-summary-total-label { font-size:13px; font-weight:800; color:#0f766e; }
+      .gr-summary-total-value { font-size:16px; font-weight:800; color:#0f766e; }
 
       .form-actions { display:flex; align-items:center; justify-content:flex-end; gap:8px; padding:16px 0; }
 
       @media (max-width: 640px) {
-        .po-summary { grid-template-columns:1fr; }
+        .gr-summary { grid-template-columns:1fr; }
       }
     </style>
   </head>
@@ -45,42 +44,53 @@
           <!-- Header -->
           <div class="content-header">
             <div>
-              <h2 class="content-title" id="pageTitle">Create PO</h2>
-              <p class="content-subtitle" id="pageSubtitle">สร้างใบสั่งซื้อใหม่</p>
+              <h2 class="content-title" id="pageTitle">สร้างใบรับสินค้า</h2>
+              <p class="content-subtitle" id="pageSubtitle">รับสินค้าเข้าคลัง</p>
             </div>
-            <a href="purchase-orders.html" class="btn-outline" style="text-decoration:none;">
-              <i data-lucide="arrow-left" class="btn-icon"></i> กลับรายการ PO
+            <a href="goods-receive.html" class="btn-outline" style="text-decoration:none;">
+              <i data-lucide="arrow-left" class="btn-icon"></i> กลับรายการ GR
             </a>
           </div>
 
           <input type="hidden" id="editId" />
 
-          <!-- Section 1: PO Info -->
+          <!-- Section 1: GR Info -->
           <div class="form-section">
-            <h3 class="form-section-title"><i data-lucide="file-text"></i> ข้อมูลใบสั่งซื้อ</h3>
-            <div class="form-row">
+            <h3 class="form-section-title"><i data-lucide="file-text"></i> ข้อมูลใบรับสินค้า</h3>
+
+            <div class="form-row-3">
               <div class="form-group">
-                <label class="form-label">PO Number</label>
+                <label class="form-label">เลขที่ GR</label>
                 <div class="input-locked">
-                  <input type="text" class="form-input" id="inputPONumber" placeholder="PO-2026-001" readonly tabindex="-1" />
+                  <input type="text" class="form-input" id="inputGRNumber" readonly tabindex="-1" />
                   <i data-lucide="lock" class="input-locked-icon"></i>
                 </div>
               </div>
               <div class="form-group">
-                <label class="form-label">Date</label>
+                <label class="form-label">วันที่รับ <span style="color:#ef4444;">*</span></label>
                 <input type="date" class="form-input" id="inputDate" />
               </div>
-            </div>
-            <div class="form-row" style="margin-top:10px;">
               <div class="form-group">
-                <label class="form-label">Supplier</label>
+                <label class="form-label">อ้างอิง PO <span style="color:#94a3b8;font-weight:500;">(ไม่บังคับ)</span></label>
+                <select class="form-select" id="inputPO" onchange="onPOChange()"></select>
+              </div>
+            </div>
+
+            <div class="form-row-3" style="margin-top:10px;">
+              <div class="form-group">
+                <label class="form-label">ผู้ขาย</label>
                 <select class="form-select" id="inputSupplier"></select>
               </div>
               <div class="form-group">
-                <label class="form-label">Status</label>
+                <label class="form-label">คลังรับเข้า <span style="color:#ef4444;">*</span></label>
+                <select class="form-select" id="inputWarehouse"></select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">สถานะ</label>
                 <select class="form-select" id="inputStatus">
+                  <option value="completed">สำเร็จ (ครบตาม PO)</option>
+                  <option value="partial">รับบางส่วน (update stock)</option>
                   <option value="pending">รอดำเนินการ</option>
-                  <option value="approved">อนุมัติแล้ว</option>
                   <option value="cancelled">ยกเลิก</option>
                 </select>
               </div>
@@ -89,7 +99,7 @@
 
           <!-- Section 2: Line Items -->
           <div class="form-section">
-            <h3 class="form-section-title"><i data-lucide="shopping-cart"></i> รายการสินค้า</h3>
+            <h3 class="form-section-title"><i data-lucide="package-check"></i> รายการที่รับ</h3>
             <div style="background:#f8fafc;border-radius:10px;padding:10px;overflow-x:auto;">
               <table class="line-items-table">
                 <thead>
@@ -101,11 +111,12 @@
                     <th style="width:36px;"></th>
                   </tr>
                 </thead>
-                <tbody id="poItemsBody"></tbody>
+                <tbody id="grItemsBody"></tbody>
               </table>
             </div>
+            <div id="receiveSummary" style="display:none;justify-content:center;align-items:center;gap:10px;margin-top:10px;padding:10px 16px;border-radius:10px;font-size:11px;border:1px solid #e2e8f0;"></div>
             <div style="display:flex;justify-content:center;margin-top:12px;">
-              <button class="btn-outline" type="button" onclick="addPOItemRow()" style="padding:8px 18px;font-size:11px;">
+              <button class="btn-outline" type="button" onclick="addGRItemRow()" style="padding:8px 18px;font-size:11px;">
                 <i data-lucide="plus" style="width:14px;height:14px;"></i> เพิ่มรายการ
               </button>
             </div>
@@ -113,40 +124,23 @@
 
           <!-- Section 3: Summary -->
           <div class="form-section">
-            <h3 class="form-section-title"><i data-lucide="calculator"></i> สรุปยอด</h3>
-            <div class="po-summary">
+            <h3 class="form-section-title"><i data-lucide="calculator"></i> สรุป</h3>
+            <div class="gr-summary">
               <div class="form-group" style="margin:0;">
-                <label class="form-label">Note</label>
+                <label class="form-label">หมายเหตุ</label>
                 <input type="text" class="form-input" id="inputNote" placeholder="หมายเหตุ..." />
               </div>
-              <div class="po-summary-totals">
-                <div class="po-summary-row">
-                  <span>Subtotal:</span>
-                  <span id="sumSubtotal">฿0.00</span>
-                </div>
-                <div class="po-summary-row">
-                  <span>Tax (%):</span>
-                  <span style="display:flex;align-items:center;gap:8px;">
-                    <input type="number" class="form-input" id="inputTaxPercent" value="7" min="0" max="100" step="0.01" oninput="recalcTotals()" style="width:70px;" />
-                    <span id="sumTaxAmount" style="color:#64748b;font-weight:600;min-width:90px;text-align:right;">฿0.00</span>
-                  </span>
-                </div>
-                <div class="po-summary-row">
-                  <span>ค่าขนส่ง (฿):</span>
-                  <input type="number" class="form-input" id="inputShipping" value="0" min="0" step="0.01" oninput="recalcTotals()" />
-                </div>
-                <div class="po-summary-row total">
-                  <span>Total:</span>
-                  <span id="sumTotal">฿0.00</span>
-                </div>
+              <div class="gr-summary-total">
+                <span class="gr-summary-total-label">ยอดรวม:</span>
+                <span id="sumTotal" class="gr-summary-total-value">฿0.00</span>
               </div>
             </div>
           </div>
 
           <!-- Actions -->
           <div class="form-actions">
-            <a href="purchase-orders.html" class="btn-secondary" style="text-decoration:none;display:inline-flex;align-items:center;">Cancel</a>
-            <button class="btn-primary" id="savePOBtn" onclick="savePO()">Save</button>
+            <a href="goods-receive.html" class="btn-secondary" style="text-decoration:none;display:inline-flex;align-items:center;">Cancel</a>
+            <button class="btn-primary" id="saveGRBtn" onclick="saveGR()">Save</button>
           </div>
         </div>
 
@@ -188,8 +182,8 @@
     <script src="../assets/js/sidebar-menu.js"></script>
     <script>renderSidebarMenu();</script>
     <script src="/assets/js/topbar.js"></script>
-    <script>renderTopbar({ group: "Purchasing", page: "ใบสั่งซื้อ" });</script>
+    <script>renderTopbar({ group: "Purchasing", page: "รับสินค้า" });</script>
     <script src="/modules/backend/assets/js/random-data.js"></script>
-    <script src="purchase-order-form.js"></script>
+    <script src="goods-receive-form.js"></script>
   </body>
 </html>
