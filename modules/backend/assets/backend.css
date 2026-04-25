@@ -348,6 +348,15 @@ body {
   color: rgba(255, 255, 255, 0.8);
 }
 
+.sidebar-group-label.disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.sidebar-group-label.disabled:hover {
+  color: rgba(255, 255, 255, 0.5);
+}
+
 .sidebar-group-icon {
   width: 12px;
   height: 12px;
@@ -1054,6 +1063,25 @@ body {
   color: #ef4444;
 }
 
+/* แถวที่ถูกยกเลิก — เทาๆ + ขีดคาดข้อความ (read-only indicator) */
+.table tbody tr.row-cancelled {
+  background-color: #fafafa;
+  opacity: 0.7;
+}
+.table tbody tr.row-cancelled td {
+  color: #94a3b8;
+}
+.table tbody tr.row-cancelled td:not(:last-child) {
+  text-decoration: line-through;
+}
+/* ยกเว้น badge / select / button / img ที่อยู่ข้างใน (ไม่ให้ขีดคาด) */
+.table tbody tr.row-cancelled .badge,
+.table tbody tr.row-cancelled .status-select,
+.table tbody tr.row-cancelled button,
+.table tbody tr.row-cancelled img {
+  text-decoration: none;
+}
+
 /* Inline editable status select (looks like a badge, acts like a dropdown) */
 .status-select {
   border: none;
@@ -1480,6 +1508,9 @@ body {
   background-color: #ffffff;
   border-radius: 18px;
   width: 380px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
   transform: scale(0.95) translateY(8px);
   opacity: 0;
@@ -1549,6 +1580,9 @@ body {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
 }
 
 .form-group {
@@ -1613,10 +1647,13 @@ body {
 
 /* Password strength meter */
 .password-strength {
-  margin-top: 6px;
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.form-row-strength {
+  margin-top: -6px;
 }
 
 .password-strength-bar {

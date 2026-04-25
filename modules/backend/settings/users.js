@@ -6,12 +6,31 @@
 
 // ============ Database (Supabase) ============
 let users = [];
+let availableRoles = [];
+var currentAppMode = "test";
 
 function reloadUsers() {
   return fetchUsersDB().then(function(rows) {
     users = (rows || []).map(normalizeUser);
     return users;
   });
+}
+
+function loadRolesIntoSelect() {
+  if (typeof fetchRolesDB !== "function") return Promise.resolve([]);
+  return fetchRolesDB().then(function (rows) {
+    availableRoles = (rows || []).filter(function (r) { return (r.status || "active") === "active"; });
+    var sel = document.getElementById("inputRole");
+    if (!sel) return availableRoles;
+    var prev = sel.value;
+    var html = '<option value="">— เลือก Role —</option>';
+    availableRoles.forEach(function (r) {
+      html += '<option value="' + r.name + '">' + r.name + '</option>';
+    });
+    sel.innerHTML = html;
+    if (prev) sel.value = prev;
+    return availableRoles;
+  }).catch(function (err) { console.error("loadRolesIntoSelect:", err); return []; });
 }
 
 // ============ Update Stat Cards ============
@@ -36,26 +55,36 @@ function roleBadge(role) {
 function renderTable(data) {
   updateStats();
   const tbody = document.getElementById("userTableBody");
+  const showDelete = currentAppMode === "test";
   tbody.innerHTML = data
-    .map(
-      (u, i) => `
+    .map((u, i) => {
+      const isActive = u.status === "active";
+      const statusToggle =
+        `<label class="toggle" title="${isActive ? "Active" : "Inactive"}">` +
+          `<input type="checkbox" ${isActive ? "checked" : ""} onchange="toggleUserStatus(${u.id}, this.checked)" />` +
+          `<span class="toggle-slider"></span>` +
+        `</label>`;
+      const deleteBtn = showDelete
+        ? `<button class="btn-icon-sm btn-danger" onclick="deleteUser(${u.id})" title="Delete"><i data-lucide="trash-2"></i></button>`
+        : "";
+      return `
     <tr>
       <td>${i + 1}</td>
       <td>${u.name}${u.mustChangePassword ? ' <span class="badge-must-change" title="ต้องเปลี่ยนรหัสผ่านครั้งถัดไป"><i data-lucide="key-round"></i>ต้องเปลี่ยนรหัส</span>' : ""}</td>
       <td>${u.email}</td>
       <td>${roleBadge(u.role)}</td>
-      <td><span class="badge badge-${u.status === "active" ? "active" : "inactive"}">${u.status === "active" ? "Active" : "Inactive"}</span></td>
+      <td>${statusToggle}</td>
       <td>${u.lastLogin}</td>
       <td>
         <div class="table-actions">
           <button class="btn-icon-sm" onclick="editUser(${u.id})" title="Edit"><i data-lucide="pencil"></i></button>
           <button class="btn-icon-sm" onclick="resetUserPassword(${u.id})" title="Reset Password"><i data-lucide="key-round"></i></button>
-          <button class="btn-icon-sm btn-danger" onclick="deleteUser(${u.id})" title="Delete"><i data-lucide="trash-2"></i></button>
+          ${deleteBtn}
         </div>
       </td>
     </tr>
-  `
-    )
+  `;
+    })
     .join("");
   lucide.createIcons();
   if (typeof refreshSortableHeaders === "function") refreshSortableHeaders();
@@ -72,9 +101,26 @@ function openUserModal(title, u) {
   document.getElementById("inputPassword").value = "";
   document.getElementById("inputPasswordConfirm").value = "";
   updatePasswordStrength("");
-  document.getElementById("inputRole").value = u ? u.role : "Staff";
   document.getElementById("inputStatus").checked = u ? u.status === "active" : true;
   var _lbl = document.getElementById("inputStatusLabel"); if(_lbl) { _lbl.textContent = (u ? u.status === "active" : true) ? "Active" : "Inactive"; _lbl.classList.toggle("active-label", u ? u.status === "active" : true); }
+
+  loadRolesIntoSelect().then(function () {
+    var sel = document.getElementById("inputRole");
+    var target = u ? u.role : "";
+    if (target) {
+      var exists = Array.prototype.some.call(sel.options, function (o) { return o.value === target; });
+      if (!exists) {
+        var opt = document.createElement("option");
+        opt.value = target;
+        opt.textContent = target + " (ไม่มีในระบบแล้ว)";
+        sel.appendChild(opt);
+      }
+      sel.value = target;
+    } else {
+      sel.value = "";
+    }
+  });
+
   openModalById("userModal", function () {
     document.getElementById("inputName").focus();
   });
@@ -105,6 +151,10 @@ function saveUser() {
   if (!username) {
     showToast("กรุณากรอก username", "warning");
     return document.getElementById("inputUsername").focus();
+  }
+  if (!role) {
+    showToast("กรุณาเลือก Role", "warning");
+    return document.getElementById("inputRole").focus();
   }
   if (!id && !password) {
     showToast("กรุณากรอกรหัสผ่าน", "warning");
@@ -157,6 +207,17 @@ function saveUser() {
 function editUser(id) {
   const u = users.find((item) => item.id === id);
   if (u) openUserModal("Edit User", u);
+}
+
+function toggleUserStatus(id, isActive) {
+  const newStatus = isActive ? "active" : "inactive";
+  updateUserDB(id, { status: newStatus })
+    .then(function () { return reloadUsers(); })
+    .then(function () { applyFilters(); })
+    .catch(function (err) {
+      console.error(err);
+      if (typeof showToast === "function") showToast("ผิดพลาด", "เปลี่ยนสถานะไม่สำเร็จ", "error");
+    });
 }
 
 // ============ Reset Password (Admin) — ใช้ generateTempPassword จาก auth-guard.js ============
@@ -378,8 +439,16 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  reloadUsers().then(applyFilters).catch(function(err) {
-    console.error(err);
-    showToast("โหลดข้อมูลผู้ใช้ไม่สำเร็จ — ตรวจสอบการเชื่อมต่อ Supabase", "error", 5000);
-  });
+  loadRolesIntoSelect();
+
+  var modeP = (typeof getAppMode === "function") ? getAppMode() : Promise.resolve("test");
+  Promise.all([modeP, reloadUsers()])
+    .then(function (results) {
+      currentAppMode = results[0] || "test";
+      applyFilters();
+    })
+    .catch(function (err) {
+      console.error(err);
+      showToast("โหลดข้อมูลผู้ใช้ไม่สำเร็จ — ตรวจสอบการเชื่อมต่อ Supabase", "error", 5000);
+    });
 });

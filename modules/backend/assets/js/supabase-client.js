@@ -92,23 +92,85 @@ function insertBlockDB(pageId, block, sortOrder) {
 
 // ===================== Storage =====================
 
-function uploadFileToStorage(file, folder) {
-  folder = folder || "images";
-  var fileName = Date.now() + "-" + file.name.replace(/[^a-zA-Z0-9._-]/g, "");
-  var filePath = folder + "/" + fileName;
+// Upload a File/Blob ไป Supabase Storage → คืน public URL
+function uploadToStorageBucket(bucket, file, originalName) {
+  var rand = Math.random().toString(36).slice(2, 8);
+  var safeName = (originalName || "img")
+    .replace(/[^a-zA-Z0-9._-]/g, "")
+    .slice(0, 40);
+  if (!/\.[a-z0-9]+$/i.test(safeName)) {
+    var mimeExt = (file.type || "").split("/")[1] || "bin";
+    safeName += "." + mimeExt;
+  }
+  var fileName = Date.now() + "-" + rand + "-" + safeName;
 
-  return fetch(SUPABASE_URL + "/storage/v1/object/upload logo/" + filePath, {
+  return fetch(SUPABASE_URL + "/storage/v1/object/" + encodeURIComponent(bucket) + "/" + encodeURIComponent(fileName), {
     method: "POST",
     headers: {
       "apikey": SUPABASE_KEY,
       "Authorization": "Bearer " + SUPABASE_KEY,
-      "Content-Type": file.type,
+      "Content-Type": file.type || "application/octet-stream",
     },
     body: file,
   }).then(function (res) {
-    if (!res.ok) throw new Error("Upload failed: " + res.status);
-    return SUPABASE_URL + "/storage/v1/object/public/upload logo/" + filePath;
+    if (!res.ok) {
+      return res.text().then(function (t) { throw new Error("Upload failed: " + res.status + " " + t); });
+    }
+    return SUPABASE_URL + "/storage/v1/object/public/" + encodeURIComponent(bucket) + "/" + encodeURIComponent(fileName);
   });
+}
+
+// แปลง data URL (base64) → Blob แล้ว upload
+function uploadDataUrlToStorage(bucket, dataUrl) {
+  var parts = dataUrl.split(",");
+  var mimeMatch = parts[0].match(/:(.*?);/);
+  var mime = mimeMatch ? mimeMatch[1] : "image/jpeg";
+  var binary = atob(parts[1] || "");
+  var arr = new Uint8Array(binary.length);
+  for (var i = 0; i < binary.length; i++) arr[i] = binary.charCodeAt(i);
+  var blob = new Blob([arr], { type: mime });
+  return uploadToStorageBucket(bucket, blob);
+}
+
+// Backward compat (ถ้ามีที่ไหนใน codebase ยังเรียกชื่อเดิม)
+function uploadFileToStorage(file) {
+  return uploadToStorageBucket("product-images", file, file && file.name);
+}
+
+// ลบไฟล์เดียวจาก Storage bucket
+function deleteFromStorageBucket(bucket, fileName) {
+  return fetch(SUPABASE_URL + "/storage/v1/object/" + encodeURIComponent(bucket) + "/" + encodeURIComponent(fileName), {
+    method: "DELETE",
+    headers: {
+      "apikey": SUPABASE_KEY,
+      "Authorization": "Bearer " + SUPABASE_KEY,
+    },
+  });
+}
+
+// ดึงชื่อไฟล์จาก public URL ของ Supabase Storage
+// เช่น https://.../storage/v1/object/public/product-images/FOO.jpg → "FOO.jpg"
+function extractStorageFileName(url, bucket) {
+  if (typeof url !== "string") return null;
+  var prefix = "/storage/v1/object/public/" + bucket + "/";
+  var idx = url.indexOf(prefix);
+  if (idx === -1) return null;
+  return decodeURIComponent(url.slice(idx + prefix.length));
+}
+
+// ลบรูปของสินค้าออกจาก Storage (รับ array ของ URLs)
+// ข้าม base64 และ non-Storage URLs — ล้มเหลวไม่ throw (ไม่ให้บล็อกการลบ product)
+function deleteProductImagesFromStorage(images) {
+  if (!images || !images.length) return Promise.resolve();
+  var ops = images.map(function (url) {
+    if (typeof url !== "string" || url.indexOf("data:") === 0) return Promise.resolve();
+    var fileName = extractStorageFileName(url, "product-images");
+    if (!fileName) return Promise.resolve();
+    return deleteFromStorageBucket("product-images", fileName).catch(function (e) {
+      console.warn("Delete storage file failed:", fileName, e);
+    });
+  });
+  return Promise.all(ops);
 }
 
 // ===================== Products & Categories =====================
@@ -151,8 +213,16 @@ function deleteCategoryDB(id) {
 // For edit form use fetchProductById() which returns full record.
 function fetchProducts(activeOnly) {
   var filter = activeOnly ? "&status=eq.active" : "";
-  var cols = "id,name,sku,barcode,price,category_id,unit_id,variants,status,categories(name)";
+  var cols = "id,name,sku,barcode,price,category_id,unit_id,variants,status,low_stock_threshold,categories(name)";
   return fetch(SUPABASE_URL + "/rest/v1/products?select=" + cols + filter + "&order=id.asc", {
+    headers: supabaseHeaders,
+  }).then(function (res) { return res.json(); });
+}
+
+// Lightweight fetch — ใช้ในหน้า form เพื่อ auto-generate SKU/barcode
+// ดึงเฉพาะ column ที่จำเป็น ไม่โหลด variants/images
+function fetchProductSkusDB() {
+  return fetch(SUPABASE_URL + "/rest/v1/products?select=id,sku,barcode", {
     headers: supabaseHeaders,
   }).then(function (res) { return res.json(); });
 }
@@ -342,7 +412,7 @@ function deleteInvoiceDB(id) {
 // ===================== Payments =====================
 
 function fetchPaymentsDB() {
-  return fetch(SUPABASE_URL + "/rest/v1/payments?select=*,customers(name),suppliers(name),invoices(invoice_number),purchase_orders(po_number),bank_accounts(bank,account_name)&order=id.desc", {
+  return fetch(SUPABASE_URL + "/rest/v1/payments?select=*,customers(name),suppliers(name),invoices(invoice_number),purchase_orders(po_number),sales_orders(so_number),bank_accounts(bank,account_name)&order=id.desc", {
     headers: supabaseHeaders,
   }).then(function (res) { return res.json(); });
 }
@@ -659,6 +729,47 @@ function deleteBankAccountDB(id) {
   });
 }
 
+// ===================== Banks (Bank Names master) =====================
+
+function fetchBanksDB() {
+  return fetch(SUPABASE_URL + "/rest/v1/banks?select=*&deleted_at=is.null&order=name.asc", {
+    headers: supabaseHeaders,
+  }).then(function (res) { return res.json(); });
+}
+
+function createBankDB(data) {
+  return fetch(SUPABASE_URL + "/rest/v1/banks", {
+    method: "POST",
+    headers: supabaseHeaders,
+    body: JSON.stringify(data),
+  }).then(function (res) { return res.json(); })
+    .then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; });
+}
+
+function updateBankDB(id, data) {
+  return fetch(SUPABASE_URL + "/rest/v1/banks?id=eq." + id, {
+    method: "PATCH",
+    headers: supabaseHeaders,
+    body: JSON.stringify(data),
+  }).then(function (res) { return res.json(); })
+    .then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; });
+}
+
+function deleteBankDB(id) {
+  return fetch(SUPABASE_URL + "/rest/v1/banks?id=eq." + id, {
+    method: "DELETE",
+    headers: supabaseHeaders,
+  });
+}
+
+function softDeleteBankDB(id) {
+  return fetch(SUPABASE_URL + "/rest/v1/banks?id=eq." + id, {
+    method: "PATCH",
+    headers: supabaseHeaders,
+    body: JSON.stringify({ deleted_at: new Date().toISOString() }),
+  });
+}
+
 // ===================== Customers =====================
 
 function fetchCustomersDB() {
@@ -728,13 +839,13 @@ function deleteSupplierDB(id) {
 // ===================== Purchase Orders =====================
 
 function fetchPurchaseOrdersDB() {
-  return fetch(SUPABASE_URL + "/rest/v1/purchase_orders?select=*,suppliers(name),purchase_order_items(id,product_id,qty,cost,subtotal,products(name,sku))&order=id.desc", {
+  return fetch(SUPABASE_URL + "/rest/v1/purchase_orders?select=*,suppliers(name),bank_accounts(bank,account_name),purchase_order_items(id,product_id,qty,cost,subtotal,products(name,sku))&order=id.desc", {
     headers: supabaseHeaders,
   }).then(function (res) { return res.json(); });
 }
 
 function fetchPurchaseOrderById(id) {
-  return fetch(SUPABASE_URL + "/rest/v1/purchase_orders?id=eq." + id + "&select=*,suppliers(name),purchase_order_items(id,product_id,qty,cost,subtotal,products(name,sku))&limit=1", {
+  return fetch(SUPABASE_URL + "/rest/v1/purchase_orders?id=eq." + id + "&select=*,suppliers(name),bank_accounts(bank,account_name),purchase_order_items(id,product_id,qty,cost,subtotal,products(name,sku))&limit=1", {
     headers: supabaseHeaders,
   }).then(function (res) { return res.json(); })
     .then(function (rows) { return rows && rows.length ? rows[0] : null; });

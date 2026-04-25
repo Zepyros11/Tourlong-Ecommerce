@@ -141,7 +141,7 @@
 
     <!-- Modal Add/Edit Return -->
     <div class="modal-overlay" id="returnModal">
-      <div class="modal" style="max-width:720px;">
+      <div class="modal" style="max-width:780px;width:94vw;">
         <div class="modal-header">
           <h3 class="modal-title" id="modalTitle">Create Return</h3>
           <button class="modal-close"><i data-lucide="x"></i></button>
@@ -149,31 +149,31 @@
         <div class="modal-body">
           <input type="hidden" id="editId" />
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
-            <div class="form-group" style="margin:0;">
+            <div class="form-group" style="margin:0;min-width:0;">
               <label class="form-label">Return Number</label>
-              <input type="text" class="form-input" id="inputReturnNumber" readonly />
+              <input type="text" class="form-input" id="inputReturnNumber" readonly style="background:#f8fafc;" />
             </div>
-            <div class="form-group" style="margin:0;">
+            <div class="form-group" style="margin:0;min-width:0;">
               <label class="form-label">Date</label>
               <input type="date" class="form-input" id="inputDate" />
             </div>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
-            <div class="form-group" style="margin:0;">
-              <label class="form-label">GR Reference (optional)</label>
+            <div class="form-group" style="margin:0;min-width:0;">
+              <label class="form-label">GR Reference <span style="color:#94a3b8;font-weight:400;font-size:9px;">(optional)</span></label>
               <select class="form-select" id="inputGR" onchange="onGRChange()"></select>
             </div>
-            <div class="form-group" style="margin:0;">
+            <div class="form-group" style="margin:0;min-width:0;">
               <label class="form-label">Supplier</label>
               <select class="form-select" id="inputSupplier"></select>
             </div>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
-            <div class="form-group" style="margin:0;">
-              <label class="form-label">Warehouse (ส่งออกจาก)</label>
+            <div class="form-group" style="margin:0;min-width:0;">
+              <label class="form-label">Warehouse <span style="color:#94a3b8;font-weight:400;font-size:9px;">(ส่งออกจาก)</span></label>
               <select class="form-select" id="inputWarehouse"></select>
             </div>
-            <div class="form-group" style="margin:0;">
+            <div class="form-group" style="margin:0;min-width:0;">
               <label class="form-label">Status</label>
               <select class="form-select" id="inputStatus">
                 <option value="pending">รอดำเนินการ</option>
@@ -208,12 +208,12 @@
             </div>
           </div>
 
-          <div style="margin-top:12px;padding-top:10px;border-top:1px solid #e2e8f0;display:grid;grid-template-columns:1fr 200px;gap:20px;">
-            <div class="form-group" style="margin:0;">
+          <div style="margin-top:12px;padding-top:10px;border-top:1px solid #e2e8f0;display:grid;grid-template-columns:1fr 180px;gap:16px;">
+            <div class="form-group" style="margin:0;min-width:0;">
               <label class="form-label">Note</label>
               <input type="text" class="form-input" id="inputNote" placeholder="หมายเหตุ..." />
             </div>
-            <div style="display:flex;justify-content:space-between;font-weight:800;color:#1e293b;font-size:13px;align-items:flex-end;"><span>Total:</span><span id="sumTotal">฿0.00</span></div>
+            <div style="display:flex;justify-content:space-between;font-weight:800;color:#1e293b;font-size:13px;align-items:flex-end;min-width:0;"><span>Total:</span><span id="sumTotal">฿0.00</span></div>
           </div>
         </div>
         <div class="modal-footer">
@@ -253,6 +253,9 @@
     <script src="/assets/js/topbar.js"></script>
     <script>renderTopbar({ group: "Purchasing", page: "ส่งคืนสินค้า" });</script>
     <script src="/modules/backend/assets/js/random-data.js"></script>
+    <script src="/modules/backend/assets/js/app-mode.js"></script>
+    <script src="/modules/backend/assets/js/manager-password.js"></script>
+    <script src="/modules/backend/assets/js/cancel-helpers.js"></script>
     <script src="purchase-returns.js"></script>
   </body>
 </html>

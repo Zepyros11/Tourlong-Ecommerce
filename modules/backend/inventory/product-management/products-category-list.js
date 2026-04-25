@@ -6,6 +6,7 @@
 
 // ============ Database (Supabase) ============
 let categories = [];
+var currentAppMode = "test";
 
 function reloadCategories() {
   return fetchCategories().then(function (rows) {
@@ -33,24 +34,34 @@ function updateStats() {
 function renderTable(data) {
   updateStats();
   const tbody = document.getElementById("categoryTableBody");
+  const showDelete = currentAppMode === "test";
   tbody.innerHTML = data
-    .map(
-      (cat, i) => `
+    .map((cat, i) => {
+      const isActive = cat.status === "active";
+      const statusToggle =
+        `<label class="toggle" title="${isActive ? "Active" : "Inactive"}">` +
+          `<input type="checkbox" ${isActive ? "checked" : ""} onchange="toggleCategoryStatus(${cat.id}, this.checked)" />` +
+          `<span class="toggle-slider"></span>` +
+        `</label>`;
+      const deleteBtn = showDelete
+        ? `<button class="btn-icon-sm btn-danger" onclick="deleteCategory(${cat.id})"><i data-lucide="trash-2"></i></button>`
+        : "";
+      return `
     <tr>
       <td>${i + 1}</td>
       <td>${cat.name}</td>
       <td>${cat.description}</td>
       <td>${cat.products}</td>
-      <td><span class="badge badge-${cat.status === "active" ? "active" : "inactive"}">${cat.status === "active" ? "Active" : "Inactive"}</span></td>
+      <td>${statusToggle}</td>
       <td>
         <div class="table-actions">
           <button class="btn-icon-sm" onclick="editCategory(${cat.id})"><i data-lucide="pencil"></i></button>
-          <button class="btn-icon-sm btn-danger" onclick="deleteCategory(${cat.id})"><i data-lucide="trash-2"></i></button>
+          ${deleteBtn}
         </div>
       </td>
     </tr>
-  `
-    )
+  `;
+    })
     .join("");
   lucide.createIcons();
   if (typeof refreshSortableHeaders === "function") refreshSortableHeaders();
@@ -95,6 +106,17 @@ function saveCategory() {
 function editCategory(id) {
   const cat = categories.find((c) => c.id === id);
   if (cat) openCategoryModal("Edit Category", cat);
+}
+
+function toggleCategoryStatus(id, isActive) {
+  const newStatus = isActive ? "active" : "inactive";
+  updateCategoryDB(id, { status: newStatus })
+    .then(function () { return reloadCategories(); })
+    .then(function () { applyFilters(); })
+    .catch(function (err) {
+      console.error(err);
+      if (typeof showToast === "function") showToast("ผิดพลาด", "เปลี่ยนสถานะไม่สำเร็จ", "error");
+    });
 }
 
 // ============ Delete (ใช้ confirm.js) ============
@@ -216,9 +238,13 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // โหลดข้อมูลจาก Supabase
-  reloadCategories()
-    .then(applyFilters)
+  // โหลดข้อมูลจาก Supabase + app mode
+  var modeP = (typeof getAppMode === "function") ? getAppMode() : Promise.resolve("test");
+  Promise.all([modeP, reloadCategories()])
+    .then(function (results) {
+      currentAppMode = results[0] || "test";
+      applyFilters();
+    })
     .catch(function (err) {
       console.error(err);
       applyFilters();

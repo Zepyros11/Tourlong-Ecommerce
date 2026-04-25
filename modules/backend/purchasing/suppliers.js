@@ -3,6 +3,7 @@
 // ============================================================
 
 var suppliers = [];
+var currentAppMode = "test";
 
 // ============ Stats ============
 function updateStats() {
@@ -20,17 +21,27 @@ function renderTable(data) {
     lucide.createIcons();
     return;
   }
+  var showDelete = currentAppMode === "test";
   tbody.innerHTML = data.map(function (s, i) {
+    var isActive = s.status === "active";
+    var statusToggle =
+      '<label class="toggle" title="' + (isActive ? "Active" : "Inactive") + '">' +
+        '<input type="checkbox" ' + (isActive ? "checked" : "") + ' onchange="toggleSupplierStatus(' + s.id + ', this.checked)" />' +
+        '<span class="toggle-slider"></span>' +
+      '</label>';
+    var deleteBtn = showDelete
+      ? '<button class="btn-icon-sm btn-danger" onclick="deleteSupplier(' + s.id + ')"><i data-lucide="trash-2"></i></button>'
+      : '';
     return '<tr>' +
       '<td>' + (i + 1) + '</td>' +
       '<td>' + (s.name || "") + '</td>' +
       '<td>' + (s.contact || "—") + '</td>' +
       '<td>' + (s.phone || "—") + '</td>' +
       '<td>' + (s.email || "—") + '</td>' +
-      '<td><span class="badge badge-' + (s.status === "active" ? "active" : "inactive") + '">' + (s.status === "active" ? "Active" : "Inactive") + '</span></td>' +
+      '<td>' + statusToggle + '</td>' +
       '<td><div class="table-actions">' +
         '<button class="btn-icon-sm" onclick="editSupplier(' + s.id + ')"><i data-lucide="pencil"></i></button>' +
-        '<button class="btn-icon-sm btn-danger" onclick="deleteSupplier(' + s.id + ')"><i data-lucide="trash-2"></i></button>' +
+        deleteBtn +
       '</div></td>' +
     '</tr>';
   }).join("");
@@ -46,6 +57,7 @@ function openSupplierModal(title, s) {
   document.getElementById("inputContact").value = s ? (s.contact || "") : "";
   document.getElementById("inputPhone").value = s ? (s.phone || "") : "";
   document.getElementById("inputEmail").value = s ? (s.email || "") : "";
+  document.getElementById("inputTaxId").value = s ? (s.tax_id || "") : "";
   document.getElementById("inputAddress").value = s ? (s.address || "") : "";
   var active = s ? s.status === "active" : true;
   document.getElementById("inputStatus").checked = active;
@@ -64,6 +76,7 @@ function saveSupplier() {
     contact: document.getElementById("inputContact").value.trim() || null,
     phone: document.getElementById("inputPhone").value.trim() || null,
     email: document.getElementById("inputEmail").value.trim() || null,
+    tax_id: document.getElementById("inputTaxId").value.trim() || null,
     address: document.getElementById("inputAddress").value.trim() || null,
     status: document.getElementById("inputStatus").checked ? "active" : "inactive",
   };
@@ -80,6 +93,17 @@ function saveSupplier() {
 function editSupplier(id) {
   var s = suppliers.find(function (x) { return x.id === id; });
   if (s) openSupplierModal("Edit Supplier", s);
+}
+
+function toggleSupplierStatus(id, isActive) {
+  var newStatus = isActive ? "active" : "inactive";
+  updateSupplierDB(id, { status: newStatus })
+    .then(function () { return reloadSuppliers(); })
+    .then(function () { applyFilters(); })
+    .catch(function (err) {
+      console.error(err);
+      if (typeof showToast === "function") showToast("ผิดพลาด", "เปลี่ยนสถานะไม่สำเร็จ", "error");
+    });
 }
 
 function deleteSupplier(id) {
@@ -138,6 +162,7 @@ function reloadSuppliers() {
           contact: r.contact || "",
           phone: r.phone || "",
           email: r.email || "",
+          tax_id: r.tax_id || "",
           address: r.address || "",
           status: r.status || "active",
         };
@@ -154,6 +179,9 @@ if (typeof registerRandomFill === "function") {
       setFieldValue("inputContact", randomPersonName());
       setFieldValue("inputPhone", randomPhone());
       setFieldValue("inputEmail", randomEmail());
+      // Random Thai tax_id 13 digits starting with 0 (corporate prefix)
+      var taxId = "010" + String(Math.floor(Math.random() * 10000000000)).padStart(10, "0");
+      setFieldValue("inputTaxId", taxId.slice(0, 13));
       setFieldValue("inputAddress", randomAddress());
       var sw = document.getElementById("inputStatus");
       if (sw) { sw.checked = rdBool(0.85); sw.dispatchEvent(new Event("change", { bubbles: true })); }
@@ -191,7 +219,11 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  reloadSuppliers()
-    .then(function () { applyFilters(); })
+  var modeP = (typeof getAppMode === "function") ? getAppMode() : Promise.resolve("test");
+  Promise.all([modeP, reloadSuppliers()])
+    .then(function (results) {
+      currentAppMode = results[0] || "test";
+      applyFilters();
+    })
     .catch(function (err) { console.error(err); applyFilters(); });
 });

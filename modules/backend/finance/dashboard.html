@@ -56,7 +56,7 @@
               </div>
               <div>
                 <p class="stat-card-label">Total Income</p>
-                <p class="stat-card-value">฿1,245,800</p>
+                <p class="stat-card-value" id="statIncome">฿0</p>
               </div>
             </div>
             <div class="stat-card">
@@ -64,8 +64,17 @@
                 <i data-lucide="trending-down" class="stat-icon"></i>
               </div>
               <div>
-                <p class="stat-card-label">Total Expenses</p>
-                <p class="stat-card-value">฿587,300</p>
+                <p class="stat-card-label">รายจ่าย (จ่ายแล้ว)</p>
+                <p class="stat-card-value" id="statExpensesPaid">฿0</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-icon" style="background-color: #fef3c7; color: #f59e0b;">
+                <i data-lucide="clock" class="stat-icon"></i>
+              </div>
+              <div>
+                <p class="stat-card-label">รายจ่าย (ค้างจ่าย)</p>
+                <p class="stat-card-value" id="statExpensesUnpaid">฿0</p>
               </div>
             </div>
             <div class="stat-card">
@@ -74,16 +83,16 @@
               </div>
               <div>
                 <p class="stat-card-label">Net Balance</p>
-                <p class="stat-card-value">฿658,500</p>
+                <p class="stat-card-value" id="statNetBalance">฿0</p>
               </div>
             </div>
             <div class="stat-card">
-              <div class="stat-card-icon" style="background-color: #fef3c7; color: #f59e0b;">
+              <div class="stat-card-icon" style="background-color: #f0e4ff; color: #8b5cf6;">
                 <i data-lucide="landmark" class="stat-icon"></i>
               </div>
               <div>
                 <p class="stat-card-label">Bank Accounts</p>
-                <p class="stat-card-value">3</p>
+                <p class="stat-card-value" id="statBankAccounts">0</p>
               </div>
             </div>
           </div>
@@ -105,37 +114,8 @@
                       <th>ยอดรวม</th>
                     </tr>
                   </thead>
-                  <tbody>
-                    <tr>
-                      <td>2026-04-08</td>
-                      <td>คุณสมศรี จันทร์ดี</td>
-                      <td>โอนธนาคาร</td>
-                      <td>฿12,500</td>
-                    </tr>
-                    <tr>
-                      <td>2026-04-07</td>
-                      <td>บ.เอบีซี จำกัด</td>
-                      <td>เงินสด</td>
-                      <td>฿45,000</td>
-                    </tr>
-                    <tr>
-                      <td>2026-04-07</td>
-                      <td>คุณวิชัย สุขสม</td>
-                      <td>บัตรเครดิต</td>
-                      <td>฿8,900</td>
-                    </tr>
-                    <tr>
-                      <td>2026-04-06</td>
-                      <td>คุณธนา ใจงาม</td>
-                      <td>โอนธนาคาร</td>
-                      <td>฿18,750</td>
-                    </tr>
-                    <tr>
-                      <td>2026-04-05</td>
-                      <td>บ.XYZ เทรดดิ้ง</td>
-                      <td>เช็ค</td>
-                      <td>฿92,000</td>
-                    </tr>
+                  <tbody id="recentPaymentsTableBody">
+                    <tr><td colspan="4" style="text-align:center;padding:30px;color:#94a3b8;font-size:11px;">กำลังโหลด…</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -156,37 +136,8 @@
                       <th>ยอดรวม</th>
                     </tr>
                   </thead>
-                  <tbody>
-                    <tr>
-                      <td>2026-04-08</td>
-                      <td>จ่าย PO-2026-007 บ.สยามซัพพลาย</td>
-                      <td>จัดซื้อ</td>
-                      <td>฿92,000</td>
-                    </tr>
-                    <tr>
-                      <td>2026-04-07</td>
-                      <td>ค่าขนส่งสินค้า</td>
-                      <td>ขนส่ง</td>
-                      <td>฿5,500</td>
-                    </tr>
-                    <tr>
-                      <td>2026-04-06</td>
-                      <td>ค่าเช่าสำนักงาน เม.ย.</td>
-                      <td>สำนักงาน</td>
-                      <td>฿35,000</td>
-                    </tr>
-                    <tr>
-                      <td>2026-04-05</td>
-                      <td>ค่าไฟฟ้า มี.ค.</td>
-                      <td>สาธารณูปโภค</td>
-                      <td>฿8,200</td>
-                    </tr>
-                    <tr>
-                      <td>2026-04-04</td>
-                      <td>เงินเดือนพนักงาน เม.ย.</td>
-                      <td>เงินเดือน</td>
-                      <td>฿180,000</td>
-                    </tr>
+                  <tbody id="recentExpensesTableBody">
+                    <tr><td colspan="4" style="text-align:center;padding:30px;color:#94a3b8;font-size:11px;">กำลังโหลด…</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -216,6 +167,8 @@
     <script>renderSidebarMenu("dashboard.html");</script>
     <script src="/assets/js/topbar.js"></script>
     <script>renderTopbar({ group: "Finance", page: "Dashboard" });</script>
+    <script src="../assets/js/supabase-client.js"></script>
+    <script src="dashboard.js"></script>
     <script>lucide.createIcons();</script>
   </body>
 </html>

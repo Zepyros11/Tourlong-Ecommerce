@@ -4,6 +4,7 @@
 
 // ============ Data (Supabase) ============
 var warehouses = [];
+var currentAppMode = "test";
 
 function reloadWarehouses() {
   return fetchWarehousesDB().then(function (rows) {
@@ -45,7 +46,11 @@ function updateStats() {
 function renderTable(data) {
   updateStats();
   var tbody = document.getElementById("whTableBody");
+  var showDelete = currentAppMode === "test";
   tbody.innerHTML = data.map(function (w, i) {
+    var deleteBtn = showDelete
+      ? '<button class="btn-icon-sm btn-danger" onclick="deleteWarehouse(' + w.id + ')"><i data-lucide="trash-2"></i></button>'
+      : '';
     return '<tr>' +
       '<td>' + (i + 1) + '</td>' +
       '<td style="font-weight:600;">' + w.name + '</td>' +
@@ -59,7 +64,7 @@ function renderTable(data) {
       '</td>' +
       '<td><div class="table-actions">' +
         '<button class="btn-icon-sm" onclick="editWarehouse(' + w.id + ')"><i data-lucide="pencil"></i></button>' +
-        '<button class="btn-icon-sm btn-danger" onclick="deleteWarehouse(' + w.id + ')"><i data-lucide="trash-2"></i></button>' +
+        deleteBtn +
       '</div></td>' +
     '</tr>';
   }).join("") || '<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:30px;">ยังไม่มีคลังสินค้า</td></tr>';
@@ -203,9 +208,13 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // โหลดข้อมูลจาก Supabase
-  reloadWarehouses()
-    .then(applyFilters)
+  // โหลดข้อมูลจาก Supabase + app mode
+  var modeP = (typeof getAppMode === "function") ? getAppMode() : Promise.resolve("test");
+  Promise.all([modeP, reloadWarehouses()])
+    .then(function (results) {
+      currentAppMode = results[0] || "test";
+      applyFilters();
+    })
     .catch(function (err) {
       console.error(err);
       applyFilters();

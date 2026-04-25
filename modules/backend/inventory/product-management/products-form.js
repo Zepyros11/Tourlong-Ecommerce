@@ -188,6 +188,10 @@ function addProductBlock(data) {
   html += '<div class="form-group" style="margin:0;"><label class="form-label">Price (฿)</label><input type="number" class="form-input b-price" placeholder="0.00" min="0" step="0.01" value="' + (d.price || '') + '" /></div>';
   html += '</div></div>';
 
+  // Low Stock Threshold (product-level, shared across variants)
+  var lowStockVal = (d.low_stock_threshold != null && d.low_stock_threshold !== '') ? d.low_stock_threshold : '';
+  html += '<div class="form-group" style="margin-top:10px;"><label class="form-label">สต็อกขั้นต่ำ <span style="color:#94a3b8;font-weight:400;">— แจ้งเตือนเมื่อคงเหลือต่ำกว่าค่านี้ (เว้นว่าง = ใช้ค่าเริ่มต้น 10)</span></label><input type="number" class="form-input b-low-stock" placeholder="10" min="0" step="1" value="' + lowStockVal + '" style="max-width:200px;" /></div>';
+
   // Variant section
   html += '<div class="b-variant-section" style="display:none;">';
   var autoBaseSku = d.baseSku || (!d._isEdit ? autoSku : '');
@@ -580,6 +584,11 @@ function collectBlockData(block) {
     result.variants = [];
   }
 
+  // Low stock threshold (null if blank, use DB default)
+  var lowStockStr = block.querySelector(".b-low-stock").value.trim();
+  result.low_stock_threshold = lowStockStr === "" ? null : parseInt(lowStockStr, 10);
+  if (result.low_stock_threshold != null && isNaN(result.low_stock_threshold)) result.low_stock_threshold = null;
+
   // Images from first block
   var blockIdx = block.dataset.block;
   result.images = window["images_" + blockIdx] || [];
@@ -616,6 +625,7 @@ function buildProductPayload(d) {
     images: d.images || [],
     variants: d.variants || [],
     status: d.status || "active",
+    low_stock_threshold: d.low_stock_threshold != null ? d.low_stock_threshold : null,
   };
 }
 
@@ -631,6 +641,21 @@ function setSavingState(isSaving) {
       : "Save";
   }
   if (overlay) overlay.style.display = isSaving ? "flex" : "none";
+}
+
+// Upload รูปที่ยังเป็น base64 → Supabase Storage, คืน array ของ URLs
+// รูปที่เป็น URL อยู่แล้ว (เริ่มต้นด้วย http) จะข้ามไม่ upload ซ้ำ
+function uploadProductImages(images) {
+  if (!images || !images.length) return Promise.resolve([]);
+  return Promise.all(images.map(function (img) {
+    if (typeof img !== "string") return null;
+    if (img.indexOf("data:") === 0) {
+      return uploadDataUrlToStorage("product-images", img);
+    }
+    return img; // already a URL
+  })).then(function (urls) {
+    return urls.filter(function (u) { return !!u; });
+  });
 }
 
 function saveAllProducts() {
@@ -658,21 +683,28 @@ function saveAllProducts() {
 
   setSavingState(true);
 
-  var saveOps;
-  if (isEdit) {
-    var d = items[0];
-    saveOps = updateProductDB(editId, buildProductPayload(d)).then(function (updated) {
-      if (!updated || !updated.id) throw new Error("Update failed");
-      return saveProductUnitConversions(updated.id, d.unitConversions || []);
+  // upload base64 images → URLs ก่อน build payload
+  var uploadOps = Promise.all(items.map(function (d) {
+    return uploadProductImages(d.images || []).then(function (urls) {
+      d.images = urls;
     });
-  } else {
-    saveOps = Promise.all(items.map(function (d) {
+  }));
+
+  var saveOps = uploadOps.then(function () {
+    if (isEdit) {
+      var d = items[0];
+      return updateProductDB(editId, buildProductPayload(d)).then(function (updated) {
+        if (!updated || !updated.id) throw new Error("Update failed");
+        return saveProductUnitConversions(updated.id, d.unitConversions || []);
+      });
+    }
+    return Promise.all(items.map(function (d) {
       return createProductDB(buildProductPayload(d)).then(function (created) {
         if (!created || !created.id) throw new Error("Create failed");
         return saveProductUnitConversions(created.id, d.unitConversions || []);
       });
     }));
-  }
+  });
 
   saveOps
     .then(function () {
@@ -689,37 +721,32 @@ function saveAllProducts() {
 }
 
 // ============ Edit Mode ============
-function checkEditMode() {
-  var params = new URLSearchParams(window.location.search);
-  var editId = params.get("id");
-  if (!editId) return Promise.resolve(false);
+function isEditMode() {
+  return !!new URLSearchParams(window.location.search).get("id");
+}
 
-  document.getElementById("pageTitle").textContent = "Edit Product";
-  document.getElementById("pageSubtitle").textContent = "แก้ไขข้อมูลสินค้า";
+function getEditId() {
+  return new URLSearchParams(window.location.search).get("id");
+}
 
-  return Promise.all([
-    typeof fetchProductById === "function" ? fetchProductById(editId) : Promise.resolve(null),
-    typeof fetchProductUnitConversions === "function" ? fetchProductUnitConversions(editId) : Promise.resolve([]),
-  ]).then(function (results) {
-    var p = results[0];
-    if (!p) return true;
-    var conversions = (results[1] || []).map(function (c) {
-      return { unit_id: c.unit_id, factor: Number(c.factor), is_base: !!c.is_base };
-    });
-    addProductBlock({
-      _isEdit: true,
-      name: p.name || "",
-      category: p.categories ? p.categories.name : "",
-      description: p.description || "",
-      sku: p.sku || "",
-      baseSku: p.sku || "",
-      barcode: p.barcode || "",
-      price: Number(p.price) || 0,
-      variants: p.variants || [],
-      images: p.images || [],
-      unitConversions: conversions,
-    });
-    return true;
+function applyEditData(product, conversions) {
+  if (!product) return;
+  var convs = (conversions || []).map(function (c) {
+    return { unit_id: c.unit_id, factor: Number(c.factor), is_base: !!c.is_base };
+  });
+  addProductBlock({
+    _isEdit: true,
+    name: product.name || "",
+    category: product.categories ? product.categories.name : "",
+    description: product.description || "",
+    sku: product.sku || "",
+    baseSku: product.sku || "",
+    barcode: product.barcode || "",
+    price: Number(product.price) || 0,
+    variants: product.variants || [],
+    images: product.images || [],
+    unitConversions: convs,
+    low_stock_threshold: product.low_stock_threshold != null ? product.low_stock_threshold : null,
   });
 }
 
@@ -747,29 +774,45 @@ if (typeof registerRandomFill === "function") {
 
 // ============ Init ============
 document.addEventListener("DOMContentLoaded", function() {
-  // โหลด units ก่อน แล้วค่อยสร้าง block
+  var editId = getEditId();
+  if (editId) {
+    document.getElementById("pageTitle").textContent = "Edit Product";
+    document.getElementById("pageSubtitle").textContent = "แก้ไขข้อมูลสินค้า";
+  }
+
+  // ยิงทุก request พร้อมกัน (ไม่ waterfall)
+  // - fetchProductSkusDB: lightweight สำหรับ auto-SKU/barcode
+  // - fetchProductById + fetchProductUnitConversions: เฉพาะตอน edit
   Promise.all([
     typeof fetchUnitsDB === "function" ? fetchUnitsDB() : Promise.resolve([]),
-    typeof fetchProducts === "function" ? fetchProducts() : Promise.resolve([]),
+    typeof fetchProductSkusDB === "function" ? fetchProductSkusDB() : Promise.resolve([]),
     typeof fetchCategories === "function" ? fetchCategories() : Promise.resolve([]),
+    editId && typeof fetchProductById === "function" ? fetchProductById(editId) : Promise.resolve(null),
+    editId && typeof fetchProductUnitConversions === "function" ? fetchProductUnitConversions(editId) : Promise.resolve([]),
   ])
     .then(function (results) {
       allUnits = (results[0] || []).map(function (r) {
         return { id: r.id, name: r.name, abbr: r.abbr || "", status: r.status || "active" };
       });
       allProducts = (results[1] || []).map(function (r) {
-        return { sku: r.sku || "" };
+        return { sku: r.sku || "", barcode: r.barcode || "" };
       });
       allCategories = (results[2] || []).map(function (r) {
         return { id: r.id, name: r.name || "", status: r.status || "active" };
       });
+
+      if (editId) {
+        applyEditData(results[3], results[4]);
+      } else {
+        addProductBlock();
+      }
     })
-    .catch(function () { allUnits = []; allProducts = []; })
+    .catch(function (err) {
+      console.error(err);
+      allUnits = []; allProducts = []; allCategories = [];
+      if (!editId) addProductBlock();
+    })
     .then(function () {
-      return checkEditMode();
-    })
-    .then(function (isEdit) {
-      if (!isEdit) addProductBlock();
       // Populate unit dropdowns สำหรับทุก block
       document.querySelectorAll(".product-block").forEach(function (block) {
         var idx = block.dataset.block;

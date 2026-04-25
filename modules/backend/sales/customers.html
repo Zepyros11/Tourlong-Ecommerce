@@ -141,48 +141,60 @@
 
     <!-- Modal Add/Edit Customer -->
     <div class="modal-overlay" id="customerModal">
-      <div class="modal">
+      <div class="modal" style="width:520px;max-width:94vw;">
         <div class="modal-header">
           <h3 class="modal-title" id="modalTitle">Add Customer</h3>
           <button class="modal-close"><i data-lucide="x"></i></button>
         </div>
         <div class="modal-body">
           <input type="hidden" id="editId" />
-          <div class="form-group">
-            <label class="form-label">Customer Name</label>
-            <input type="text" class="form-input" id="inputName" placeholder="ชื่อลูกค้า..." />
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">รหัสสมาชิก</label>
+              <input type="text" class="form-input" id="inputMemberCode" placeholder="auto" readonly style="background-color:#f1f5f9;color:#475569;cursor:not-allowed;" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Customer Name</label>
+              <input type="text" class="form-input" id="inputName" placeholder="ชื่อลูกค้า..." />
+            </div>
           </div>
-          <div class="form-group">
-            <label class="form-label">Contact</label>
-            <input type="text" class="form-input" id="inputContact" placeholder="ชื่อผู้ติดต่อ..." />
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Contact</label>
+              <input type="text" class="form-input" id="inputContact" placeholder="ชื่อผู้ติดต่อ..." />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Phone</label>
+              <input type="text" class="form-input" id="inputPhone" placeholder="เบอร์โทร..." />
+            </div>
           </div>
-          <div class="form-group">
-            <label class="form-label">Phone</label>
-            <input type="text" class="form-input" id="inputPhone" placeholder="เบอร์โทร..." />
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input type="text" class="form-input" id="inputEmail" placeholder="อีเมล..." />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Type</label>
+              <select class="form-select" id="inputType">
+                <option value="individual">บุคคล</option>
+                <option value="company">นิติบุคคล</option>
+              </select>
+            </div>
           </div>
-          <div class="form-group">
-            <label class="form-label">Email</label>
-            <input type="text" class="form-input" id="inputEmail" placeholder="อีเมล..." />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Type</label>
-            <select class="form-select" id="inputType">
-              <option value="individual">บุคคล</option>
-              <option value="company">นิติบุคคล</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Address</label>
-            <input type="text" class="form-input" id="inputAddress" placeholder="ที่อยู่..." />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Status</label>
-            <div class="status-toggle">
-              <label class="toggle">
-                <input type="checkbox" id="inputStatus" checked />
-                <span class="toggle-slider"></span>
-              </label>
-              <span class="status-toggle-label active-label" id="inputStatusLabel">Active</span>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Address</label>
+              <input type="text" class="form-input" id="inputAddress" placeholder="ที่อยู่..." />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Status</label>
+              <div class="status-toggle">
+                <label class="toggle">
+                  <input type="checkbox" id="inputStatus" checked />
+                  <span class="toggle-slider"></span>
+                </label>
+                <span class="status-toggle-label active-label" id="inputStatusLabel">Active</span>
+              </div>
             </div>
           </div>
         </div>
@@ -222,6 +234,7 @@
     <script>renderSidebarMenu("customers.html");</script>
     <script src="/assets/js/topbar.js"></script>
     <script>renderTopbar({ group: "Sales", page: "ลูกค้า" });</script>
+    <script src="/modules/backend/assets/js/app-mode.js"></script>
     <script src="/modules/backend/assets/js/random-data.js"></script>
     <script src="customers.js"></script>
   </body>

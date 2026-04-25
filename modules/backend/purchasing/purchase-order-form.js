@@ -205,8 +205,11 @@ if (typeof registerRandomFill === "function") {
   registerRandomFill({
     target: "page",
     fill: function () {
-      if (!allSuppliers.length || !allProducts.length) {
-        if (typeof showToast === "function") showToast("ยังไม่มีข้อมูล supplier/product", "warning");
+      var missing = [];
+      if (!allSuppliers.length) missing.push("ผู้ขาย");
+      if (!allProducts.length) missing.push("สินค้า");
+      if (missing.length) {
+        if (typeof showToast === "function") showToast("ยังไม่มีข้อมูล " + missing.join(" / ") + " — กรุณาเพิ่มก่อน", "warning");
         return;
       }
       setFieldValue("inputDate", randomPastDate(60));

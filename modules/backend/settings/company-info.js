@@ -4,8 +4,11 @@
 
 var company = {
   name: "", type: "", tax_id: "", phone: "", email: "",
-  website: "", address: "", branch: "",
+  website: "", address: "", branch: "", logo_url: "",
 };
+
+// pendingLogo: null = ไม่เปลี่ยน, "" = ลบ, "data:..." = รูปใหม่รอ upload
+var pendingLogo = null;
 
 function renderCompany() {
   document.getElementById("displayName").textContent = company.name || "—";
@@ -16,6 +19,49 @@ function renderCompany() {
   document.getElementById("displayWebsite").textContent = company.website || "—";
   document.getElementById("displayAddress").textContent = company.address || "—";
   document.getElementById("displayBranch").textContent = company.branch || "—";
+
+  // แสดง logo ถ้ามี (แทน placeholder icon)
+  var logoEl = document.getElementById("companyLogo");
+  if (logoEl) {
+    if (company.logo_url) {
+      logoEl.innerHTML = '<img src="' + company.logo_url + '" style="width:100%;height:100%;object-fit:contain;" />';
+    } else {
+      logoEl.innerHTML = '<i data-lucide="building-2" style="width:32px;height:32px;color:#94a3b8;"></i>';
+      if (typeof lucide !== "undefined") lucide.createIcons();
+    }
+  }
+}
+
+function renderLogoPreview(url) {
+  var box = document.getElementById("logoPreviewBox");
+  var img = document.getElementById("logoPreviewImg");
+  var upload = document.getElementById("logoUploadBox");
+  if (url) {
+    box.style.display = "block";
+    img.src = url;
+    upload.style.display = "none";
+  } else {
+    box.style.display = "none";
+    upload.style.display = "flex";
+  }
+}
+
+function handleLogoSelect(input) {
+  var f = input.files[0];
+  if (!f) return;
+  if (!f.type.startsWith("image/")) return;
+  var reader = new FileReader();
+  reader.onload = function (e) {
+    pendingLogo = e.target.result;
+    renderLogoPreview(pendingLogo);
+  };
+  reader.readAsDataURL(f);
+  input.value = "";
+}
+
+function removeLogo() {
+  pendingLogo = "";
+  renderLogoPreview(null);
 }
 
 function openEditModal() {
@@ -27,23 +73,51 @@ function openEditModal() {
   document.getElementById("inputWebsite").value = company.website || "";
   document.getElementById("inputAddress").value = company.address || "";
   document.getElementById("inputBranch").value = company.branch || "";
+  pendingLogo = null;
+  renderLogoPreview(company.logo_url || null);
   openModalById("companyModal", function () { document.getElementById("inputName").focus(); });
 }
 
 function saveCompany() {
-  var payload = {
-    name: document.getElementById("inputName").value.trim(),
-    type: document.getElementById("inputType").value.trim(),
-    tax_id: document.getElementById("inputTaxId").value.trim(),
-    phone: document.getElementById("inputPhone").value.trim(),
-    email: document.getElementById("inputEmail").value.trim(),
-    website: document.getElementById("inputWebsite").value.trim(),
-    address: document.getElementById("inputAddress").value.trim(),
-    branch: document.getElementById("inputBranch").value.trim(),
-  };
+  var oldLogo = company.logo_url || "";
 
-  updateCompanyInfoDB(payload)
-    .then(function () { return reloadCompany(); })
+  // Upload logo ก่อน (ถ้ามีการเปลี่ยน)
+  var logoOp;
+  if (pendingLogo === null) {
+    logoOp = Promise.resolve(undefined); // ไม่เปลี่ยน
+  } else if (pendingLogo === "") {
+    logoOp = Promise.resolve(null); // ลบ
+  } else if (typeof pendingLogo === "string" && pendingLogo.indexOf("data:") === 0) {
+    logoOp = uploadDataUrlToStorage("product-images", pendingLogo);
+  } else {
+    logoOp = Promise.resolve(undefined);
+  }
+
+  logoOp
+    .then(function (newUrl) {
+      var payload = {
+        name: document.getElementById("inputName").value.trim(),
+        type: document.getElementById("inputType").value.trim(),
+        tax_id: document.getElementById("inputTaxId").value.trim(),
+        phone: document.getElementById("inputPhone").value.trim(),
+        email: document.getElementById("inputEmail").value.trim(),
+        website: document.getElementById("inputWebsite").value.trim(),
+        address: document.getElementById("inputAddress").value.trim(),
+        branch: document.getElementById("inputBranch").value.trim(),
+      };
+      // undefined = ไม่เปลี่ยน, null = clear, string = URL ใหม่
+      if (newUrl !== undefined) payload.logo_url = newUrl;
+      return updateCompanyInfoDB(payload);
+    })
+    .then(function () {
+      // ลบ logo เก่าจาก Storage ถ้ามีการเปลี่ยน/ลบ
+      if (pendingLogo !== null && oldLogo) {
+        if (typeof deleteProductImagesFromStorage === "function") {
+          deleteProductImagesFromStorage([oldLogo]).catch(function (e) { console.warn(e); });
+        }
+      }
+      return reloadCompany();
+    })
     .then(function () {
       closeModalById("companyModal");
       renderCompany();
@@ -59,6 +133,7 @@ function reloadCompany() {
           name: row.name || "", type: row.type || "", tax_id: row.tax_id || "",
           phone: row.phone || "", email: row.email || "", website: row.website || "",
           address: row.address || "", branch: row.branch || "",
+          logo_url: row.logo_url || "",
         };
       }
     });

@@ -6,6 +6,7 @@
 var payments = [];
 var allInvoices = [];
 var allPOs = [];
+var allSOs = [];
 var allCustomers = [];
 var allSuppliers = [];
 var allBankAccounts = [];
@@ -26,6 +27,12 @@ function getDirectionBadge(dir) {
   return '<span style="display:inline-block;padding:2px 8px;border-radius:9999px;font-size:9px;font-weight:700;background:#fef2f2;color:#ef4444;">⬆ Outgoing</span>';
 }
 
+function getSourceBadge(source) {
+  if (source === "so") return '<span title="Auto-created จาก SO" style="display:inline-block;padding:1px 6px;border-radius:9999px;font-size:9px;font-weight:600;background:#eff6ff;color:#2563eb;margin-left:4px;">AUTO·SO</span>';
+  if (source === "po") return '<span title="Auto-created จาก PO" style="display:inline-block;padding:1px 6px;border-radius:9999px;font-size:9px;font-weight:600;background:#fef3c7;color:#b45309;margin-left:4px;">AUTO·PO</span>';
+  return "";
+}
+
 function updateStats() {
   document.getElementById("statAll").textContent = payments.length;
   document.getElementById("statCompleted").textContent = payments.filter(function (p) { return p.status === "completed"; }).length;
@@ -44,7 +51,8 @@ function renderTable(data) {
     var ref = "—";
     var party = "—";
     if (p.direction === "incoming") {
-      ref = p.invoices ? p.invoices.invoice_number : "—";
+      if (p.invoices) ref = p.invoices.invoice_number;
+      else if (p.sales_orders) ref = p.sales_orders.so_number;
       party = p.customers ? p.customers.name : "—";
     } else {
       ref = p.purchase_orders ? p.purchase_orders.po_number : "—";
@@ -53,7 +61,7 @@ function renderTable(data) {
     return '<tr>' +
       '<td>' + (i + 1) + '</td>' +
       '<td>' + (p.date || "—") + '</td>' +
-      '<td>' + getDirectionBadge(p.direction) + '</td>' +
+      '<td>' + getDirectionBadge(p.direction) + getSourceBadge(p.source) + '</td>' +
       '<td>' + ref + '</td>' +
       '<td>' + party + '</td>' +
       '<td>' + (p.method || "—") + '</td>' +
@@ -101,6 +109,18 @@ function populatePODropdown(selectedId) {
   allPOs.forEach(function (po) {
     if (po.status === "cancelled") return;
     html += '<option value="' + po.id + '" data-amount="' + po.total + '" data-supplier="' + (po.supplier_id || "") + '">' + po.po_number + ' — ' + (po.suppliers ? po.suppliers.name : "") + ' (' + Number(po.total).toLocaleString() + ')</option>';
+  });
+  sel.innerHTML = html;
+  if (selectedId) sel.value = String(selectedId);
+}
+
+function populateSODropdown(selectedId) {
+  var sel = document.getElementById("inputSO");
+  if (!sel) return;
+  var html = '<option value="">— ไม่อิง SO —</option>';
+  allSOs.forEach(function (so) {
+    if (so.status === "cancelled") return;
+    html += '<option value="' + so.id + '" data-amount="' + so.total + '" data-customer="' + (so.customer_id || "") + '">' + so.so_number + ' — ' + (so.customers ? so.customers.name : "") + ' (' + Number(so.total).toLocaleString() + ')</option>';
   });
   sel.innerHTML = html;
   if (selectedId) sel.value = String(selectedId);
@@ -166,6 +186,17 @@ function onPOChange() {
   if (supId) document.getElementById("inputSupplier").value = supId;
 }
 
+function onSOChange() {
+  var sel = document.getElementById("inputSO");
+  if (!sel) return;
+  var opt = sel.options[sel.selectedIndex];
+  if (!opt || !opt.value) return;
+  var amount = Number(opt.getAttribute("data-amount")) || 0;
+  var custId = opt.getAttribute("data-customer");
+  if (amount > 0) document.getElementById("inputAmount").value = amount;
+  if (custId) document.getElementById("inputCustomer").value = custId;
+}
+
 function openPaymentModal(title, p) {
   if (!allBankAccounts.length) { alertMsg("ยังไม่มีบัญชีธนาคาร", "กรุณาเพิ่มบัญชีก่อน"); return; }
   document.getElementById("modalTitle").textContent = title;
@@ -179,6 +210,7 @@ function openPaymentModal(title, p) {
   document.getElementById("inputNote").value = p ? (p.note || "") : "";
 
   populateInvoiceDropdown(p ? p.invoice_id : null);
+  populateSODropdown(p ? p.so_id : null);
   populatePODropdown(p ? p.po_id : null);
   populateCustomerDropdown(p ? p.customer_id : null);
   populateSupplierDropdown(p ? p.supplier_id : null);
@@ -218,12 +250,15 @@ function savePayment() {
     bank_account_id: bankAccountId,
     note: note || null,
     invoice_id: null,
+    so_id: null,
     customer_id: null,
     po_id: null,
     supplier_id: null,
   };
   if (direction === "incoming") {
     payload.invoice_id = Number(document.getElementById("inputInvoice").value) || null;
+    var soEl = document.getElementById("inputSO");
+    payload.so_id = soEl ? (Number(soEl.value) || null) : null;
     payload.customer_id = Number(document.getElementById("inputCustomer").value) || null;
   } else {
     payload.po_id = Number(document.getElementById("inputPO").value) || null;
@@ -273,7 +308,8 @@ function getFilteredData() {
       var ref = "";
       var party = "";
       if (p.direction === "incoming") {
-        ref = p.invoices ? p.invoices.invoice_number.toLowerCase() : "";
+        if (p.invoices) ref = p.invoices.invoice_number.toLowerCase();
+        else if (p.sales_orders) ref = p.sales_orders.so_number.toLowerCase();
         party = p.customers ? p.customers.name.toLowerCase() : "";
       } else {
         ref = p.purchase_orders ? p.purchase_orders.po_number.toLowerCase() : "";
@@ -301,6 +337,7 @@ function reloadAll() {
     typeof fetchInvoicesDB === "function" ? fetchInvoicesDB() : Promise.resolve([]),
     typeof fetchPurchaseOrdersDB === "function" ? fetchPurchaseOrdersDB() : Promise.resolve([]),
     typeof fetchPaymentsDB === "function" ? fetchPaymentsDB() : Promise.resolve([]),
+    typeof fetchSalesOrdersDB === "function" ? fetchSalesOrdersDB() : Promise.resolve([]),
   ]).then(function (res) {
     allCustomers = (res[0] || []).map(function (c) { return { id: c.id, name: c.name || "", status: c.status || "active" }; });
     allSuppliers = (res[1] || []).map(function (s) { return { id: s.id, name: s.name || "", status: s.status || "active" }; });
@@ -315,6 +352,10 @@ function reloadAll() {
                total: Number(po.total) || 0, status: po.status, suppliers: po.suppliers || null };
     });
     payments = (res[5] || []).map(normalizePayment);
+    allSOs = (res[6] || []).map(function (so) {
+      return { id: so.id, so_number: so.so_number, customer_id: so.customer_id,
+               total: Number(so.total) || 0, status: so.status, customers: so.customers || null };
+    });
   });
 }
 
@@ -325,6 +366,7 @@ function normalizePayment(p) {
     direction: p.direction,
     date: p.date || "",
     invoice_id: p.invoice_id,
+    so_id: p.so_id,
     customer_id: p.customer_id,
     po_id: p.po_id,
     supplier_id: p.supplier_id,
@@ -332,8 +374,10 @@ function normalizePayment(p) {
     method: p.method || "",
     amount: Number(p.amount) || 0,
     status: p.status || "completed",
+    source: p.source || "manual",
     note: p.note || "",
     invoices: p.invoices || null,
+    sales_orders: p.sales_orders || null,
     customers: p.customers || null,
     purchase_orders: p.purchase_orders || null,
     suppliers: p.suppliers || null,
@@ -351,6 +395,7 @@ if (typeof registerRandomFill === "function") {
       if (dirEl) { dirEl.value = direction; if (typeof onDirectionChange === "function") onDirectionChange(); }
       if (direction === "incoming") {
         pickRandomSelectOption("inputInvoice", { includeEmpty: true });
+        pickRandomSelectOption("inputSO", { includeEmpty: true });
         pickRandomSelectOption("inputCustomer");
       } else {
         pickRandomSelectOption("inputPO", { includeEmpty: true });

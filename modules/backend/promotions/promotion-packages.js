@@ -6,6 +6,7 @@
 
 var packages = [];
 var latestCosts = {}; // { product_id: cost }
+var currentAppMode = "test";
 
 function fmtMoney(n) { return "฿" + Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 function fmtMoneyShort(n) { return "฿" + Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: 0 }); }
@@ -42,10 +43,20 @@ function renderTable(data) {
     lucide.createIcons();
     return;
   }
+  var showDelete = currentAppMode === "test";
   tbody.innerHTML = data.map(function (p, i) {
     var t = pkgTotals(p);
     var itemCount = (p.promotion_package_items || []).length;
     var profitColor = t.profit >= 0 ? "#10b981" : "#ef4444";
+    var isActive = p.status === "active";
+    var statusToggle =
+      '<label class="toggle" title="' + (isActive ? "Active" : "Inactive") + '">' +
+        '<input type="checkbox" ' + (isActive ? "checked" : "") + ' onchange="togglePkgStatus(' + p.id + ', this.checked)" />' +
+        '<span class="toggle-slider"></span>' +
+      '</label>';
+    var deleteBtn = showDelete
+      ? '<button class="btn-icon-sm btn-danger" onclick="deletePkg(' + p.id + ')"><i data-lucide="trash-2"></i></button>'
+      : '';
     return '<tr>' +
       '<td>' + (i + 1) + '</td>' +
       '<td><strong>' + (p.name || "") + '</strong></td>' +
@@ -55,10 +66,10 @@ function renderTable(data) {
       '<td style="text-align:right;">' + fmtMoney(t.revenue) + '</td>' +
       '<td style="text-align:right;color:#ef4444;">' + fmtMoney(t.cost) + '</td>' +
       '<td style="text-align:right;color:' + profitColor + ';font-weight:700;">' + fmtMoney(t.profit) + '</td>' +
-      '<td>' + getStatusBadge(p.status) + '</td>' +
+      '<td>' + statusToggle + '</td>' +
       '<td><div class="table-actions">' +
         '<button class="btn-icon-sm" onclick="editPkg(' + p.id + ')"><i data-lucide="pencil"></i></button>' +
-        '<button class="btn-icon-sm btn-danger" onclick="deletePkg(' + p.id + ')"><i data-lucide="trash-2"></i></button>' +
+        deleteBtn +
       '</div></td>' +
     '</tr>';
   }).join("");
@@ -68,6 +79,21 @@ function renderTable(data) {
 
 function editPkg(id) {
   window.location.href = "promotion-package-form.html?id=" + id;
+}
+
+function togglePkgStatus(id, isActive) {
+  var newStatus = isActive ? "active" : "inactive";
+  fetch(SUPABASE_URL + "/rest/v1/promotion_packages?id=eq." + id, {
+    method: "PATCH",
+    headers: supabaseHeaders,
+    body: JSON.stringify({ status: newStatus }),
+  })
+    .then(function () { return reloadPackages(); })
+    .then(function () { applyFilters(); })
+    .catch(function (err) {
+      console.error(err);
+      if (typeof showToast === "function") showToast("ผิดพลาด", "เปลี่ยนสถานะไม่สำเร็จ", "error");
+    });
 }
 
 function deletePkg(id) {
@@ -146,7 +172,11 @@ document.addEventListener("DOMContentLoaded", function () {
     applyFilters();
   });
 
-  reloadPackages()
-    .then(function () { applyFilters(); })
+  var modeP = (typeof getAppMode === "function") ? getAppMode() : Promise.resolve("test");
+  Promise.all([modeP, reloadPackages()])
+    .then(function (results) {
+      currentAppMode = results[0] || "test";
+      applyFilters();
+    })
     .catch(function (err) { console.error(err); applyFilters(); });
 });

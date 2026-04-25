@@ -183,8 +183,7 @@
               <label class="form-label">Status</label>
               <select class="form-select" id="inputStatus">
                 <option value="processing">กำลังดำเนินการ</option>
-                <option value="completed">สำเร็จ (ตัด stock)</option>
-                <option value="cancelled">ยกเลิก</option>
+                <option value="completed">สำเร็จ (ตัด stock + สร้างรายรับ)</option>
               </select>
             </div>
           </div>
@@ -229,6 +228,65 @@
       </div>
     </div>
 
+    <!-- Cancel SO Modal -->
+    <div class="modal-overlay" id="cancelSOModal">
+      <div class="modal" style="max-width:560px;width:94vw;">
+        <div class="modal-header" style="background:#fef2f2;">
+          <h3 class="modal-title" style="color:#991b1b;">⚠️ ยกเลิกคำสั่งขาย <span id="cancelSOLabel" style="font-size:11px;color:#64748b;font-weight:500;"></span></h3>
+          <button class="modal-close"><i data-lucide="x"></i></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="cancelSoId" />
+          <div id="cancelSOImpact" style="padding:12px;background:#f8fafc;border-radius:8px;margin-bottom:14px;font-size:11px;color:#334155;line-height:1.7;"></div>
+
+          <!-- Refund options (shown only if Payment received) -->
+          <div class="form-group" id="cancelSORefundGroup" style="display:none;">
+            <label class="form-label">วิธีคืนเงินลูกค้า <span style="color:#ef4444;">*</span></label>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;cursor:pointer;font-size:11px;">
+                <input type="radio" name="soRefundOption" value="full" checked />
+                <span><strong>A) คืนเต็มจำนวน</strong> — สร้าง Payment outgoing เท่ายอดที่รับมา</span>
+              </label>
+              <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;cursor:pointer;font-size:11px;">
+                <input type="radio" name="soRefundOption" value="partial" />
+                <span><strong>B) คืนบางส่วน (หักค่าปรับ)</strong> — ระบุยอดคืน + ค่าปรับด้านล่าง</span>
+              </label>
+              <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;cursor:pointer;font-size:11px;">
+                <input type="radio" name="soRefundOption" value="none" />
+                <span><strong>C) ไม่คืน (ยึดเงิน)</strong> — บันทึกเป็นรายรับพิเศษ ลูกค้าไม่ได้คืน</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Refund amount (shown only if partial) -->
+          <div class="form-row" id="cancelSOPartialGroup" style="display:none;">
+            <div class="form-group">
+              <label class="form-label">ยอดคืน (฿) <span style="color:#ef4444;">*</span></label>
+              <input type="number" class="form-input" id="cancelSORefundAmount" min="0" step="0.01" placeholder="0.00" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">ค่าปรับ (฿)</label>
+              <input type="number" class="form-input" id="cancelSOPenaltyAmount" min="0" step="0.01" placeholder="0.00" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">หมายเหตุค่าปรับ / เหตุผลคืนเงิน</label>
+            <input type="text" class="form-input" id="cancelSOPenaltyNote" placeholder="เหตุผล..." />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">เหตุผลการยกเลิก <span style="color:#ef4444;">*</span></label>
+            <textarea class="form-input" id="cancelSOReason" rows="2" style="resize:vertical;" placeholder="ระบุเหตุผลการยกเลิก..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" onclick="closeModalById('cancelSOModal')">ยกเลิก</button>
+          <button class="btn-primary" style="background:#ef4444;" onclick="submitCancelSO()">ยืนยันการยกเลิก SO</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Confirm Modal -->
     <div class="modal-overlay" id="confirmModal">
       <div class="modal">
@@ -258,6 +316,9 @@
     <script>renderSidebarMenu("sales-orders.html");</script>
     <script src="/assets/js/topbar.js"></script>
     <script>renderTopbar({ group: "Sales", page: "คำสั่งซื้อ" });</script>
+    <script src="/modules/backend/assets/js/app-mode.js"></script>
+    <script src="/modules/backend/assets/js/manager-password.js"></script>
+    <script src="/modules/backend/assets/js/cancel-helpers.js"></script>
     <script src="/modules/backend/assets/js/random-data.js"></script>
     <script src="sales-orders.js"></script>
   </body>

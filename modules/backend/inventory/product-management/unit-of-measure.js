@@ -6,6 +6,7 @@
 
 // ============ Database (Supabase) ============
 let units = [];
+var currentAppMode = "test";
 
 function normalizeUnit(row) {
   if (!row) return null;
@@ -189,7 +190,7 @@ function renderTable(data) {
         '<td>' +
           '<div class="table-actions">' +
             '<button class="btn-icon-sm" onclick="editUnit(' + u.id + ')"><i data-lucide="pencil"></i></button>' +
-            '<button class="btn-icon-sm btn-danger" onclick="deleteUnit(' + u.id + ')"><i data-lucide="trash-2"></i></button>' +
+            (currentAppMode === "test" ? '<button class="btn-icon-sm btn-danger" onclick="deleteUnit(' + u.id + ')"><i data-lucide="trash-2"></i></button>' : '') +
           '</div>' +
         '</td>' +
       '</tr>';
@@ -412,9 +413,13 @@ document.addEventListener("DOMContentLoaded", function () {
   var baseSelect = document.getElementById("inputBaseUnit");
   if (baseSelect) baseSelect.addEventListener("change", toggleFactorGroup);
 
-  // Initial load
-  reloadUnits()
-    .then(applyFilters)
+  // Initial load + app mode
+  var modeP = (typeof getAppMode === "function") ? getAppMode() : Promise.resolve("test");
+  Promise.all([modeP, reloadUnits()])
+    .then(function (results) {
+      currentAppMode = results[0] || "test";
+      applyFilters();
+    })
     .catch(function (err) {
       console.error(err);
       showToast("โหลดข้อมูลหน่วยนับไม่สำเร็จ — ตรวจสอบการเชื่อมต่อ Supabase", "error", 5000);

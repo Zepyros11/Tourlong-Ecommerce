@@ -130,6 +130,22 @@ function populateWarehouseDropdown(selectedId) {
   });
   sel.innerHTML = html;
   if (selectedId) sel.value = String(selectedId);
+  refreshWarehouseHighlight();
+}
+
+// Highlight ช่องคลังเมื่อยังไม่ได้เลือก (required field)
+function refreshWarehouseHighlight() {
+  var sel = document.getElementById("inputWarehouse");
+  if (!sel) return;
+  if (!sel.value) {
+    sel.style.borderColor = "#f59e0b";
+    sel.style.background = "#fffbeb";
+    sel.style.boxShadow = "0 0 0 3px rgba(245, 158, 11, 0.15)";
+  } else {
+    sel.style.borderColor = "";
+    sel.style.background = "";
+    sel.style.boxShadow = "";
+  }
 }
 
 // ============ PO auto-fill ============
@@ -163,15 +179,26 @@ function addGRItemRow(data) {
   var poQty = d.po_qty != null ? Number(d.po_qty) : null;
   if (poQty != null) tr.dataset.poQty = String(poQty);
   if (d.po_item_id) tr.dataset.poItemId = String(d.po_item_id);
+
+  // row อ้างอิง PO → ปิดการแก้ไขทุกฟิลด์ (รับครบตาม PO เท่านั้น)
+  var isPORef = !!d.po_item_id;
+  var lockAttr = isPORef ? " readonly tabindex=\"-1\"" : "";
+  var lockSelectAttr = isPORef ? " disabled" : "";
+  var lockStyle = isPORef ? "background:#f1f5f9;cursor:not-allowed;" : "";
+
   var varianceHtml = poQty != null
     ? '<div class="qty-variance" style="font-size:9px;margin-top:3px;text-align:right;color:#94a3b8;font-weight:600;">คาด: ' + poQty + '</div>'
     : '';
+  var removeBtnHtml = isPORef
+    ? '<span style="color:#cbd5e1;font-size:11px;" title="row อ้างอิง PO — ลบไม่ได้">🔒</span>'
+    : '<button class="btn-icon-sm btn-danger" type="button" onclick="removeGRItemRow(this)" style="width:24px;height:24px;"><i data-lucide="x" style="width:12px;height:12px;"></i></button>';
+
   tr.innerHTML =
-    '<td><select class="form-select gr-product">' + buildProductOptions(d.product_id) + '</select></td>' +
-    '<td><input type="number" class="form-input gr-qty" value="' + (d.qty || "") + '" min="0" step="any" oninput="recalcTotals()" style="text-align:right;" />' + varianceHtml + '</td>' +
-    '<td><input type="number" class="form-input gr-cost" value="' + (d.cost || "") + '" min="0" step="0.01" oninput="recalcTotals()" style="text-align:right;" /></td>' +
+    '<td><select class="form-select gr-product"' + lockSelectAttr + ' style="' + lockStyle + '">' + buildProductOptions(d.product_id) + '</select></td>' +
+    '<td><input type="number" class="form-input gr-qty" value="' + (d.qty || "") + '" min="0" step="any" oninput="recalcTotals()" style="text-align:right;' + lockStyle + '"' + lockAttr + ' />' + varianceHtml + '</td>' +
+    '<td><input type="number" class="form-input gr-cost" value="' + (d.cost || "") + '" min="0" step="0.01" oninput="recalcTotals()" style="text-align:right;' + lockStyle + '"' + lockAttr + ' /></td>' +
     '<td style="text-align:right;color:#10b981;font-weight:700;" class="gr-subtotal">฿0.00</td>' +
-    '<td><button class="btn-icon-sm btn-danger" type="button" onclick="removeGRItemRow(this)" style="width:24px;height:24px;"><i data-lucide="x" style="width:12px;height:12px;"></i></button></td>';
+    '<td>' + removeBtnHtml + '</td>';
   tbody.appendChild(tr);
   lucide.createIcons();
   recalcTotals();
@@ -202,31 +229,17 @@ function recalcTotals() {
       variance.style.color = "#10b981";
       exactRows++;
     } else if (qty < poQty) {
-      variance.textContent = "⚠ ขาด " + (poQty - qty) + " (จาก " + poQty + ")";
-      variance.style.color = "#f59e0b";
+      variance.textContent = "⚠ ต้องรับครบ " + poQty + " (ขาด " + (poQty - qty) + ")";
+      variance.style.color = "#ef4444";
       shortRows++;
     } else {
-      variance.textContent = "↑ เกิน " + (qty - poQty) + " (จาก " + poQty + ")";
-      variance.style.color = "#3b82f6";
+      variance.textContent = "⚠ ต้องรับ " + poQty + " เท่านั้น (เกิน " + (qty - poQty) + ")";
+      variance.style.color = "#ef4444";
       overRows++;
     }
   });
   document.getElementById("sumTotal").textContent = fmtMoney(total);
   updateReceiveSummary(refRows, exactRows, shortRows, overRows);
-  autoAdjustStatus(refRows, shortRows, exactRows);
-}
-
-// auto-switch between "completed" <-> "partial" based on receive variance
-function autoAdjustStatus(refRows, shortRows, exactRows) {
-  var sel = document.getElementById("inputStatus");
-  if (!sel || !refRows) return;
-  // User manually picked pending/cancelled → leave alone
-  if (sel.value === "pending" || sel.value === "cancelled") return;
-  if (shortRows > 0 && sel.value === "completed") {
-    sel.value = "partial";
-  } else if (shortRows === 0 && sel.value === "partial" && exactRows === refRows) {
-    sel.value = "completed";
-  }
 }
 
 function updateReceiveSummary(refRows, exact, shortR, over) {
@@ -234,15 +247,17 @@ function updateReceiveSummary(refRows, exact, shortR, over) {
   if (!banner) return;
   if (refRows === 0) { banner.style.display = "none"; return; }
   banner.style.display = "flex";
-  var parts = [];
-  if (exact > 0) parts.push('<span style="color:#10b981;font-weight:700;">✓ ครบ ' + exact + ' รายการ</span>');
-  if (shortR > 0) parts.push('<span style="color:#f59e0b;font-weight:700;">⚠ ขาด ' + shortR + ' รายการ</span>');
-  if (over > 0) parts.push('<span style="color:#3b82f6;font-weight:700;">↑ เกิน ' + over + ' รายการ</span>');
-  banner.innerHTML = parts.join(' <span style="color:#cbd5e1;">·</span> ');
-  // background color based on worst state
-  if (shortR > 0) banner.style.background = "#fffbeb";
-  else if (over > 0) banner.style.background = "#eff6ff";
-  else banner.style.background = "#ecfdf5";
+  if (shortR === 0 && over === 0 && exact === refRows) {
+    banner.innerHTML = '<span style="color:#10b981;font-weight:700;">✓ ครบทุกรายการ — พร้อมบันทึก</span>';
+    banner.style.background = "#ecfdf5";
+  } else {
+    var parts = [];
+    if (shortR > 0) parts.push('<span style="color:#ef4444;font-weight:700;">⚠ รับไม่ครบ ' + shortR + ' รายการ</span>');
+    if (over > 0) parts.push('<span style="color:#ef4444;font-weight:700;">⚠ รับเกิน ' + over + ' รายการ</span>');
+    parts.push('<span style="color:#64748b;font-size:10px;">— GR ต้องรับเต็มจำนวน PO เท่านั้น</span>');
+    banner.innerHTML = parts.join(' <span style="color:#cbd5e1;">·</span> ');
+    banner.style.background = "#fef2f2";
+  }
 }
 
 // ============ Fill form ============
@@ -361,6 +376,25 @@ function saveGR() {
   }
   if (!items.length) { showToast("กรุณาเพิ่มรายการสินค้าอย่างน้อย 1 รายการ", "warning"); return; }
 
+  // GR ต้องรับครบเท่านั้น — ทุกบรรทัดที่อ้างอิง PO ต้อง qty == po_qty
+  var shortLines = [];
+  var overLines = [];
+  document.querySelectorAll("#grItemsBody tr").forEach(function (tr) {
+    var poQty = tr.dataset.poQty ? Number(tr.dataset.poQty) : null;
+    if (poQty == null) return; // manual row ที่ไม่มี ref PO ไม่ตรวจ
+    var qty = parseFloat(tr.querySelector(".gr-qty").value) || 0;
+    if (qty < poQty) shortLines.push(poQty - qty);
+    else if (qty > poQty) overLines.push(qty - poQty);
+  });
+  if (shortLines.length) {
+    showToast("รับไม่ครบ " + shortLines.length + " รายการ — GR ต้องรับเต็มจำนวน PO", "warning");
+    return;
+  }
+  if (overLines.length) {
+    showToast("รับเกิน " + overLines.length + " รายการ — qty ต้องเท่ากับยอดสั่ง", "warning");
+    return;
+  }
+
   var header = {
     gr_number: grNumber,
     po_id: poId,
@@ -393,8 +427,11 @@ if (typeof registerRandomFill === "function") {
   registerRandomFill({
     target: "page",
     fill: function () {
-      if (!allProducts.length || !allWarehouses.length) {
-        if (typeof showToast === "function") showToast("ยังไม่มีสินค้า/คลัง", "warning");
+      var missing = [];
+      if (!allProducts.length) missing.push("สินค้า");
+      if (!allWarehouses.length) missing.push("คลัง");
+      if (missing.length) {
+        if (typeof showToast === "function") showToast("ยังไม่มีข้อมูล " + missing.join(" / ") + " — กรุณาเพิ่มก่อน", "warning");
         return;
       }
       setFieldValue("inputDate", randomPastDate(30));
@@ -426,6 +463,7 @@ document.addEventListener("DOMContentLoaded", function () {
   var poIdFromQuery = getQueryParam("po_id");
 
   document.getElementById("inputDate").addEventListener("change", refreshGRNumberFromDate);
+  document.getElementById("inputWarehouse").addEventListener("change", refreshWarehouseHighlight);
 
   Promise.all([
     typeof fetchSuppliersDB === "function" ? fetchSuppliersDB() : Promise.resolve([]),

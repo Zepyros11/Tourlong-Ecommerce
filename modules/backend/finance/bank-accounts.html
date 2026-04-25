@@ -137,13 +137,15 @@
         <div class="modal-body">
           <input type="hidden" id="editId" />
           <div class="form-group">
-            <label class="form-label">Bank Name</label>
+            <label class="form-label" style="display:flex;align-items:center;justify-content:space-between;">
+              <span>Bank Name</span>
+              <button type="button" class="btn-icon-sm" id="manageBanksBtn" title="จัดการรายชื่อธนาคาร" style="padding:4px 8px;font-size:10px;color:#0f766e;background:#ccfbf1;border:1px solid #5eead4;border-radius:6px;display:inline-flex;align-items:center;gap:4px;cursor:pointer;">
+                <i data-lucide="settings" style="width:12px;height:12px;"></i>
+                <span>Manage</span>
+              </button>
+            </label>
             <select class="form-select" id="inputBank">
-              <option value="ธนาคารกสิกรไทย">ธนาคารกสิกรไทย</option>
-              <option value="ธนาคารไทยพาณิชย์">ธนาคารไทยพาณิชย์</option>
-              <option value="ธนาคารกรุงเทพ">ธนาคารกรุงเทพ</option>
-              <option value="ธนาคารกรุงไทย">ธนาคารกรุงไทย</option>
-              <option value="ธนาคารทหารไทยธนชาต">ธนาคารทหารไทยธนชาต</option>
+              <!-- options โหลดจาก banks table -->
             </select>
           </div>
           <div class="form-group">
@@ -176,6 +178,44 @@
       </div>
     </div>
 
+    <!-- Modal Manage Banks -->
+    <div class="modal-overlay" id="manageBanksModal">
+      <div class="modal" style="max-width:520px;">
+        <div class="modal-header">
+          <h3 class="modal-title">จัดการรายชื่อธนาคาร</h3>
+          <button class="modal-close"><i data-lucide="x"></i></button>
+        </div>
+        <div class="modal-body">
+          <div style="display:flex;gap:8px;margin-bottom:12px;">
+            <input type="text" class="form-input" id="bankNameInput" placeholder="ชื่อธนาคาร เช่น ธนาคารกรุงศรี..." style="flex:1;" />
+            <button type="button" class="btn-primary" id="bankAddBtn" style="white-space:nowrap;">
+              <i data-lucide="plus" class="btn-icon"></i>
+              เพิ่ม
+            </button>
+          </div>
+          <input type="hidden" id="bankEditId" />
+
+          <div class="table-container" style="max-height:340px;overflow-y:auto;">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>ชื่อธนาคาร</th>
+                  <th style="width:100px;">จัดการ</th>
+                </tr>
+              </thead>
+              <tbody id="bankTableBody">
+                <!-- render จาก JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" onclick="closeModalById('manageBanksModal')">ปิด</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Confirm Modal -->
     <div class="modal-overlay" id="confirmModal">
       <div class="modal">
@@ -198,6 +238,7 @@
     <script src="../assets/js/modal.js"></script>
     <script src="../assets/js/enter-save.js"></script>
     <script src="../assets/js/confirm.js"></script>
+    <script src="/modules/backend/assets/js/toast.js"></script>
     <script src="/modules/backend/assets/js/supabase-client.js"></script>
     <script src="/modules/backend/assets/js/auth-guard.js"></script>
     <script>requireAuth();</script>
@@ -205,6 +246,7 @@
     <script>renderSidebarMenu("bank-accounts.html");</script>
     <script src="/assets/js/topbar.js"></script>
     <script>renderTopbar({ group: "Finance", page: "บัญชีธนาคาร" });</script>
+    <script src="/modules/backend/assets/js/app-mode.js"></script>
     <script src="/modules/backend/assets/js/random-data.js"></script>
     <script src="bank-accounts.js"></script>
   </body>

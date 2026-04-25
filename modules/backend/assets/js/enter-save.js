@@ -19,9 +19,14 @@
     // ข้าม element ที่มี data-no-enter-save
     if (active && active.closest("[data-no-enter-save]")) return;
 
-    // หา modal ที่เปิดอยู่
-    var modal = document.querySelector(".modal-overlay.active");
-    if (!modal) return;
+    // หา modal ที่เปิดอยู่ — prefer modal ที่ contain focus (top-most ใน stacked modals)
+    // fallback: เอา .modal-overlay.active ตัวสุดท้ายใน DOM (modals ที่สร้าง dynamic ต่อท้าย body)
+    var modal = active && active.closest(".modal-overlay.active");
+    if (!modal) {
+      var modals = document.querySelectorAll(".modal-overlay.active");
+      if (!modals.length) return;
+      modal = modals[modals.length - 1];
+    }
 
     // หาปุ่ม Save (.btn-primary) ใน modal นั้น
     var saveBtn = modal.querySelector(".btn-primary");

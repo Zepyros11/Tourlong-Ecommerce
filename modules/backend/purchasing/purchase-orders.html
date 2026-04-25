@@ -128,6 +128,7 @@
                   <th data-sort="items" data-sort-type="number">รายการ</th>
                   <th data-sort="amount" data-sort-type="number">ยอดรวม</th>
                   <th data-sort="status">สถานะ</th>
+                  <th>การชำระ</th>
                   <th>จัดการ</th>
                 </tr>
               </thead>
@@ -147,6 +148,166 @@
             <a href="#" class="footer-link">Support</a>
           </nav>
         </footer>
+      </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div class="modal-overlay" id="paymentModal">
+      <div class="modal" style="max-width:520px;width:92vw;">
+        <div class="modal-header">
+          <h3 class="modal-title">บันทึกการชำระเงิน <span style="font-size:11px;color:#94a3b8;font-weight:500;" id="paymentPOLabel"></span></h3>
+          <button class="modal-close"><i data-lucide="x"></i></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="paymentPoId" />
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">จำนวนเงิน</label>
+              <input type="text" class="form-input" id="paymentAmount" readonly style="background:#f8fafc;font-weight:700;" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">วันที่ชำระ</label>
+              <input type="date" class="form-input" id="paymentDate" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">วิธีการชำระ</label>
+              <select class="form-select" id="paymentMethod">
+                <option value="bank_transfer">โอนธนาคาร</option>
+                <option value="cash">เงินสด</option>
+                <option value="credit_card">บัตรเครดิต</option>
+                <option value="check">เช็ค</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">บัญชีต้นทาง</label>
+              <select class="form-select" id="paymentBankAccount">
+                <option value="">— เลือกบัญชี —</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group" style="text-align:center;margin-top:6px;">
+            <label class="form-label" style="display:block;margin-bottom:6px;">แนบสลิปโอนเงิน</label>
+            <div id="slipPreviewBox" style="display:none;position:relative;max-width:200px;margin:0 auto 8px;border:2px solid #e2e8f0;border-radius:10px;overflow:hidden;">
+              <img id="slipPreviewImg" src="" style="width:100%;display:block;" />
+              <button type="button" onclick="removeSlip()" style="position:absolute;top:4px;right:4px;width:22px;height:22px;background:#ef4444;border:none;border-radius:50%;color:#fff;font-size:11px;cursor:pointer;font-weight:700;">×</button>
+            </div>
+            <div id="slipUploadBox" onclick="document.getElementById('slipInput').click()" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:90px;border:2px dashed #cbd5e1;border-radius:10px;cursor:pointer;color:#94a3b8;">
+              <i data-lucide="upload-cloud" style="width:26px;height:26px;"></i>
+              <span style="font-size:10px;margin-top:4px;font-weight:600;">คลิกเพื่อแนบสลิป (ไม่บังคับ)</span>
+            </div>
+            <input type="file" id="slipInput" accept="image/*,.pdf" style="display:none;" onchange="handleSlipSelect(this)" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" onclick="closeModalById('paymentModal')">ยกเลิก</button>
+          <button class="btn-primary" onclick="savePayment()">บันทึกการชำระ</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cancel PO Modal -->
+    <div class="modal-overlay" id="cancelPOModal">
+      <div class="modal" style="max-width:560px;width:94vw;">
+        <div class="modal-header" style="background:#fef2f2;">
+          <h3 class="modal-title" style="color:#991b1b;">⚠️ ยกเลิกใบสั่งซื้อ <span id="cancelPOLabel" style="font-size:11px;color:#64748b;font-weight:500;"></span></h3>
+          <button class="modal-close"><i data-lucide="x"></i></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="cancelPoId" />
+          <div id="cancelPOImpact" style="padding:12px;background:#f8fafc;border-radius:8px;margin-bottom:14px;font-size:11px;color:#334155;line-height:1.7;"></div>
+
+          <!-- Refund options (shown only if paid) -->
+          <div class="form-group" id="cancelRefundGroup" style="display:none;">
+            <label class="form-label">วิธีรับเงินคืนจาก supplier <span style="color:#ef4444;">*</span></label>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;cursor:pointer;font-size:11px;">
+                <input type="radio" name="refundOption" value="full" checked />
+                <span><strong>A) คืนเต็มจำนวน</strong> — สร้าง Payment incoming เท่ายอดที่จ่ายไป</span>
+              </label>
+              <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;cursor:pointer;font-size:11px;">
+                <input type="radio" name="refundOption" value="partial" />
+                <span><strong>B) คืนบางส่วน</strong> — Payment incoming + ส่วนต่างเป็น Expense (ระบุยอดด้านล่าง)</span>
+              </label>
+              <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;cursor:pointer;font-size:11px;">
+                <input type="radio" name="refundOption" value="credit" />
+                <span><strong>C) Credit Note</strong> — เครดิตไว้ใช้ PO ถัดไป (ไม่สร้าง record)</span>
+              </label>
+              <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;cursor:pointer;font-size:11px;">
+                <input type="radio" name="refundOption" value="pending" />
+                <span><strong>D) Refund Pending</strong> — รอ supplier โอนคืน (ไม่สร้าง record)</span>
+              </label>
+              <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;cursor:pointer;font-size:11px;">
+                <input type="radio" name="refundOption" value="lost" />
+                <span><strong>E) สูญทั้งหมด</strong> — บันทึกเป็น Expense (ไม่คาดหวังคืน)</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Refund amount (shown only if partial) -->
+          <div class="form-row" id="cancelPORefundAmountGroup" style="display:none;">
+            <div class="form-group">
+              <label class="form-label">ยอดคืน (฿) <span style="color:#ef4444;">*</span></label>
+              <input type="number" class="form-input" id="cancelPORefundAmount" min="0" step="0.01" placeholder="0.00" />
+            </div>
+          </div>
+
+          <!-- Penalty fee -->
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">ค่าปรับ <span style="color:#94a3b8;font-weight:400;font-size:9px;">(ถ้ามี — จะบันทึกเป็น expense)</span></label>
+              <input type="number" class="form-input" id="cancelPenaltyAmount" min="0" step="0.01" placeholder="0.00" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">หมายเหตุค่าปรับ</label>
+              <input type="text" class="form-input" id="cancelPenaltyNote" placeholder="เหตุผล..." />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">เหตุผลการยกเลิก <span style="color:#ef4444;">*</span></label>
+            <textarea class="form-input" id="cancelReason" rows="2" style="resize:vertical;" placeholder="ระบุเหตุผลการยกเลิก..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" onclick="closeModalById('cancelPOModal')">ยกเลิก</button>
+          <button class="btn-primary" style="background:#ef4444;" onclick="submitCancelPO()">ยืนยันการยกเลิก PO</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Receipt Modal -->
+    <div class="modal-overlay" id="receiptModal">
+      <div class="modal" style="max-width:480px;width:92vw;">
+        <div class="modal-header">
+          <h3 class="modal-title">แนบใบเสร็จจากผู้ขาย <span style="font-size:11px;color:#94a3b8;font-weight:500;" id="receiptPOLabel"></span></h3>
+          <button class="modal-close"><i data-lucide="x"></i></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="receiptPoId" />
+          <div class="form-group">
+            <label class="form-label">เลขที่ใบเสร็จ</label>
+            <input type="text" class="form-input" id="receiptNumber" placeholder="RE-2026-XXX" />
+          </div>
+          <div class="form-group" style="text-align:center;">
+            <label class="form-label" style="display:block;margin-bottom:6px;">ไฟล์ใบเสร็จ</label>
+            <div id="receiptPreviewBox" style="display:none;position:relative;max-width:200px;margin:0 auto 8px;border:2px solid #e2e8f0;border-radius:10px;overflow:hidden;">
+              <img id="receiptPreviewImg" src="" style="width:100%;display:block;" />
+              <div id="receiptFilename" style="font-size:10px;color:#64748b;padding:6px;background:#f8fafc;border-top:1px solid #e2e8f0;display:none;"></div>
+              <button type="button" onclick="removeReceipt()" style="position:absolute;top:4px;right:4px;width:22px;height:22px;background:#ef4444;border:none;border-radius:50%;color:#fff;font-size:11px;cursor:pointer;font-weight:700;">×</button>
+            </div>
+            <div id="receiptUploadBox" onclick="document.getElementById('receiptInput').click()" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:90px;border:2px dashed #cbd5e1;border-radius:10px;cursor:pointer;color:#94a3b8;">
+              <i data-lucide="file-text" style="width:26px;height:26px;"></i>
+              <span style="font-size:10px;margin-top:4px;font-weight:600;">คลิกเพื่อแนบใบเสร็จ</span>
+            </div>
+            <input type="file" id="receiptInput" accept="image/*,.pdf" style="display:none;" onchange="handleReceiptSelect(this)" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" onclick="closeModalById('receiptModal')">ยกเลิก</button>
+          <button class="btn-primary" onclick="saveReceipt()">บันทึกใบเสร็จ</button>
+        </div>
       </div>
     </div>
 
@@ -179,6 +340,9 @@
     <script>renderSidebarMenu("purchase-orders.html");</script>
     <script src="/assets/js/topbar.js"></script>
     <script>renderTopbar({ group: "Purchasing", page: "ใบสั่งซื้อ" });</script>
+    <script src="/modules/backend/assets/js/app-mode.js"></script>
+    <script src="/modules/backend/assets/js/manager-password.js"></script>
+    <script src="/modules/backend/assets/js/cancel-helpers.js"></script>
     <script src="purchase-orders.js"></script>
   </body>
 </html>

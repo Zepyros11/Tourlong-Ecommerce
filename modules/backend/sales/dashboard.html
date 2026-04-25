@@ -56,7 +56,7 @@
               </div>
               <div>
                 <p class="stat-card-label">Total Orders</p>
-                <p class="stat-card-value">156</p>
+                <p class="stat-card-value" id="statTotalOrders">0</p>
               </div>
             </div>
             <div class="stat-card">
@@ -65,7 +65,7 @@
               </div>
               <div>
                 <p class="stat-card-label">Revenue</p>
-                <p class="stat-card-value">฿1,245,800</p>
+                <p class="stat-card-value" id="statRevenue">฿0</p>
               </div>
             </div>
             <div class="stat-card">
@@ -74,7 +74,7 @@
               </div>
               <div>
                 <p class="stat-card-label">Pending Orders</p>
-                <p class="stat-card-value">12</p>
+                <p class="stat-card-value" id="statPendingOrders">0</p>
               </div>
             </div>
             <div class="stat-card">
@@ -83,7 +83,7 @@
               </div>
               <div>
                 <p class="stat-card-label">Returns</p>
-                <p class="stat-card-value">3</p>
+                <p class="stat-card-value" id="statReturns">0</p>
               </div>
             </div>
           </div>
@@ -106,42 +106,8 @@
                       <th>สถานะ</th>
                     </tr>
                   </thead>
-                  <tbody>
-                    <tr>
-                      <td>SO-2026-156</td>
-                      <td>คุณสมศรี จันทร์ดี</td>
-                      <td>2026-04-08</td>
-                      <td>฿12,500</td>
-                      <td><span class="badge badge-active">Completed</span></td>
-                    </tr>
-                    <tr>
-                      <td>SO-2026-155</td>
-                      <td>คุณวิชัย สุขสม</td>
-                      <td>2026-04-08</td>
-                      <td>฿8,900</td>
-                      <td><span class="badge" style="background-color: #fef3c7; color: #f59e0b;">Processing</span></td>
-                    </tr>
-                    <tr>
-                      <td>SO-2026-154</td>
-                      <td>บ.เอบีซี จำกัด</td>
-                      <td>2026-04-07</td>
-                      <td>฿45,000</td>
-                      <td><span class="badge badge-active">Completed</span></td>
-                    </tr>
-                    <tr>
-                      <td>SO-2026-153</td>
-                      <td>คุณนภา รักดี</td>
-                      <td>2026-04-07</td>
-                      <td>฿3,200</td>
-                      <td><span class="badge" style="background-color: #fef3c7; color: #f59e0b;">Processing</span></td>
-                    </tr>
-                    <tr>
-                      <td>SO-2026-152</td>
-                      <td>คุณธนา ใจงาม</td>
-                      <td>2026-04-06</td>
-                      <td>฿18,750</td>
-                      <td><span class="badge badge-active">Completed</span></td>
-                    </tr>
+                  <tbody id="recentSOTableBody">
+                    <tr><td colspan="5" style="text-align:center;padding:30px;color:#94a3b8;font-size:11px;">กำลังโหลด…</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -157,42 +123,12 @@
                   <thead>
                     <tr>
                       <th>สินค้า</th>
-                      <th>หมวดหมู่</th>
                       <th>จำนวนที่ขาย</th>
                       <th>รายได้</th>
                     </tr>
                   </thead>
-                  <tbody>
-                    <tr>
-                      <td>Wireless Headphones</td>
-                      <td>Electronics</td>
-                      <td>45</td>
-                      <td>฿116,550</td>
-                    </tr>
-                    <tr>
-                      <td>Cotton T-Shirt</td>
-                      <td>Clothing</td>
-                      <td>120</td>
-                      <td>฿54,000</td>
-                    </tr>
-                    <tr>
-                      <td>Protein Powder</td>
-                      <td>Food & Beverage</td>
-                      <td>38</td>
-                      <td>฿47,500</td>
-                    </tr>
-                    <tr>
-                      <td>Smart Watch</td>
-                      <td>Electronics</td>
-                      <td>28</td>
-                      <td>฿126,000</td>
-                    </tr>
-                    <tr>
-                      <td>Face Serum</td>
-                      <td>Beauty</td>
-                      <td>55</td>
-                      <td>฿37,400</td>
-                    </tr>
+                  <tbody id="topProductsTableBody">
+                    <tr><td colspan="3" style="text-align:center;padding:30px;color:#94a3b8;font-size:11px;">กำลังโหลด…</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -222,6 +158,8 @@
     <script>renderSidebarMenu("dashboard.html");</script>
     <script src="/assets/js/topbar.js"></script>
     <script>renderTopbar({ group: "Sales", page: "Dashboard" });</script>
+    <script src="../assets/js/supabase-client.js"></script>
+    <script src="dashboard.js"></script>
     <script>lucide.createIcons();</script>
   </body>
 </html>

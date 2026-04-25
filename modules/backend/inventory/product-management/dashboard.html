@@ -62,24 +62,15 @@
             </div>
           </div>
 
-          <!-- Overview Cards -->
+          <!-- Overview Cards (5 cards) -->
           <div class="stat-cards">
-            <div class="stat-card">
-              <div class="stat-card-icon stat-card-icon-all">
-                <i data-lucide="layout-grid" class="stat-icon"></i>
-              </div>
-              <div>
-                <p class="stat-card-label">Categories</p>
-                <p class="stat-card-value">8</p>
-              </div>
-            </div>
             <div class="stat-card">
               <div class="stat-card-icon stat-card-icon-active">
                 <i data-lucide="package" class="stat-icon"></i>
               </div>
               <div>
                 <p class="stat-card-label">Products</p>
-                <p class="stat-card-value">10</p>
+                <p class="stat-card-value" id="statProducts">0</p>
               </div>
             </div>
             <div class="stat-card">
@@ -88,7 +79,7 @@
               </div>
               <div>
                 <p class="stat-card-label">Warehouses</p>
-                <p class="stat-card-value">5</p>
+                <p class="stat-card-value" id="statWarehouses">0</p>
               </div>
             </div>
             <div class="stat-card">
@@ -97,97 +88,176 @@
               </div>
               <div>
                 <p class="stat-card-label">Total Stock</p>
-                <p class="stat-card-value">240</p>
+                <p class="stat-card-value" id="statTotalStock">0</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-icon" style="background-color: #ecfdf5; color: #10b981;">
+                <i data-lucide="banknote" class="stat-icon"></i>
+              </div>
+              <div>
+                <p class="stat-card-label">Stock Value</p>
+                <p class="stat-card-value" id="statStockValue">฿0</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-icon stat-card-icon-inactive">
+                <i data-lucide="alert-circle" class="stat-icon"></i>
+              </div>
+              <div>
+                <p class="stat-card-label">Out of Stock</p>
+                <p class="stat-card-value" id="statOutOfStock">0</p>
               </div>
             </div>
           </div>
 
-          <!-- Two Column Layout -->
+          <!-- Row 1: Low Stock | Out of Stock -->
           <div class="dashboard-grid">
-            <!-- Low Stock Alert -->
             <div class="dashboard-card">
               <div class="dashboard-card-header">
                 <h3 class="dashboard-card-title">Low Stock Alert</h3>
-                <span class="badge badge-inactive">3 items</span>
+                <span class="badge" style="background-color:#fef3c7;color:#f59e0b;" id="lowStockCount">0 items</span>
               </div>
               <div class="table-container" style="border: none; box-shadow: none;">
                 <table class="table">
-                  <thead>
-                    <tr>
-                      <th>สินค้า</th>
-                      <th>หมวดหมู่</th>
-                      <th>สต็อก</th>
-                      <th>สถานะ</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>Yoga Mat</td>
-                      <td>Sports</td>
-                      <td>0</td>
-                      <td><span class="badge badge-inactive">Out of Stock</span></td>
-                    </tr>
-                    <tr>
-                      <td>Leather Wallet</td>
-                      <td>Accessories</td>
-                      <td>0</td>
-                      <td><span class="badge badge-inactive">Out of Stock</span></td>
-                    </tr>
-                    <tr>
-                      <td>Smart Watch</td>
-                      <td>Electronics</td>
-                      <td>8</td>
-                      <td><span class="badge" style="background-color: #fef3c7; color: #f59e0b;">Low Stock</span></td>
-                    </tr>
-                  </tbody>
+                  <thead><tr><th>สินค้า</th><th>หมวดหมู่</th><th>สต็อก</th><th>ขั้นต่ำ</th></tr></thead>
+                  <tbody id="lowStockTableBody"><tr><td colspan="4" style="text-align:center;padding:30px;color:#94a3b8;font-size:11px;">กำลังโหลด…</td></tr></tbody>
                 </table>
               </div>
             </div>
 
-            <!-- Recent Activity -->
             <div class="dashboard-card">
-              <h3 class="dashboard-card-title">Recent Activity</h3>
-              <div class="activity-list">
-                <div class="activity-item">
-                  <div class="activity-dot activity-dot-green"></div>
-                  <div>
-                    <p class="activity-text">เพิ่มสินค้า <strong>Wireless Headphones</strong></p>
-                    <p class="activity-time">2 ชั่วโมงที่แล้ว</p>
-                  </div>
-                </div>
-                <div class="activity-item">
-                  <div class="activity-dot activity-dot-blue"></div>
-                  <div>
-                    <p class="activity-text">อัปเดต stock <strong>Cotton T-Shirt</strong> → 120</p>
-                    <p class="activity-time">5 ชั่วโมงที่แล้ว</p>
-                  </div>
-                </div>
-                <div class="activity-item">
-                  <div class="activity-dot activity-dot-yellow"></div>
-                  <div>
-                    <p class="activity-text">สร้างคลัง <strong>คลังออนไลน์</strong></p>
-                    <p class="activity-time">1 วันที่แล้ว</p>
-                  </div>
-                </div>
-                <div class="activity-item">
-                  <div class="activity-dot activity-dot-red"></div>
-                  <div>
-                    <p class="activity-text">ลบหมวดหมู่ <strong>Toys</strong></p>
-                    <p class="activity-time">2 วันที่แล้ว</p>
-                  </div>
-                </div>
-                <div class="activity-item">
-                  <div class="activity-dot activity-dot-green"></div>
-                  <div>
-                    <p class="activity-text">Import ข้อมูล <strong>8 รายการ</strong></p>
-                    <p class="activity-time">3 วันที่แล้ว</p>
-                  </div>
-                </div>
+              <div class="dashboard-card-header">
+                <h3 class="dashboard-card-title">Out of Stock (ต้องเติมด่วน)</h3>
+                <span class="badge badge-inactive" id="outStockCount">0 items</span>
+              </div>
+              <div class="table-container" style="border: none; box-shadow: none;">
+                <table class="table">
+                  <thead><tr><th>สินค้า</th><th>หมวดหมู่</th><th>SKU</th></tr></thead>
+                  <tbody id="outStockTableBody"><tr><td colspan="3" style="text-align:center;padding:30px;color:#94a3b8;font-size:11px;">กำลังโหลด…</td></tr></tbody>
+                </table>
               </div>
             </div>
           </div>
 
+          <!-- Row 2: Top Movers | Dead Stock -->
+          <div class="dashboard-grid">
+            <div class="dashboard-card">
+              <div class="dashboard-card-header">
+                <h3 class="dashboard-card-title">Top Movers <span style="font-size:10px;color:#94a3b8;font-weight:500;">30 วันล่าสุด</span></h3>
+              </div>
+              <div class="table-container" style="border: none; box-shadow: none;">
+                <table class="table">
+                  <thead><tr><th>สินค้า</th><th>หมวดหมู่</th><th>จ่ายออก</th></tr></thead>
+                  <tbody id="topMoversTableBody"><tr><td colspan="3" style="text-align:center;padding:30px;color:#94a3b8;font-size:11px;">กำลังโหลด…</td></tr></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="dashboard-card">
+              <div class="dashboard-card-header">
+                <h3 class="dashboard-card-title">Dead Stock <span style="font-size:10px;color:#94a3b8;font-weight:500;">ไม่เคลื่อน 30+ วัน</span></h3>
+                <span class="badge" style="background-color:#f1f5f9;color:#64748b;" id="deadStockCount">0 items</span>
+              </div>
+              <div class="table-container" style="border: none; box-shadow: none;">
+                <table class="table">
+                  <thead><tr><th>สินค้า</th><th>สต็อก</th><th>มูลค่าจม</th></tr></thead>
+                  <tbody id="deadStockTableBody"><tr><td colspan="3" style="text-align:center;padding:30px;color:#94a3b8;font-size:11px;">กำลังโหลด…</td></tr></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Row 3: Stock by Warehouse | Incoming Stock -->
+          <div class="dashboard-grid">
+            <div class="dashboard-card">
+              <div class="dashboard-card-header">
+                <h3 class="dashboard-card-title">Stock by Warehouse</h3>
+              </div>
+              <div id="warehouseChart" style="padding:10px 4px;">
+                <p style="padding:20px;text-align:center;color:#94a3b8;font-size:11px;">กำลังโหลด…</p>
+              </div>
+            </div>
+
+            <div class="dashboard-card">
+              <div class="dashboard-card-header">
+                <h3 class="dashboard-card-title">Incoming Stock <span style="font-size:10px;color:#94a3b8;font-weight:500;">(PO รอรับ)</span></h3>
+                <span class="badge" style="background-color:#eff6ff;color:#3b82f6;" id="incomingCount">0 POs</span>
+              </div>
+              <div class="table-container" style="border: none; box-shadow: none;">
+                <table class="table">
+                  <thead><tr><th>PO</th><th>ผู้ขาย</th><th>รายการ</th><th>ยอดรวม</th></tr></thead>
+                  <tbody id="incomingTableBody"><tr><td colspan="4" style="text-align:center;padding:30px;color:#94a3b8;font-size:11px;">กำลังโหลด…</td></tr></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Full width: Stock Timeline -->
+          <div class="dashboard-card" style="margin-bottom:14px;">
+            <div class="dashboard-card-header">
+              <h3 class="dashboard-card-title">Stock Level Timeline <span style="font-size:10px;color:#94a3b8;font-weight:500;">30 วันย้อนหลัง</span></h3>
+            </div>
+            <div id="timelineChart" style="padding:10px 4px;">
+              <p style="padding:30px;text-align:center;color:#94a3b8;font-size:11px;">กำลังโหลด…</p>
+            </div>
+          </div>
+
+          <!-- Row 5: Reorder Forecast | ABC Analysis -->
+          <div class="dashboard-grid">
+            <div class="dashboard-card">
+              <div class="dashboard-card-header">
+                <h3 class="dashboard-card-title">Reorder Forecast <span style="font-size:10px;color:#94a3b8;font-weight:500;">คาดว่าสต็อกจะหมด</span></h3>
+              </div>
+              <div class="table-container" style="border: none; box-shadow: none;">
+                <table class="table">
+                  <thead><tr><th>สินค้า</th><th>สต็อก</th><th>ขาย/วัน</th><th>อีก ~วัน</th></tr></thead>
+                  <tbody id="forecastTableBody"><tr><td colspan="4" style="text-align:center;padding:30px;color:#94a3b8;font-size:11px;">กำลังโหลด…</td></tr></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="dashboard-card">
+              <div class="dashboard-card-header">
+                <h3 class="dashboard-card-title">ABC Analysis <span style="font-size:10px;color:#94a3b8;font-weight:500;">จัดกลุ่มตามรายได้</span></h3>
+              </div>
+              <div class="table-container" style="border: none; box-shadow: none;">
+                <table class="table">
+                  <thead><tr><th>กลุ่ม</th><th>จำนวนสินค้า</th><th>รายได้</th><th>%</th></tr></thead>
+                  <tbody id="abcSummaryBody"><tr><td colspan="4" style="text-align:center;padding:30px;color:#94a3b8;font-size:11px;">กำลังโหลด…</td></tr></tbody>
+                </table>
+              </div>
+              <div id="abcDetailList" style="padding:6px 12px 4px;font-size:10px;color:#64748b;"></div>
+            </div>
+          </div>
+
+          <!-- Full width: Recent Activity -->
+          <div class="dashboard-card">
+            <h3 class="dashboard-card-title">Recent Activity</h3>
+            <div class="activity-list" id="activityList">
+              <p style="padding:30px;text-align:center;color:#94a3b8;font-size:11px;">กำลังโหลด…</p>
+            </div>
+          </div>
+
         </div>
+
+        <!-- PO View Modal (formal document style, read-only) -->
+        <div class="modal-overlay" id="poViewModal">
+          <div class="modal" style="max-width:820px;width:94vw;padding:0;">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid #e2e8f0;background:#f8fafc;">
+              <span style="font-size:11px;font-weight:700;color:#64748b;letter-spacing:0.5px;text-transform:uppercase;">เอกสารใบสั่งซื้อ</span>
+              <button class="modal-close" style="background:none;border:none;cursor:pointer;padding:4px;color:#64748b;"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body" id="poViewBody" style="max-height:74vh;overflow-y:auto;padding:0;">
+              <!-- injected by JS -->
+            </div>
+            <div style="display:flex;justify-content:flex-end;gap:8px;padding:12px 18px;border-top:1px solid #e2e8f0;background:#f8fafc;">
+              <button class="btn-secondary" onclick="closeModalById('poViewModal')">ปิด</button>
+              <button class="btn-primary" onclick="printPODocument()"><i data-lucide="printer" style="width:12px;height:12px;display:inline;vertical-align:-2px;margin-right:4px;"></i>พิมพ์</button>
+            </div>
+          </div>
+        </div>
+
 
         <!-- Footer -->
         <footer class="footer">
@@ -210,6 +280,8 @@
     <script>renderSidebarMenu("dashboard.html");</script>
     <script src="/assets/js/topbar.js"></script>
     <script>renderTopbar({ group: "Inventory", page: "Dashboard" });</script>
+    <script src="../../assets/js/supabase-client.js"></script>
+    <script src="dashboard.js"></script>
     <script>lucide.createIcons();</script>
   </body>
 </html>

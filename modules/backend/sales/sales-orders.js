@@ -7,6 +7,8 @@ var salesOrders = [];
 var allCustomers = [];
 var allWarehouses = [];
 var allProducts = [];
+var allPaymentsForSO = [];
+var _appModeIsProduction = false;
 
 function fmtMoney(n) { return "฿" + Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
@@ -37,7 +39,19 @@ function renderTable(data) {
   tbody.innerHTML = data.map(function (so, i) {
     var customer = so.customers ? so.customers.name : "—";
     var itemCount = so.sales_order_items ? so.sales_order_items.length : 0;
-    return '<tr>' +
+    var isCancelled = so.status === "cancelled";
+
+    var deleteOrCancelBtn = isCancelled
+      ? ''
+      : (_appModeIsProduction
+          ? '<button class="btn-icon-sm" style="color:#f59e0b;" onclick="openCancelSOModal(' + so.id + ')" title="ยกเลิก SO"><i data-lucide="ban"></i></button>'
+          : '<button class="btn-icon-sm btn-danger" onclick="deleteSO(' + so.id + ')" title="ลบ (test mode)"><i data-lucide="trash-2"></i></button>');
+
+    var editBtn = isCancelled
+      ? ''
+      : '<button class="btn-icon-sm" onclick="editSO(' + so.id + ')" title="แก้ไข"><i data-lucide="pencil"></i></button>';
+
+    return '<tr class="' + (isCancelled ? "row-cancelled" : "") + '">' +
       '<td>' + (i + 1) + '</td>' +
       '<td><strong>' + so.so_number + '</strong></td>' +
       '<td>' + customer + '</td>' +
@@ -46,8 +60,8 @@ function renderTable(data) {
       '<td>' + fmtMoney(so.total) + '</td>' +
       '<td>' + getStatusBadge(so.status) + '</td>' +
       '<td><div class="table-actions">' +
-        '<button class="btn-icon-sm" onclick="editSO(' + so.id + ')"><i data-lucide="pencil"></i></button>' +
-        '<button class="btn-icon-sm btn-danger" onclick="deleteSO(' + so.id + ')"><i data-lucide="trash-2"></i></button>' +
+        editBtn +
+        deleteOrCancelBtn +
       '</div></td>' +
     '</tr>';
   }).join("");
@@ -232,20 +246,172 @@ function editSO(id) {
 function deleteSO(id) {
   var so = salesOrders.find(function (x) { return x.id === id; });
   if (!so) return;
-  var msg = "ต้องการลบคำสั่งขาย <strong>" + so.so_number + "</strong> ใช่ไหม?";
-  if (so.status === "completed") msg += "<br><br><span style='color:#ef4444;font-size:10px;'>⚠️ SO นี้เคยตัด stock แล้ว — ระบบจะสร้าง movement reverse อัตโนมัติ</span>";
-  showConfirm({
-    title: "Confirm Delete",
-    message: msg,
-    okText: "Delete",
-    okColor: "#ef4444",
-    onConfirm: function () {
-      deleteSalesOrderDB(id)
-        .then(function () { return reloadSOs(); })
-        .then(function () { applyFilters(); })
-        .catch(function (err) { console.error(err); });
-    },
+  if (typeof assertTestMode === "function") {
+    assertTestMode("การลบ SO").then(function () {
+      var msg = "ต้องการลบคำสั่งขาย <strong>" + so.so_number + "</strong> ใช่ไหม? (TEST MODE — ลบจาก DB จริง)";
+      if (so.status === "completed") msg += "<br><br><span style='color:#ef4444;font-size:10px;'>⚠️ SO นี้เคยตัด stock แล้ว — ระบบจะสร้าง movement reverse อัตโนมัติ</span>";
+      showConfirm({
+        title: "Confirm Delete",
+        message: msg,
+        okText: "Delete",
+        okColor: "#ef4444",
+        onConfirm: function () {
+          deleteSalesOrderDB(id)
+            .then(function () { return reloadSOs(); })
+            .then(function () { applyFilters(); })
+            .catch(function (err) { console.error(err); });
+        },
+      });
+    }).catch(function () { /* blocked by assertTestMode */ });
+  }
+}
+
+// ============ Cancel SO (production mode) ============
+function openCancelSOModal(id) {
+  var so = salesOrders.find(function (x) { return x.id === id; });
+  if (!so) return;
+  if (so.status === "cancelled") { if (typeof showToast === "function") showToast("ยกเลิกแล้ว", "SO นี้ถูกยกเลิกก่อนหน้านี้"); return; }
+
+  document.getElementById("cancelSoId").value = so.id;
+  document.getElementById("cancelSOLabel").textContent = so.so_number || "";
+
+  // หา payment ที่ผูก SO นี้ (incoming, status completed → ลูกค้าจ่ายแล้ว)
+  var paidPayments = (allPaymentsForSO || []).filter(function (p) {
+    return Number(p.so_id) === Number(so.id) && p.direction === "incoming" && p.status === "completed";
   });
+  var paidAmount = paidPayments.reduce(function (s, p) { return s + Number(p.amount || 0); }, 0);
+  var hasPaid = paidAmount > 0;
+
+  var impactHtml = '<strong style="font-size:12px;color:#991b1b;">ผลกระทบจากการยกเลิก:</strong><br/>';
+  impactHtml += '• SO <strong>' + (so.so_number || "") + '</strong> → สถานะเปลี่ยนเป็น <strong>ยกเลิก</strong><br/>';
+  if (so.status === "completed") {
+    impactHtml += '• Reverse stock ' + (so.sales_order_items || []).length + ' รายการ (สินค้ากลับเข้าคลัง)<br/>';
+  }
+  impactHtml += '• Pending payment auto-cancel (ทำผ่าน DB trigger)<br/>';
+  if (hasPaid) {
+    impactHtml += '• <span style="color:#991b1b;">ลูกค้าจ่ายแล้ว <strong>' + fmtMoney(paidAmount) + '</strong></span> — เลือกวิธีคืนเงินด้านล่าง<br/>';
+  }
+
+  document.getElementById("cancelSOImpact").innerHTML = impactHtml;
+  document.getElementById("cancelSORefundGroup").style.display = hasPaid ? "block" : "none";
+  document.getElementById("cancelSOPartialGroup").style.display = "none";
+  document.getElementById("cancelSORefundAmount").value = "";
+  document.getElementById("cancelSOPenaltyAmount").value = "";
+  document.getElementById("cancelSOPenaltyNote").value = "";
+  document.getElementById("cancelSOReason").value = "";
+
+  // toggle partial group เมื่อเลือก "partial"
+  document.querySelectorAll('input[name="soRefundOption"]').forEach(function (r) {
+    r.onchange = function () {
+      document.getElementById("cancelSOPartialGroup").style.display = this.value === "partial" ? "grid" : "none";
+      if (this.value === "partial" && !document.getElementById("cancelSORefundAmount").value) {
+        document.getElementById("cancelSORefundAmount").value = paidAmount;
+      }
+    };
+  });
+
+  openModalById("cancelSOModal", function () { document.getElementById("cancelSOReason").focus(); });
+  if (typeof lucide !== "undefined") lucide.createIcons();
+}
+
+function submitCancelSO() {
+  var soId = Number(document.getElementById("cancelSoId").value);
+  var so = salesOrders.find(function (x) { return x.id === soId; });
+  if (!so) return;
+
+  var reason = document.getElementById("cancelSOReason").value.trim();
+  if (!reason) { alertMsg("ไม่ครบถ้วน", "กรุณาระบุเหตุผลการยกเลิก"); document.getElementById("cancelSOReason").focus(); return; }
+
+  var paidPayments = (allPaymentsForSO || []).filter(function (p) {
+    return Number(p.so_id) === Number(so.id) && p.direction === "incoming" && p.status === "completed";
+  });
+  var paidAmount = paidPayments.reduce(function (s, p) { return s + Number(p.amount || 0); }, 0);
+
+  var refundOpt = null;
+  var refundAmount = 0;
+  var penaltyAmount = 0;
+  if (paidAmount > 0) {
+    var sel = document.querySelector('input[name="soRefundOption"]:checked');
+    refundOpt = sel ? sel.value : "full";
+    if (refundOpt === "full") {
+      refundAmount = paidAmount;
+    } else if (refundOpt === "partial") {
+      refundAmount = parseFloat(document.getElementById("cancelSORefundAmount").value) || 0;
+      penaltyAmount = parseFloat(document.getElementById("cancelSOPenaltyAmount").value) || 0;
+      if (refundAmount <= 0) { alertMsg("ไม่ถูกต้อง", "กรุณาระบุยอดคืนมากกว่า 0"); return; }
+      if (refundAmount > paidAmount) { alertMsg("ไม่ถูกต้อง", "ยอดคืนเกินยอดที่รับมา (" + fmtMoney(paidAmount) + ")"); return; }
+    }
+    // refundOpt === "none" → ไม่คืน, ไม่ทำอะไร
+  }
+  var penaltyNote = document.getElementById("cancelSOPenaltyNote").value.trim();
+
+  var actionDesc = "ยกเลิก SO " + so.so_number + " | refund: " + (refundOpt || "n/a") + " | refundAmt: " + refundAmount + " | penalty: " + penaltyAmount;
+
+  var passwordOp = (typeof requireManagerPassword === "function")
+    ? requireManagerPassword(actionDesc)
+    : Promise.resolve();
+
+  passwordOp
+    .then(function () { return doCancelSOCascade(so, reason, refundOpt, refundAmount, penaltyAmount, penaltyNote); })
+    .then(function () {
+      closeModalById("cancelSOModal");
+      if (typeof showToast === "function") showToast("ยกเลิกสำเร็จ", so.so_number);
+      return reloadSOs();
+    })
+    .then(function () { applyFilters(); })
+    .catch(function (err) {
+      if (err && err.message === "cancelled") return;
+      console.error(err);
+      if (typeof showToast === "function") showToast("ยกเลิกไม่สำเร็จ", err.message || "error");
+    });
+}
+
+function doCancelSOCascade(so, reason, refundOption, refundAmount, penaltyAmount, penaltyNote) {
+  var stockChain = Promise.resolve();
+  // 1. Reverse stock ถ้า SO เคย completed
+  if (so.status === "completed" && so.sales_order_items && so.sales_order_items.length) {
+    var note = "ยกเลิก SO " + (so.so_number || "");
+    stockChain = Promise.all(so.sales_order_items.map(function (it) {
+      return createReverseMovement(it, "in", so.warehouse_id, note);
+    }));
+  }
+
+  return stockChain
+    // 2. Refund (ถ้ารับเงินจากลูกค้าแล้ว)
+    .then(function () {
+      if (!refundOption || refundOption === "none" || refundAmount <= 0) return null;
+      // สร้าง Payment outgoing (คืนเงินลูกค้า)
+      var payload = {
+        date: new Date().toISOString().slice(0, 10),
+        direction: "outgoing",
+        so_id: so.id,
+        customer_id: so.customer_id,
+        amount: refundAmount,
+        status: "pending",
+        method: "โอนธนาคาร",
+        source: "manual",
+        note: "Refund SO " + so.so_number + " (" + (refundOption === "full" ? "เต็มจำนวน" : "บางส่วน") + ") — " + reason,
+      };
+      return createPaymentDB(payload);
+    })
+    // 3. Penalty (ถ้ามี — บันทึกเป็น expense รายรับพิเศษ ไม่ใช่ rev)
+    // หมายเหตุ: penalty คือเงินที่ลูกค้าโดนปรับ = เราได้เพิ่ม → ไม่ใช่ expense
+    // แต่ถ้า refundOpt='none' (ยึดเงิน) → ก็ไม่ต้อง track penalty แยก เพราะ payment incoming ยังคงอยู่เต็มจำนวน
+    // ถ้า partial + penalty → ส่วนที่ไม่คืน = penalty อัตโนมัติแล้ว (paid - refund = penalty รับมา)
+    // จึงไม่ต้องสร้าง record อะไรเพิ่ม
+    .then(function () {
+      // 4. Mark SO cancelled (จะ trigger auto-cancel pending payments ผ่าน DB trigger)
+      var cancelNote = "[CANCELLED " + new Date().toISOString().slice(0, 10) + "] " + reason;
+      if (refundOption) cancelNote += " | refund: " + refundOption + " (" + refundAmount + ")";
+      if (penaltyAmount > 0) cancelNote += " | penalty: " + penaltyAmount;
+      if (penaltyNote) cancelNote += " | " + penaltyNote;
+      var existingNote = so.note ? (so.note + "\n") : "";
+      return updateDocStatus("sales_orders", so.id, "cancelled", { note: existingNote + cancelNote });
+    })
+    // 5. Log
+    .then(function () {
+      return logCancelActivity("cancel_so", "ยกเลิก SO " + so.so_number + " | reason: " + reason + " | refund: " + (refundOption || "n/a") + " (" + refundAmount + ") | penalty: " + penaltyAmount);
+    });
 }
 
 var currentFilter = "all";
@@ -278,17 +444,24 @@ function reloadAll() {
     typeof fetchProducts === "function" ? fetchProducts() : Promise.resolve([]),
     typeof fetchWarehousesDB === "function" ? fetchWarehousesDB() : Promise.resolve([]),
     typeof fetchSalesOrdersDB === "function" ? fetchSalesOrdersDB() : Promise.resolve([]),
+    typeof fetchPaymentsDB === "function" ? fetchPaymentsDB() : Promise.resolve([]),
   ]).then(function (res) {
     allCustomers = (res[0] || []).map(function (c) { return { id: c.id, name: c.name || "", status: c.status || "active" }; });
     allProducts = (res[1] || []).map(function (p) { return { id: p.id, name: p.name || "", sku: p.sku || "", price: Number(p.price) || 0 }; });
     allWarehouses = (res[2] || []).map(function (w) { return { id: w.id, name: w.name || "" }; });
     salesOrders = (res[3] || []).map(normalizeSO);
+    allPaymentsForSO = res[4] || [];
   });
 }
 
 function reloadSOs() {
-  return (typeof fetchSalesOrdersDB === "function" ? fetchSalesOrdersDB() : Promise.resolve([]))
-    .then(function (rows) { salesOrders = (rows || []).map(normalizeSO); });
+  return Promise.all([
+    typeof fetchSalesOrdersDB === "function" ? fetchSalesOrdersDB() : Promise.resolve([]),
+    typeof fetchPaymentsDB === "function" ? fetchPaymentsDB() : Promise.resolve([]),
+  ]).then(function (res) {
+    salesOrders = (res[0] || []).map(normalizeSO);
+    allPaymentsForSO = res[1] || [];
+  });
 }
 
 function normalizeSO(so) {
@@ -358,7 +531,11 @@ document.addEventListener("DOMContentLoaded", function () {
     openSOModal("Create Order", null);
   });
 
-  reloadAll()
+  // Load app mode ก่อน render ครั้งแรก (เพื่อเลือก delete vs cancel button)
+  var modePromise = (typeof isProductionMode === "function") ? isProductionMode() : Promise.resolve(false);
+  modePromise.then(function (isProd) {
+    _appModeIsProduction = isProd;
+  }).then(function () { return reloadAll(); })
     .then(function () { applyFilters(); })
     .catch(function (err) { console.error(err); applyFilters(); });
 });

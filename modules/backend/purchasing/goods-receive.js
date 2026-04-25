@@ -4,6 +4,7 @@
 // ============================================================
 
 var goodsReceipts = [];
+var _appModeIsProduction = false;
 
 // ============ Helpers ============
 function fmtMoney(n) { return "฿" + Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
@@ -11,7 +12,6 @@ function fmtMoney(n) { return "฿" + Number(n || 0).toLocaleString(undefined, {
 function getStatusBadge(status) {
   switch (status) {
     case "completed": return '<span class="badge badge-active">สำเร็จ</span>';
-    case "partial":   return '<span class="badge" style="background-color:#ffedd5;color:#ea580c;">รับบางส่วน</span>';
     case "pending":   return '<span class="badge" style="background-color:#fef3c7;color:#f59e0b;">รอดำเนินการ</span>';
     case "cancelled": return '<span class="badge badge-inactive">ยกเลิก</span>';
     default: return '<span class="badge">' + status + '</span>';
@@ -22,7 +22,6 @@ function getStatusBadge(status) {
 function updateStats() {
   document.getElementById("statAll").textContent = goodsReceipts.length;
   document.getElementById("statCompleted").textContent = goodsReceipts.filter(function (g) { return g.status === "completed"; }).length;
-  document.getElementById("statPartial").textContent = goodsReceipts.filter(function (g) { return g.status === "partial"; }).length;
   document.getElementById("statPending").textContent = goodsReceipts.filter(function (g) { return g.status === "pending"; }).length;
 }
 
@@ -39,7 +38,8 @@ function renderTable(data) {
     var poRef = g.purchase_orders ? g.purchase_orders.po_number : "—";
     var supplier = g.suppliers ? g.suppliers.name : "—";
     var itemCount = g.goods_receipt_items ? g.goods_receipt_items.length : 0;
-    return '<tr>' +
+    var isCancelled = g.status === "cancelled";
+    return '<tr class="' + (isCancelled ? "row-cancelled" : "") + '">' +
       '<td>' + (i + 1) + '</td>' +
       '<td><strong>' + g.gr_number + '</strong></td>' +
       '<td>' + poRef + '</td>' +
@@ -48,8 +48,18 @@ function renderTable(data) {
       '<td>' + itemCount + '</td>' +
       '<td>' + getStatusBadge(g.status) + '</td>' +
       '<td><div class="table-actions">' +
-        '<button class="btn-icon-sm" onclick="editGR(' + g.id + ')" title="แก้ไข"><i data-lucide="pencil"></i></button>' +
-        '<button class="btn-icon-sm btn-danger" onclick="deleteGR(' + g.id + ')" title="ลบ"><i data-lucide="trash-2"></i></button>' +
+        (g.status !== "cancelled"
+          ? '<button class="btn-icon-sm" style="color:#f59e0b;" onclick="returnGR(' + g.id + ')" title="ส่งคืนสินค้า"><i data-lucide="corner-up-left"></i></button>'
+          : '') +
+        (g.status === "cancelled"
+          ? ''
+          : '<button class="btn-icon-sm" onclick="editGR(' + g.id + ')" title="แก้ไข"><i data-lucide="pencil"></i></button>') +
+        (g.status === "cancelled"
+          ? ''
+          : (_appModeIsProduction
+              ? '<button class="btn-icon-sm" style="color:#f59e0b;" onclick="cancelGR(' + g.id + ')" title="ยกเลิก GR"><i data-lucide="ban"></i></button>'
+              : '<button class="btn-icon-sm btn-danger" onclick="deleteGR(' + g.id + ')" title="ลบ (test mode)"><i data-lucide="trash-2"></i></button>')
+        ) +
       '</div></td>' +
     '</tr>';
   }).join("");
@@ -62,24 +72,65 @@ function editGR(id) {
   window.location.href = "goods-receive-form.html?id=" + id;
 }
 
+// ============ Return → ไปหน้า purchase-returns พร้อม pre-fill GR ============
+function returnGR(id) {
+  window.location.href = "purchase-returns.html?gr_id=" + id;
+}
+
+// ============ Cancel GR (production mode) ============
+function cancelGR(id) {
+  var gr = goodsReceipts.find(function (x) { return x.id === id; });
+  if (!gr) return;
+  if (gr.status === "cancelled") return;
+
+  var itemCount = (gr.goods_receipt_items || []).length;
+  showConfirm({
+    title: "⚠️ ยกเลิก GR",
+    message:
+      "ยกเลิกใบรับสินค้า <strong>" + gr.gr_number + "</strong>?<br/><br/>" +
+      "ผลกระทบ:<br/>" +
+      "• Reverse stock " + itemCount + " รายการ (type=out + note \"ยกเลิก GR\")<br/>" +
+      "• GR status เป็น <strong>ยกเลิก</strong><br/><br/>" +
+      "<strong style='color:#ef4444;'>ต้อง Manager Password</strong>",
+    okText: "ยกเลิก GR",
+    okColor: "#ef4444",
+    onConfirm: function () {
+      requireManagerPassword("ยกเลิก GR " + gr.gr_number)
+        .then(function () { return reverseGRMovements(gr); })
+        .then(function () { return updateDocStatus("goods_receipts", gr.id, "cancelled"); })
+        .then(function () { return logCancelActivity("cancel_gr", "ยกเลิก GR " + gr.gr_number); })
+        .then(function () { return reloadGRs(); })
+        .then(function () { applyFilters(); })
+        .then(function () { if (typeof showToast === "function") showToast("ยกเลิกสำเร็จ", gr.gr_number); })
+        .catch(function (err) {
+          if (err && err.message === "cancelled") return;
+          console.error(err);
+          if (typeof showToast === "function") showToast("ยกเลิกไม่สำเร็จ", err.message || "error");
+        });
+    },
+  });
+}
+
 // ============ Delete ============
 function deleteGR(id) {
   var g = goodsReceipts.find(function (x) { return x.id === id; });
   if (!g) return;
-  var msg = "ต้องการลบใบรับสินค้า <strong>" + g.gr_number + "</strong> ใช่ไหม?";
-  if (g.status === "completed") msg += "<br><br><span style='color:#ef4444;font-size:10px;'>⚠️ GR นี้เคย update stock แล้ว — ระบบจะสร้าง movement reverse อัตโนมัติ</span>";
-  showConfirm({
-    title: "Confirm Delete",
-    message: msg,
-    okText: "Delete",
-    okColor: "#ef4444",
-    onConfirm: function () {
-      deleteGoodsReceiptDB(id)
-        .then(function () { return reloadGRs(); })
-        .then(function () { applyFilters(); })
-        .catch(function (err) { console.error(err); });
-    },
-  });
+  assertTestMode("การลบ GR").then(function () {
+    var msg = "ต้องการลบใบรับสินค้า <strong>" + g.gr_number + "</strong> ใช่ไหม?";
+    if (g.status === "completed") msg += "<br><br><span style='color:#ef4444;font-size:10px;'>⚠️ GR นี้เคย update stock แล้ว — ระบบจะสร้าง movement reverse อัตโนมัติ</span>";
+    showConfirm({
+      title: "Confirm Delete",
+      message: msg,
+      okText: "Delete",
+      okColor: "#ef4444",
+      onConfirm: function () {
+        deleteGoodsReceiptDB(id)
+          .then(function () { return reloadGRs(); })
+          .then(function () { applyFilters(); })
+          .catch(function (err) { console.error(err); });
+      },
+    });
+  }).catch(function () { /* blocked */ });
 }
 
 // ============ Filter & Sort ============
@@ -150,7 +201,9 @@ document.addEventListener("DOMContentLoaded", function () {
     applyFilters();
   });
 
-  reloadGRs()
+  var modePromise = (typeof isProductionMode === "function") ? isProductionMode() : Promise.resolve(false);
+  modePromise.then(function (isProd) { _appModeIsProduction = isProd; })
+    .then(function () { return reloadGRs(); })
     .then(function () { applyFilters(); })
     .catch(function (err) { console.error(err); applyFilters(); });
 });

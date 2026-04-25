@@ -124,3 +124,139 @@ document.addEventListener("click", function (e) {
 document.addEventListener("DOMContentLoaded", function () {
   refreshSortableHeaders();
 });
+
+// ============================================================
+// Bulk Select + Delete Helper
+// ------------------------------------------------------------
+// วิธีใช้:
+// 1) ใน HTML thead แรกสุดใส่ column header:
+//    <th style="width:36px;text-align:center;">
+//      <input type="checkbox" id="selectAllCheckbox" onchange="onSelectAll(this)" style="cursor:pointer;" />
+//    </th>
+//
+// 2) ใน JS row template ให้ prepend bulkCheckboxCell(item.id):
+//    return '<tr>' + bulkCheckboxCell(m.id) + '<td>' + ... + '</tr>';
+//
+// 3) อัพเดท colspan ของแถว empty-state ให้ +1
+//
+// 4) หลัง renderTable ของเพจเรียก syncBulkBar()
+//
+// 5) เรียก initBulkSelect({...}) ตอน init (หลัง DOMContentLoaded):
+//    initBulkSelect({
+//      deleteFn: deleteMovementDB,
+//      onAfterDelete: function () { return reloadMovements().then(applyFilters); },
+//      itemLabel: "รายการ",  // optional
+//    });
+//    — จะ inject bulk action bar ให้อัตโนมัติ (เหนือ .table-container)
+// ============================================================
+
+var bulkSelect = {
+  selectedIds: new Set(),
+  deleteFn: null,
+  onAfterDelete: null,
+  itemLabel: "รายการ",
+};
+
+function initBulkSelect(opts) {
+  bulkSelect.selectedIds = new Set();
+  bulkSelect.deleteFn = opts.deleteFn || null;
+  bulkSelect.onAfterDelete = opts.onAfterDelete || null;
+  bulkSelect.itemLabel = opts.itemLabel || "รายการ";
+
+  // inject bulk action bar ถ้ายังไม่มี
+  if (!document.getElementById("bulkActionBar")) {
+    var container = document.querySelector(".table-container");
+    if (container) {
+      var bar = document.createElement("div");
+      bar.id = "bulkActionBar";
+      bar.style.cssText = "display:none;align-items:center;justify-content:space-between;padding:10px 14px;margin-bottom:10px;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;";
+      bar.innerHTML =
+        '<span style="font-size:11px;font-weight:700;color:#991b1b;">เลือกแล้ว <span id="bulkCount">0</span> รายการ</span>' +
+        '<div style="display:flex;gap:8px;">' +
+          '<button class="btn-secondary" onclick="clearSelection()" style="padding:6px 12px;font-size:11px;">ยกเลิก</button>' +
+          '<button class="btn-primary" onclick="deleteSelected()" style="background:#ef4444;padding:6px 12px;font-size:11px;display:inline-flex;align-items:center;gap:6px;">' +
+            '<i data-lucide="trash-2" style="width:12px;height:12px;"></i>ลบที่เลือก' +
+          '</button>' +
+        '</div>';
+      container.parentNode.insertBefore(bar, container);
+      if (typeof lucide !== "undefined") lucide.createIcons();
+    }
+  }
+}
+
+function bulkCheckboxCell(id) {
+  var checked = bulkSelect.selectedIds.has(id) ? ' checked' : '';
+  return '<td style="text-align:center;"><input type="checkbox" class="row-checkbox" data-id="' + id + '" onchange="onRowCheck(this)" style="cursor:pointer;"' + checked + ' /></td>';
+}
+
+function onRowCheck(cb) {
+  var id = Number(cb.dataset.id);
+  if (cb.checked) bulkSelect.selectedIds.add(id);
+  else bulkSelect.selectedIds.delete(id);
+  syncBulkBar();
+}
+
+function onSelectAll(cb) {
+  document.querySelectorAll(".row-checkbox").forEach(function (b) {
+    b.checked = cb.checked;
+    var id = Number(b.dataset.id);
+    if (cb.checked) bulkSelect.selectedIds.add(id);
+    else bulkSelect.selectedIds.delete(id);
+  });
+  syncBulkBar();
+}
+
+function syncBulkBar() {
+  var bar = document.getElementById("bulkActionBar");
+  var countEl = document.getElementById("bulkCount");
+  var selectAll = document.getElementById("selectAllCheckbox");
+  if (!bar) return;
+  var n = bulkSelect.selectedIds.size;
+  if (countEl) countEl.textContent = n;
+  bar.style.display = n > 0 ? "flex" : "none";
+
+  // sync select-all: checked ถ้าเลือกครบทุกแถวที่มองเห็น, indeterminate ถ้าเลือกบางส่วน
+  var boxes = document.querySelectorAll(".row-checkbox");
+  var visibleChecked = 0;
+  boxes.forEach(function (b) { if (b.checked) visibleChecked++; });
+  if (selectAll) {
+    if (boxes.length > 0 && visibleChecked === boxes.length) {
+      selectAll.checked = true;
+      selectAll.indeterminate = false;
+    } else if (visibleChecked > 0) {
+      selectAll.checked = false;
+      selectAll.indeterminate = true;
+    } else {
+      selectAll.checked = false;
+      selectAll.indeterminate = false;
+    }
+  }
+}
+
+function clearSelection() {
+  bulkSelect.selectedIds.clear();
+  document.querySelectorAll(".row-checkbox").forEach(function (b) { b.checked = false; });
+  syncBulkBar();
+}
+
+function deleteSelected() {
+  var ids = Array.from(bulkSelect.selectedIds);
+  if (!ids.length) return;
+  if (!bulkSelect.deleteFn) return;
+  if (typeof showConfirm !== "function") return;
+
+  showConfirm({
+    title: "Confirm Delete",
+    message: "ต้องการลบ" + bulkSelect.itemLabel + "ที่เลือก <strong>" + ids.length + "</strong> รายการใช่ไหม?",
+    okText: "Delete",
+    okColor: "#ef4444",
+    onConfirm: function () {
+      Promise.all(ids.map(function (id) { return bulkSelect.deleteFn(id); }))
+        .then(function () {
+          bulkSelect.selectedIds.clear();
+          if (bulkSelect.onAfterDelete) return bulkSelect.onAfterDelete();
+        })
+        .catch(function (err) { console.error(err); });
+    },
+  });
+}

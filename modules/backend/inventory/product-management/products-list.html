@@ -110,12 +110,14 @@
             <table class="table">
               <thead>
                 <tr>
+                  <th style="width:36px;text-align:center;"><input type="checkbox" id="selectAllCheckbox" onchange="onSelectAll(this)" style="cursor:pointer;" /></th>
                   <th>#</th>
                   <th data-sort="name">ชื่อสินค้า</th>
                   <th data-sort="category">หมวดหมู่</th>
                   <th data-sort="price" data-sort-type="number">ราคา</th>
                   <th>หน่วย</th>
                   <th>ตัวเลือก</th>
+                  <th data-sort="low_stock_threshold" data-sort-type="number">ขั้นต่ำ</th>
                   <th data-sort="status">สถานะ</th>
                   <th>จัดการ</th>
                 </tr>
@@ -168,6 +170,7 @@
     <script>renderSidebarMenu("products-list.html");</script>
     <script src="/assets/js/topbar.js"></script>
     <script>renderTopbar({ group: "Inventory", page: "รายการสินค้า" });</script>
+    <script src="/modules/backend/assets/js/app-mode.js"></script>
     <script src="products-list.js"></script>
   </body>
 </html>

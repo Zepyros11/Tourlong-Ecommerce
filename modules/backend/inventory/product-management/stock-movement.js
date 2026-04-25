@@ -7,6 +7,7 @@
 var allProducts = [];
 var allWarehouses = [];
 var movements = [];
+var _appModeIsProduction = false;
 
 // ============ Helpers ============
 function fmtQty(n) { return Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: 3 }); }
@@ -37,13 +38,26 @@ function renderTable(data) {
   updateStats();
   var tbody = document.getElementById("movementTableBody");
   if (!data.length) {
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:#94a3b8;font-size:11px;">ยังไม่มีการเคลื่อนไหว</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:#94a3b8;font-size:11px;">ยังไม่มีการเคลื่อนไหว</td></tr>';
     lucide.createIcons();
+    syncBulkBar();
     return;
   }
   tbody.innerHTML = data.map(function (m, i) {
     var pName = m.products ? m.products.name : "—";
+    // production mode: stock_movement = audit trail, ห้าม edit/delete
+    // ถ้าต้องแก้ → สร้าง counter-movement แทน
+    var actions;
+    if (_appModeIsProduction) {
+      actions = '<span title="read-only (audit trail)" style="font-size:10px;color:#cbd5e1;"><i data-lucide="lock" style="width:12px;height:12px;"></i></span>';
+    } else {
+      actions =
+        '<button class="btn-icon-sm" onclick="editMovement(' + m.id + ')" title="แก้ไข (test mode)"><i data-lucide="pencil"></i></button>' +
+        '<button class="btn-icon-sm btn-danger" onclick="deleteMovement(' + m.id + ')" title="ลบ (test mode)"><i data-lucide="trash-2"></i></button>';
+    }
+    var checkbox = _appModeIsProduction ? '<td></td>' : bulkCheckboxCell(m.id);
     return '<tr>' +
+      checkbox +
       '<td>' + (i + 1) + '</td>' +
       '<td>' + (m.date || "—") + '</td>' +
       '<td>' + pName + '</td>' +
@@ -51,14 +65,12 @@ function renderTable(data) {
       '<td>' + warehouseText(m) + '</td>' +
       '<td>' + fmtQty(m.qty) + '</td>' +
       '<td style="color:#64748b;font-size:10px;">' + (m.note || "—") + '</td>' +
-      '<td><div class="table-actions">' +
-        '<button class="btn-icon-sm" onclick="editMovement(' + m.id + ')"><i data-lucide="pencil"></i></button>' +
-        '<button class="btn-icon-sm btn-danger" onclick="deleteMovement(' + m.id + ')"><i data-lucide="trash-2"></i></button>' +
-      '</div></td>' +
+      '<td><div class="table-actions">' + actions + '</div></td>' +
     '</tr>';
   }).join("");
   lucide.createIcons();
   if (typeof refreshSortableHeaders === "function") refreshSortableHeaders();
+  syncBulkBar();
 }
 
 // ============ Dropdowns ============
@@ -284,6 +296,29 @@ if (typeof registerRandomFill === "function") {
 
 // ============ Init ============
 document.addEventListener("DOMContentLoaded", function () {
+  // โหลด app mode ก่อน เพื่อตัดสินใจว่าจะเปิด bulk select ไหม
+  var modePromise = (typeof isProductionMode === "function") ? isProductionMode() : Promise.resolve(false);
+
+  modePromise.then(function (isProd) {
+    _appModeIsProduction = isProd;
+
+    if (!isProd) {
+      // Test mode: เปิด bulk select
+      initBulkSelect({
+        deleteFn: deleteMovementDB,
+        onAfterDelete: function () { return reloadMovements().then(applyFilters); },
+        itemLabel: "รายการ",
+      });
+    } else {
+      // Production mode: ซ่อน select-all checkbox ที่ header
+      var selectAll = document.getElementById("selectAllCheckbox");
+      if (selectAll && selectAll.parentElement) selectAll.parentElement.innerHTML = "";
+      // ซ่อน bulk action bar ถ้าถูกสร้างไว้
+      var bar = document.getElementById("bulkActionBar");
+      if (bar) bar.style.display = "none";
+    }
+  });
+
   document.querySelector(".filter-search-input").addEventListener("input", applyFilters);
 
   document.querySelectorAll(".filter-btn").forEach(function (btn) {
@@ -304,7 +339,9 @@ document.addEventListener("DOMContentLoaded", function () {
     openMovementModal("Add Movement", null);
   });
 
-  reloadAll()
+  // รอ mode check เสร็จก่อน render (เพื่อให้ renderTable ใช้ _appModeIsProduction ถูกต้อง)
+  modePromise
+    .then(function () { return reloadAll(); })
     .then(function () { applyFilters(); })
     .catch(function (err) { console.error(err); applyFilters(); });
 });

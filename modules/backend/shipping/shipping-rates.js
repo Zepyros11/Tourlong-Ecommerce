@@ -3,6 +3,7 @@
 // ============================================================
 
 var rates = [];
+var currentAppMode = "test";
 
 function fmtMoney(n) { return "฿" + Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
@@ -19,7 +20,17 @@ function renderTable(data) {
     lucide.createIcons();
     return;
   }
+  var showDelete = currentAppMode === "test";
   tbody.innerHTML = data.map(function (r, i) {
+    var isActive = r.status === "active";
+    var statusToggle =
+      '<label class="toggle" title="' + (isActive ? "Active" : "Inactive") + '">' +
+        '<input type="checkbox" ' + (isActive ? "checked" : "") + ' onchange="toggleRateStatus(' + r.id + ', this.checked)" />' +
+        '<span class="toggle-slider"></span>' +
+      '</label>';
+    var deleteBtn = showDelete
+      ? '<button class="btn-icon-sm btn-danger" onclick="deleteRate(' + r.id + ')"><i data-lucide="trash-2"></i></button>'
+      : '';
     return '<tr>' +
       '<td>' + (i + 1) + '</td>' +
       '<td>' + (r.carrier || "") + '</td>' +
@@ -28,10 +39,10 @@ function renderTable(data) {
       '<td>' + fmtMoney(r.base_rate) + '</td>' +
       '<td>' + fmtMoney(r.per_kg) + '</td>' +
       '<td>' + (r.days || "—") + '</td>' +
-      '<td><span class="badge badge-' + (r.status === "active" ? "active" : "inactive") + '">' + (r.status === "active" ? "Active" : "Inactive") + '</span></td>' +
+      '<td>' + statusToggle + '</td>' +
       '<td><div class="table-actions">' +
         '<button class="btn-icon-sm" onclick="editRate(' + r.id + ')"><i data-lucide="pencil"></i></button>' +
-        '<button class="btn-icon-sm btn-danger" onclick="deleteRate(' + r.id + ')"><i data-lucide="trash-2"></i></button>' +
+        deleteBtn +
       '</div></td>' +
     '</tr>';
   }).join("");
@@ -84,6 +95,17 @@ function saveRate() {
 function editRate(id) {
   var r = rates.find(function (x) { return x.id === id; });
   if (r) openRateModal("Edit Rate", r);
+}
+
+function toggleRateStatus(id, isActive) {
+  var newStatus = isActive ? "active" : "inactive";
+  updateShippingRateDB(id, { status: newStatus })
+    .then(function () { return reloadRates(); })
+    .then(function () { applyFilters(); })
+    .catch(function (err) {
+      console.error(err);
+      if (typeof showToast === "function") showToast("ผิดพลาด", "เปลี่ยนสถานะไม่สำเร็จ", "error");
+    });
 }
 
 function deleteRate(id) {
@@ -173,7 +195,11 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  reloadRates()
-    .then(function () { applyFilters(); })
+  var modeP = (typeof getAppMode === "function") ? getAppMode() : Promise.resolve("test");
+  Promise.all([modeP, reloadRates()])
+    .then(function (results) {
+      currentAppMode = results[0] || "test";
+      applyFilters();
+    })
     .catch(function (err) { console.error(err); applyFilters(); });
 });

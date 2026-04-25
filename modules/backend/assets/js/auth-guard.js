@@ -10,7 +10,6 @@
 // ============================================================
 
 var AUTH_KEYS = {
-  ACTIVITY: "pathara_activity",
   ATTEMPTS: "pathara_login_attempts",
   POLICY: "pathara_password_policy",
   SESSION: "pathara_session",   // sessionStorage: full user object JSON
@@ -92,40 +91,17 @@ function requireAuth() {
   return user;
 }
 
-// ============ Activity Log ============
-function loadActivity() {
-  try {
-    var data = localStorage.getItem(AUTH_KEYS.ACTIVITY);
-    if (data) return JSON.parse(data);
-  } catch (e) {}
-  return [];
-}
-
-function saveActivity(list) {
-  // เก็บไว้สูงสุด 500 รายการ (กันบวม localStorage)
-  if (list.length > 500) list = list.slice(0, 500);
-  localStorage.setItem(AUTH_KEYS.ACTIVITY, JSON.stringify(list));
-}
-
+// ============ Activity Log (Supabase) ============
 function logActivity(action, moduleName, description) {
+  if (typeof createActivityLogDB !== "function") return;
   var user = getCurrentUser();
-  var now = new Date();
-  var datetime = now.getFullYear() + "-" +
-    String(now.getMonth() + 1).padStart(2, "0") + "-" +
-    String(now.getDate()).padStart(2, "0") + " " +
-    String(now.getHours()).padStart(2, "0") + ":" +
-    String(now.getMinutes()).padStart(2, "0");
-  var list = loadActivity();
-  list.unshift({
-    id: Date.now(),
-    datetime: datetime,
-    userId: user ? user.id : null,
-    user: user ? user.name : "Guest",
+  createActivityLogDB({
+    datetime: new Date().toISOString(),
+    user_name: user ? user.name : "Guest",
     action: action,
     module: moduleName,
     description: description
-  });
-  saveActivity(list);
+  }).catch(function () { /* silent: ไม่ขัดจังหวะการทำงานหลัก */ });
 }
 
 // ============ Login Attempt Limit ============

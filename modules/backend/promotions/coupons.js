@@ -3,6 +3,7 @@
 // ============================================================
 
 var coupons = [];
+var currentAppMode = "test";
 
 function updateStats() {
   document.getElementById("statAll").textContent = coupons.length;
@@ -18,7 +19,22 @@ function renderTable(data) {
     lucide.createIcons();
     return;
   }
+  var showDelete = currentAppMode === "test";
   tbody.innerHTML = data.map(function (c, i) {
+    var isActive = c.status === "active";
+    var statusCell;
+    if (c.status === "expired") {
+      statusCell = '<span class="badge" style="background-color:#fef2f2;color:#dc2626;">Expired</span>';
+    } else {
+      statusCell =
+        '<label class="toggle" title="' + (isActive ? "Active" : "Inactive") + '">' +
+          '<input type="checkbox" ' + (isActive ? "checked" : "") + ' onchange="toggleCouponStatus(' + c.id + ', this.checked)" />' +
+          '<span class="toggle-slider"></span>' +
+        '</label>';
+    }
+    var deleteBtn = showDelete
+      ? '<button class="btn-icon-sm btn-danger" onclick="deleteCoupon(' + c.id + ')"><i data-lucide="trash-2"></i></button>'
+      : '';
     return '<tr>' +
       '<td>' + (i + 1) + '</td>' +
       '<td><strong>' + (c.code || "") + '</strong></td>' +
@@ -27,10 +43,10 @@ function renderTable(data) {
       '<td>฿' + Number(c.min_purchase || 0).toLocaleString() + '</td>' +
       '<td>' + c.used + "/" + c.usage_limit + '</td>' +
       '<td>' + (c.expiry || "—") + '</td>' +
-      '<td><span class="badge badge-' + (c.status === "active" ? "active" : "inactive") + '">' + (c.status === "active" ? "Active" : c.status === "expired" ? "Expired" : "Inactive") + '</span></td>' +
+      '<td>' + statusCell + '</td>' +
       '<td><div class="table-actions">' +
         '<button class="btn-icon-sm" onclick="editCoupon(' + c.id + ')"><i data-lucide="pencil"></i></button>' +
-        '<button class="btn-icon-sm btn-danger" onclick="deleteCoupon(' + c.id + ')"><i data-lucide="trash-2"></i></button>' +
+        deleteBtn +
       '</div></td>' +
     '</tr>';
   }).join("");
@@ -81,6 +97,17 @@ function saveCoupon() {
 function editCoupon(id) {
   var c = coupons.find(function (x) { return x.id === id; });
   if (c) openCouponModal("Edit Coupon", c);
+}
+
+function toggleCouponStatus(id, isActive) {
+  var newStatus = isActive ? "active" : "inactive";
+  updateCouponDB(id, { status: newStatus })
+    .then(function () { return reloadCoupons(); })
+    .then(function () { applyFilters(); })
+    .catch(function (err) {
+      console.error(err);
+      if (typeof showToast === "function") showToast("ผิดพลาด", "เปลี่ยนสถานะไม่สำเร็จ", "error");
+    });
 }
 
 function deleteCoupon(id) {
@@ -181,7 +208,11 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  reloadCoupons()
-    .then(function () { applyFilters(); })
+  var modeP = (typeof getAppMode === "function") ? getAppMode() : Promise.resolve("test");
+  Promise.all([modeP, reloadCoupons()])
+    .then(function (results) {
+      currentAppMode = results[0] || "test";
+      applyFilters();
+    })
     .catch(function (err) { console.error(err); applyFilters(); });
 });

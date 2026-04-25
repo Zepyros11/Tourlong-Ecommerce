@@ -3,6 +3,7 @@
 // ============================================================
 
 var discounts = [];
+var currentAppMode = "test";
 
 function updateStats() {
   document.getElementById("statAll").textContent = discounts.length;
@@ -32,7 +33,17 @@ function renderTable(data) {
     lucide.createIcons();
     return;
   }
+  var showDelete = currentAppMode === "test";
   tbody.innerHTML = data.map(function (d, i) {
+    var isActive = d.status === "active";
+    var statusToggle =
+      '<label class="toggle" title="' + (isActive ? "Active" : "Inactive") + '">' +
+        '<input type="checkbox" ' + (isActive ? "checked" : "") + ' onchange="toggleDiscountStatus(' + d.id + ', this.checked)" />' +
+        '<span class="toggle-slider"></span>' +
+      '</label>';
+    var deleteBtn = showDelete
+      ? '<button class="btn-icon-sm btn-danger" onclick="deleteDiscount(' + d.id + ')"><i data-lucide="trash-2"></i></button>'
+      : '';
     return '<tr>' +
       '<td>' + (i + 1) + '</td>' +
       '<td>' + (d.name || "") + '</td>' +
@@ -40,10 +51,10 @@ function renderTable(data) {
       '<td>' + applyToBadge(d.apply_to) + '</td>' +
       '<td>' + (d.start_date || "—") + '</td>' +
       '<td>' + (d.end_date || "—") + '</td>' +
-      '<td><span class="badge badge-' + (d.status === "active" ? "active" : "inactive") + '">' + (d.status === "active" ? "Active" : "Inactive") + '</span></td>' +
+      '<td>' + statusToggle + '</td>' +
       '<td><div class="table-actions">' +
         '<button class="btn-icon-sm" onclick="editDiscount(' + d.id + ')"><i data-lucide="pencil"></i></button>' +
-        '<button class="btn-icon-sm btn-danger" onclick="deleteDiscount(' + d.id + ')"><i data-lucide="trash-2"></i></button>' +
+        deleteBtn +
       '</div></td>' +
     '</tr>';
   }).join("");
@@ -101,6 +112,17 @@ function saveDiscount() {
 function editDiscount(id) {
   var d = discounts.find(function (x) { return x.id === id; });
   if (d) openDiscountModal("Edit Discount", d);
+}
+
+function toggleDiscountStatus(id, isActive) {
+  var newStatus = isActive ? "active" : "inactive";
+  updateDiscountDB(id, { status: newStatus })
+    .then(function () { return reloadDiscounts(); })
+    .then(function () { applyFilters(); })
+    .catch(function (err) {
+      console.error(err);
+      if (typeof showToast === "function") showToast("ผิดพลาด", "เปลี่ยนสถานะไม่สำเร็จ", "error");
+    });
 }
 
 function deleteDiscount(id) {
@@ -200,7 +222,11 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  reloadDiscounts()
-    .then(function () { applyFilters(); })
+  var modeP = (typeof getAppMode === "function") ? getAppMode() : Promise.resolve("test");
+  Promise.all([modeP, reloadDiscounts()])
+    .then(function (results) {
+      currentAppMode = results[0] || "test";
+      applyFilters();
+    })
     .catch(function (err) { console.error(err); applyFilters(); });
 });

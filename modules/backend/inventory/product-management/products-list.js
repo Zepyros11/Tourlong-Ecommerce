@@ -6,6 +6,7 @@
 // ============ Database ============
 let products = [];
 let allUnits = []; // units จาก DB เพื่อแสดงชื่อหน่วย
+var currentAppMode = "test";
 
 function getUnitName(unitId) {
   if (!unitId) return '';
@@ -28,6 +29,7 @@ function reloadProducts() {
         unit_id: p.unit_id || null,
         variants: p.variants || [],
         status: p.status || 'active',
+        low_stock_threshold: p.low_stock_threshold != null ? Number(p.low_stock_threshold) : null,
       };
     });
     allUnits = (results[1] || []).map(function (u) {
@@ -48,6 +50,7 @@ function updateStats() {
 function renderTable(data) {
   updateStats();
   var tbody = document.getElementById("productTableBody");
+  var showDelete = currentAppMode === "test";
   tbody.innerHTML = data.map(function(p, i) {
     var variantBadge = p.variants && p.variants.length
       ? '<span class="badge" style="background-color:#eff6ff;color:#3b82f6;">' + p.variants.length + ' variants</span>'
@@ -56,22 +59,37 @@ function renderTable(data) {
     var unitDisplay = unitName
       ? '<span style="font-size:10px;font-weight:600;color:#47b8b4;">' + unitName + '</span>'
       : '<span style="font-size:10px;color:#cbd5e1;">—</span>';
+    var lowStockDisplay = p.low_stock_threshold != null
+      ? '<span style="font-size:10px;font-weight:600;color:#64748b;">' + p.low_stock_threshold + '</span>'
+      : '<span style="font-size:10px;color:#94a3b8;font-style:italic;" title="ค่าเริ่มต้น (ยังไม่ได้ตั้งค่าเฉพาะ)">10</span>';
+    var isActive = p.status === "active";
+    var statusToggle =
+      '<label class="toggle" title="' + (isActive ? "Active" : "Inactive") + '">' +
+        '<input type="checkbox" ' + (isActive ? "checked" : "") + ' onchange="toggleProductStatus(' + p.id + ', this.checked)" />' +
+        '<span class="toggle-slider"></span>' +
+      '</label>';
+    var deleteBtn = showDelete
+      ? '<button class="btn-icon-sm btn-danger" onclick="deleteProduct(' + p.id + ')"><i data-lucide="trash-2"></i></button>'
+      : '';
     return '<tr>' +
+      bulkCheckboxCell(p.id) +
       '<td>' + (i + 1) + '</td>' +
       '<td>' + p.name + '</td>' +
       '<td>' + p.category + '</td>' +
       '<td>฿' + p.price.toLocaleString() + '</td>' +
       '<td>' + unitDisplay + '</td>' +
       '<td>' + variantBadge + '</td>' +
-      '<td><span class="badge badge-' + (p.status === "active" ? "active" : "inactive") + '">' + (p.status === "active" ? "Active" : "Inactive") + '</span></td>' +
+      '<td>' + lowStockDisplay + '</td>' +
+      '<td>' + statusToggle + '</td>' +
       '<td><div class="table-actions">' +
         '<button class="btn-icon-sm" onclick="editProduct(' + p.id + ')"><i data-lucide="pencil"></i></button>' +
-        '<button class="btn-icon-sm btn-danger" onclick="deleteProduct(' + p.id + ')"><i data-lucide="trash-2"></i></button>' +
+        deleteBtn +
       '</div></td>' +
     '</tr>';
   }).join("");
   lucide.createIcons();
   if (typeof refreshSortableHeaders === "function") refreshSortableHeaders();
+  syncBulkBar();
 }
 
 // ============ Edit → ไปหน้า form ============
@@ -79,7 +97,33 @@ function editProduct(id) {
   window.location.href = "products-form.html?id=" + id;
 }
 
+function toggleProductStatus(id, isActive) {
+  var newStatus = isActive ? "active" : "inactive";
+  if (typeof updateProductDB !== "function") {
+    console.error("updateProductDB not found");
+    return;
+  }
+  updateProductDB(id, { status: newStatus })
+    .then(function () { return reloadProducts(); })
+    .then(function () { applyFilters(); })
+    .catch(function (err) {
+      console.error(err);
+      if (typeof showToast === "function") showToast("ผิดพลาด", "เปลี่ยนสถานะไม่สำเร็จ", "error");
+    });
+}
+
 // ============ Delete ============
+// ลบ product: ล้างรูปใน Storage ก่อน แล้วค่อยลบ row
+function deleteProductWithImages(id) {
+  return (typeof fetchProductById === "function" ? fetchProductById(id) : Promise.resolve(null))
+    .then(function (full) {
+      if (full && full.images && full.images.length) {
+        return deleteProductImagesFromStorage(full.images);
+      }
+    })
+    .then(function () { return deleteProductDB(id); });
+}
+
 function deleteProduct(id) {
   var p = products.find(function(x) { return x.id === id; });
   if (!p) return;
@@ -88,7 +132,7 @@ function deleteProduct(id) {
     message: "ต้องการลบสินค้า <strong>" + p.name + "</strong> ใช่ไหม?",
     okText: "Delete", okColor: "#ef4444",
     onConfirm: function() {
-      deleteProductDB(id)
+      deleteProductWithImages(id)
         .then(function () { return reloadProducts(); })
         .then(function () { applyFilters(); })
         .catch(function (err) { console.error(err); });
@@ -120,6 +164,12 @@ function applyFilters() { renderTable(getFilteredData()); }
 
 // ============ Init ============
 document.addEventListener("DOMContentLoaded", function() {
+  initBulkSelect({
+    deleteFn: deleteProductWithImages,
+    onAfterDelete: function () { return reloadProducts().then(applyFilters); },
+    itemLabel: "สินค้า",
+  });
+
   document.querySelector(".filter-search-input").addEventListener("input", applyFilters);
 
   document.querySelectorAll(".filter-btn").forEach(function(btn) {
@@ -152,9 +202,13 @@ document.addEventListener("DOMContentLoaded", function() {
     document.head.appendChild(s);
   }
 
-  // โหลดข้อมูลจาก Supabase
-  reloadProducts()
-    .then(function () { applyFilters(); })
+  // โหลดข้อมูลจาก Supabase + app mode
+  var modeP = (typeof getAppMode === "function") ? getAppMode() : Promise.resolve("test");
+  Promise.all([modeP, reloadProducts()])
+    .then(function (results) {
+      currentAppMode = results[0] || "test";
+      applyFilters();
+    })
     .catch(function (err) {
       console.error(err);
       applyFilters(); // render empty

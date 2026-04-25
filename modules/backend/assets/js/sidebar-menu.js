@@ -72,6 +72,7 @@ var sidebarMenu = [
     group: "การจัดส่ง",
     icon: "truck",
     basePath: "/modules/backend/shipping/",
+    disabled: true, // แสดงใน sidebar แต่กดไม่ได้
     items: [
       { name: "การจัดส่ง",     icon: "package",    href: "shipments.html" },
       { name: "อัตราค่าขนส่ง", icon: "calculator", href: "shipping-rates.html" },
@@ -81,6 +82,7 @@ var sidebarMenu = [
     group: "รายงาน",
     icon: "bar-chart-2",
     basePath: "/modules/backend/reports/",
+    disabled: true, // แสดงใน sidebar แต่กดไม่ได้
     items: [
       { name: "รายงานยอดขาย",       icon: "trending-up",   href: "sales-report.html" },
       { name: "รายงานสินค้าคงเหลือ", icon: "package",       href: "inventory-report.html" },
@@ -111,7 +113,65 @@ var sidebarMenu = [
       { name: "ตั้งค่าขั้นสูง",     icon: "sliders",    href: "advance-settings.html" },
     ],
   },
+  {
+    group: "ผู้พัฒนา",
+    icon: "terminal",
+    basePath: "/modules/backend/developer/",
+    adminOnly: true, // render เฉพาะ role=admin
+    items: [
+      { name: "เครื่องมือ",     icon: "wrench",       href: "tools.html" },
+    ],
+  },
 ];
+
+var SIDEBAR_OPEN_KEY = "sidebarOpenGroups";
+var SIDEBAR_SCROLL_KEY = "sidebarScrollTop";
+
+// Auto-inject shared helpers (app-mode, manager-password) ถ้ายังไม่ได้โหลด
+// ทุกหน้า backend โหลด sidebar-menu.js อยู่แล้ว → ได้ helper เหล่านี้ฟรี
+(function injectSharedHelpers() {
+  var base = "/modules/backend/assets/js/";
+  var scripts = [
+    { check: "applyAppModeUI", src: base + "app-mode.js" },
+    { check: "requireManagerPassword", src: base + "manager-password.js" },
+    { check: "isProductionMode", src: base + "cancel-helpers.js" },
+  ];
+  scripts.forEach(function (s) {
+    if (typeof window[s.check] === "function") return;
+    var tag = document.createElement("script");
+    tag.src = s.src;
+    tag.async = false;
+    document.head.appendChild(tag);
+  });
+})();
+
+function getOpenGroups() {
+  try {
+    var raw = localStorage.getItem(SIDEBAR_OPEN_KEY);
+    if (!raw) return null;
+    var arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr.map(String) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function setOpenGroups(arr) {
+  try {
+    localStorage.setItem(SIDEBAR_OPEN_KEY, JSON.stringify(arr));
+  } catch (e) {}
+}
+
+function getSidebarScroll() {
+  var v = parseInt(localStorage.getItem(SIDEBAR_SCROLL_KEY), 10);
+  return isNaN(v) ? 0 : v;
+}
+
+function setSidebarScroll(v) {
+  try {
+    localStorage.setItem(SIDEBAR_SCROLL_KEY, String(v));
+  } catch (e) {}
+}
 
 /**
  * Render sidebar menu
@@ -122,6 +182,13 @@ function renderSidebarMenu() {
   if (!nav) return;
   // ใช้ current path ตรวจ active เพื่อแก้ปัญหาชื่อไฟล์ซ้ำข้าม group
   var currentPath = window.location.pathname;
+  var savedOpen = getOpenGroups();
+
+  // Filter adminOnly groups
+  var currentUser = (typeof getCurrentUser === "function") ? getCurrentUser() : null;
+  var roleLower = (currentUser && currentUser.role ? String(currentUser.role) : "").toLowerCase();
+  var isAdmin = roleLower === "admin" || roleLower === "superuser";
+  var visibleMenu = sidebarMenu.filter(function (g) { return !g.adminOnly || isAdmin; });
 
   // Render "Go to Frontend" link at the top
   var html = '';
@@ -132,20 +199,31 @@ function renderSidebarMenu() {
     html += '</a>';
   }
 
-  sidebarMenu.forEach(function (group, idx) {
+  visibleMenu.forEach(function (group, idx) {
     var hasActive = group.items.some(function (item) {
       if (item.type === "divider") return false;
       var fullPath = (group.basePath || "") + item.href;
       return currentPath.indexOf(fullPath) !== -1;
     });
 
-    html += '<div class="sidebar-group">';
-    html += '<div class="sidebar-group-label" data-group="' + idx + '">';
+    // เปิดไว้ถ้า: (1) กลุ่มมีหน้าปัจจุบัน หรือ (2) ผู้ใช้เคยเปิดไว้ (จาก localStorage)
+    // ถ้ายังไม่เคยมี savedOpen เลย (ผู้ใช้ใหม่) ให้ fallback เป็นพฤติกรรมเดิม = เปิดเฉพาะกลุ่มที่ active
+    var isOpen = hasActive || (savedOpen !== null && savedOpen.indexOf(String(idx)) !== -1);
+
+    var isDisabled = !!group.disabled;
+    html += '<div class="sidebar-group' + (isDisabled ? " disabled" : "") + '">';
+    html += '<div class="sidebar-group-label' + (isDisabled ? " disabled" : "") + '"' + (isDisabled ? '' : ' data-group="' + idx + '"') + '>';
     html += '<i data-lucide="' + group.icon + '" class="sidebar-group-icon"></i>';
     html += "<span>" + group.group + "</span>";
-    html += '<i data-lucide="chevron-down" class="sidebar-chevron' + (hasActive ? " open" : "") + '"></i>';
+    if (!isDisabled) {
+      html += '<i data-lucide="chevron-down" class="sidebar-chevron' + (isOpen ? " open" : "") + '"></i>';
+    }
     html += "</div>";
-    html += '<div class="sidebar-group-items' + (hasActive ? " open" : "") + '" data-group-items="' + idx + '">';
+    if (isDisabled) {
+      html += "</div>";
+      return;
+    }
+    html += '<div class="sidebar-group-items' + (isOpen ? " open" : "") + '" data-group-items="' + idx + '">';
     group.items.forEach(function (item) {
       if (item.type === "divider") {
         html += '<div class="sidebar-subgroup-label" style="font-size:9px;font-weight:800;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:0.6px;padding:10px 16px 4px;margin-top:4px;border-top:1px solid rgba(255,255,255,0.12);">' + item.label + '</div>';
@@ -166,7 +244,7 @@ function renderSidebarMenu() {
   nav.innerHTML = html;
   if (typeof lucide !== "undefined") lucide.createIcons();
 
-  // Toggle เปิด/ปิด
+  // Toggle เปิด/ปิด + จำ state ไว้ใน localStorage
   nav.querySelectorAll(".sidebar-group-label").forEach(function (label) {
     label.addEventListener("click", function () {
       var idx = this.dataset.group;
@@ -174,6 +252,27 @@ function renderSidebarMenu() {
       var chevron = this.querySelector(".sidebar-chevron");
       if (items) items.classList.toggle("open");
       if (chevron) chevron.classList.toggle("open");
+
+      // sync state ทั้งหมดจาก DOM กลับไป localStorage
+      var openIdxs = [];
+      nav.querySelectorAll(".sidebar-group-items.open").forEach(function (el) {
+        openIdxs.push(el.dataset.groupItems);
+      });
+      setOpenGroups(openIdxs);
+    });
+  });
+
+  // คืนค่า scroll position หลัง render
+  nav.scrollTop = getSidebarScroll();
+
+  // จำ scroll position (throttle ด้วย rAF)
+  var scrollTicking = false;
+  nav.addEventListener("scroll", function () {
+    if (scrollTicking) return;
+    scrollTicking = true;
+    requestAnimationFrame(function () {
+      setSidebarScroll(nav.scrollTop);
+      scrollTicking = false;
     });
   });
 }

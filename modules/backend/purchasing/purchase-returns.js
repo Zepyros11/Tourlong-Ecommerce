@@ -8,6 +8,7 @@ var allGRs = [];
 var allSuppliers = [];
 var allWarehouses = [];
 var allProducts = [];
+var _appModeIsProduction = false;
 
 // ============ Helpers ============
 function fmtMoney(n) { return "฿" + Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
@@ -40,7 +41,8 @@ function renderTable(data) {
   tbody.innerHTML = data.map(function (r, i) {
     var grRef = r.goods_receipts ? r.goods_receipts.gr_number : "—";
     var supplier = r.suppliers ? r.suppliers.name : "—";
-    return '<tr>' +
+    var isCancelled = r.status === "cancelled";
+    return '<tr class="' + (isCancelled ? "row-cancelled" : "") + '">' +
       '<td>' + (i + 1) + '</td>' +
       '<td><strong>' + r.return_number + '</strong></td>' +
       '<td>' + grRef + '</td>' +
@@ -49,8 +51,15 @@ function renderTable(data) {
       '<td style="color:#64748b;font-size:10px;">' + (r.reason || "—") + '</td>' +
       '<td>' + getStatusBadge(r.status) + '</td>' +
       '<td><div class="table-actions">' +
-        '<button class="btn-icon-sm" onclick="editReturn(' + r.id + ')"><i data-lucide="pencil"></i></button>' +
-        '<button class="btn-icon-sm btn-danger" onclick="deleteReturn(' + r.id + ')"><i data-lucide="trash-2"></i></button>' +
+        (r.status === "cancelled"
+          ? ''
+          : '<button class="btn-icon-sm" onclick="editReturn(' + r.id + ')" title="แก้ไข"><i data-lucide="pencil"></i></button>') +
+        (r.status === "cancelled"
+          ? ''
+          : (_appModeIsProduction
+              ? '<button class="btn-icon-sm" style="color:#f59e0b;" onclick="cancelReturn(' + r.id + ')" title="ยกเลิก Return"><i data-lucide="ban"></i></button>'
+              : '<button class="btn-icon-sm btn-danger" onclick="deleteReturn(' + r.id + ')" title="ลบ (test mode)"><i data-lucide="trash-2"></i></button>')
+        ) +
       '</div></td>' +
     '</tr>';
   }).join("");
@@ -135,13 +144,36 @@ function addPRItemRow(data) {
   var tr = document.createElement("tr");
   var d = data || {};
   tr.innerHTML =
-    '<td style="padding:4px;"><select class="form-select pr-product" style="padding:6px 8px;font-size:10px;">' + buildProductOptions(d.product_id) + '</select></td>' +
+    '<td style="padding:4px;"><select class="form-select pr-product" onchange="fillCostFromGR(this)" style="padding:6px 8px;font-size:10px;">' + buildProductOptions(d.product_id) + '</select></td>' +
     '<td style="padding:4px;"><input type="number" class="form-input pr-qty" value="' + (d.qty || "") + '" min="0" step="any" oninput="recalcTotals()" style="padding:6px 8px;font-size:10px;text-align:right;" /></td>' +
     '<td style="padding:4px;"><input type="number" class="form-input pr-cost" value="' + (d.cost || "") + '" min="0" step="0.01" oninput="recalcTotals()" style="padding:6px 8px;font-size:10px;text-align:right;" /></td>' +
     '<td style="padding:4px;text-align:right;color:#ef4444;font-weight:700;" class="pr-subtotal">฿0.00</td>' +
     '<td style="padding:4px;"><button class="btn-icon-sm btn-danger" type="button" onclick="removePRItemRow(this)" style="width:22px;height:22px;"><i data-lucide="x" style="width:10px;height:10px;"></i></button></td>';
   tbody.appendChild(tr);
   lucide.createIcons();
+  recalcTotals();
+}
+
+// Auto-fill cost จาก GR ที่เลือก ตอนเปลี่ยน product (ถ้าไม่ได้พิมพ์ cost เอง)
+function fillCostFromGR(selectEl) {
+  var grId = Number(document.getElementById("inputGR").value);
+  if (!grId) return;
+  var gr = allGRs.find(function (g) { return Number(g.id) === grId; });
+  if (!gr) return;
+  var productId = Number(selectEl.value);
+  if (!productId) return;
+  var item = (gr.goods_receipt_items || []).find(function (it) { return Number(it.product_id) === productId; });
+  if (!item) return;
+  var row = selectEl.closest("tr");
+  var costInput = row.querySelector(".pr-cost");
+  var qtyInput = row.querySelector(".pr-qty");
+  if (costInput) {
+    costInput.value = Number(item.cost) || 0;
+  }
+  // ถ้า qty ยังว่าง และ GR item มี qty → pre-fill เป็นค่าเริ่มต้น (user แก้ได้)
+  if (qtyInput && !qtyInput.value) {
+    qtyInput.value = Number(item.qty) || "";
+  }
   recalcTotals();
 }
 
@@ -167,12 +199,12 @@ function openReturnModal(title, r) {
   if (!allProducts.length) { alertMsg("ยังไม่มีสินค้า", "กรุณาเพิ่มสินค้าก่อน"); return; }
   if (!allWarehouses.length) { alertMsg("ยังไม่มีคลัง", "กรุณาเพิ่มคลังก่อน"); return; }
   document.getElementById("modalTitle").textContent = title;
-  document.getElementById("editId").value = r ? r.id : "";
-  document.getElementById("inputReturnNumber").value = r ? r.return_number : generateReturnNumber();
-  document.getElementById("inputDate").value = r ? r.date : new Date().toISOString().slice(0, 10);
-  document.getElementById("inputStatus").value = r ? r.status : "pending";
-  document.getElementById("inputReason").value = r ? (r.reason || "") : "";
-  document.getElementById("inputNote").value = r ? (r.note || "") : "";
+  document.getElementById("editId").value = (r && r.id) ? r.id : "";
+  document.getElementById("inputReturnNumber").value = (r && r.return_number) ? r.return_number : generateReturnNumber();
+  document.getElementById("inputDate").value = (r && r.date) ? r.date : new Date().toISOString().slice(0, 10);
+  document.getElementById("inputStatus").value = (r && r.status) ? r.status : "pending";
+  document.getElementById("inputReason").value = (r && r.reason) ? r.reason : "";
+  document.getElementById("inputNote").value = (r && r.note) ? r.note : "";
   populateGRDropdown(r ? r.gr_id : null);
   populateSupplierDropdown(r ? r.supplier_id : null);
   populateWarehouseDropdown(r ? r.warehouse_id : null);
@@ -181,7 +213,11 @@ function openReturnModal(title, r) {
   tbody.innerHTML = "";
   var items = r && r.purchase_return_items ? r.purchase_return_items : [];
   if (items.length) {
+    // Edit mode: load existing items
     items.forEach(function (it) { addPRItemRow({ product_id: it.product_id, qty: it.qty, cost: it.cost }); });
+  } else if (r && r.gr_id && !r.id) {
+    // New return pre-filled จาก GR → auto populate items จาก GR (รวม cost)
+    onGRChange();
   } else {
     addPRItemRow();
   }
@@ -250,23 +286,64 @@ function editReturn(id) {
   if (r) openReturnModal("Edit Return", r);
 }
 
+// ============ Cancel Return (production mode) ============
+function cancelReturn(id) {
+  var r = returns.find(function (x) { return x.id === id; });
+  if (!r) return;
+  if (r.status === "cancelled") return;
+
+  var itemCount = (r.purchase_return_items || []).length;
+  var wasApproved = r.status === "approved";
+
+  showConfirm({
+    title: "⚠️ ยกเลิก Return",
+    message:
+      "ยกเลิกใบส่งคืน <strong>" + r.return_number + "</strong>?<br/><br/>" +
+      (wasApproved
+        ? "• Reverse stock " + itemCount + " รายการ (สินค้ากลับเข้า warehouse)<br/>"
+        : "• สินค้ายังไม่ถูกส่งออก ไม่ต้อง reverse stock<br/>") +
+      "• Return status เป็น <strong>ยกเลิก</strong><br/><br/>" +
+      "<strong style='color:#ef4444;'>ต้อง Manager Password</strong>",
+    okText: "ยกเลิก Return",
+    okColor: "#ef4444",
+    onConfirm: function () {
+      requireManagerPassword("ยกเลิก Return " + r.return_number)
+        .then(function () {
+          if (wasApproved) return reverseReturnMovements(r);
+        })
+        .then(function () { return updateDocStatus("purchase_returns", r.id, "cancelled"); })
+        .then(function () { return logCancelActivity("cancel_return", "ยกเลิก Return " + r.return_number); })
+        .then(function () { return reloadAll(); })
+        .then(function () { applyFilters(); })
+        .then(function () { if (typeof showToast === "function") showToast("ยกเลิกสำเร็จ", r.return_number); })
+        .catch(function (err) {
+          if (err && err.message === "cancelled") return;
+          console.error(err);
+          if (typeof showToast === "function") showToast("ยกเลิกไม่สำเร็จ", err.message || "error");
+        });
+    },
+  });
+}
+
 function deleteReturn(id) {
   var r = returns.find(function (x) { return x.id === id; });
   if (!r) return;
-  var msg = "ต้องการลบรายการส่งคืน <strong>" + r.return_number + "</strong> ใช่ไหม?";
-  if (r.status === "approved") msg += "<br><br><span style='color:#ef4444;font-size:10px;'>⚠️ Return นี้เคยตัด stock แล้ว — ระบบจะสร้าง movement reverse อัตโนมัติ</span>";
-  showConfirm({
-    title: "Confirm Delete",
-    message: msg,
-    okText: "Delete",
-    okColor: "#ef4444",
-    onConfirm: function () {
-      deletePurchaseReturnDB(id)
-        .then(function () { return reloadReturns(); })
-        .then(function () { applyFilters(); })
-        .catch(function (err) { console.error(err); });
-    },
-  });
+  assertTestMode("การลบ Return").then(function () {
+    var msg = "ต้องการลบรายการส่งคืน <strong>" + r.return_number + "</strong> ใช่ไหม?";
+    if (r.status === "approved") msg += "<br><br><span style='color:#ef4444;font-size:10px;'>⚠️ Return นี้เคยตัด stock แล้ว — ระบบจะสร้าง movement reverse อัตโนมัติ</span>";
+    showConfirm({
+      title: "Confirm Delete",
+      message: msg,
+      okText: "Delete",
+      okColor: "#ef4444",
+      onConfirm: function () {
+        deletePurchaseReturnDB(id)
+          .then(function () { return reloadReturns(); })
+          .then(function () { applyFilters(); })
+          .catch(function (err) { console.error(err); });
+      },
+    });
+  }).catch(function () { /* blocked */ });
 }
 
 // ============ Filter & Sort ============
@@ -393,7 +470,22 @@ document.addEventListener("DOMContentLoaded", function () {
     openReturnModal("Create Return", null);
   });
 
-  reloadAll()
+  var modePromise = (typeof isProductionMode === "function") ? isProductionMode() : Promise.resolve(false);
+  modePromise.then(function (isProd) { _appModeIsProduction = isProd; })
+    .then(function () { return reloadAll(); })
     .then(function () { applyFilters(); })
+    .then(function () {
+      // ถ้ามี ?gr_id=X ใน URL → เปิด Create Return modal พร้อม pre-fill GR นั้น
+      var params = new URLSearchParams(window.location.search);
+      var preGrId = params.get("gr_id");
+      if (preGrId) {
+        var gr = allGRs.find(function (g) { return Number(g.id) === Number(preGrId); });
+        if (gr) {
+          openReturnModal("Create Return — " + gr.gr_number, { gr_id: Number(preGrId), supplier_id: gr.supplier_id, warehouse_id: gr.warehouse_id });
+        }
+        // ลบ query ออกจาก URL (ไม่ให้เปิด modal ซ้ำถ้า refresh)
+        history.replaceState(null, "", window.location.pathname);
+      }
+    })
     .catch(function (err) { console.error(err); applyFilters(); });
 });

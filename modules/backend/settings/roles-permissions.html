@@ -11,8 +11,52 @@
     />
     <link rel="stylesheet" href="../assets/backend.css" />
     <style>
-      .form-checkbox-group { display: flex; flex-direction: column; gap: 6px; }
-      .form-checkbox { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #334155; cursor: pointer; }
+      /* Modal wider for permission matrix */
+      #roleModal .modal { width: 640px; max-width: 92vw; }
+      #roleModal .modal-body { max-height: 70vh; overflow-y: auto; }
+
+      .perm-toolbar {
+        display: flex; align-items: center; justify-content: flex-end;
+        gap: 6px; margin-bottom: 8px;
+      }
+      .perm-btn-mini {
+        background: #fff; border: 1px solid #cbd5e1; border-radius: 6px;
+        padding: 4px 10px; font-size: 11px; color: #475569;
+        cursor: pointer; line-height: 1.2;
+      }
+      .perm-btn-mini:hover { background: #f1f5f9; border-color: #94a3b8; }
+      .perm-btn-mini.danger { color: #b91c1c; border-color: #fecaca; }
+      .perm-btn-mini.danger:hover { background: #fee2e2; border-color: #fca5a5; }
+
+      .perm-table { border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
+      .perm-group { border-bottom: 1px solid #e2e8f0; }
+      .perm-group:last-child { border-bottom: none; }
+      .perm-group-header {
+        display: flex; align-items: center; gap: 8px;
+        padding: 10px 14px; background: #f1f5f9;
+        font-size: 12px; font-weight: 700; color: #0f172a;
+      }
+      .perm-group-header > span { flex: 1; }
+      .perm-group-header svg { width: 16px; height: 16px; color: #47b8b4; }
+      .perm-group-actions { display: flex; gap: 6px; }
+
+      .perm-row {
+        display: flex; align-items: center;
+        padding: 8px 14px 8px 36px;
+        border-top: 1px solid #f1f5f9;
+        font-size: 12px;
+      }
+      .perm-row:nth-child(even) { background: #fafafa; }
+      .perm-row-name {
+        flex: 1; color: #334155;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        padding-right: 12px;
+      }
+      .perm-row-checks {
+        display: flex; flex-wrap: wrap;
+        gap: 6px 16px;
+      }
+      .form-checkbox { display: flex; align-items: center; gap: 6px; color: #334155; cursor: pointer; white-space: nowrap; }
       .form-checkbox input[type="checkbox"] { accent-color: #47b8b4; width: 14px; height: 14px; cursor: pointer; }
     </style>
   </head>
@@ -106,6 +150,7 @@
                   <th data-sort="desc">รายละเอียด</th>
                   <th data-sort="users" data-sort-type="number">ผู้ใช้</th>
                   <th data-sort="permissions" data-sort-type="number">สิทธิ์</th>
+                  <th data-sort="status">สถานะ</th>
                   <th>จัดการ</th>
                 </tr>
               </thead>
@@ -147,14 +192,8 @@
           </div>
           <div class="form-group">
             <label class="form-label">Permissions</label>
-            <div class="form-checkbox-group">
-              <label class="form-checkbox"><input type="checkbox" value="dashboard_view" class="permission-check"> Dashboard View</label>
-              <label class="form-checkbox"><input type="checkbox" value="inventory_view" class="permission-check"> Inventory View</label>
-              <label class="form-checkbox"><input type="checkbox" value="inventory_edit" class="permission-check"> Inventory Edit</label>
-              <label class="form-checkbox"><input type="checkbox" value="inventory_delete" class="permission-check"> Inventory Delete</label>
-              <label class="form-checkbox"><input type="checkbox" value="settings_view" class="permission-check"> Settings View</label>
-              <label class="form-checkbox"><input type="checkbox" value="settings_edit" class="permission-check"> Settings Edit</label>
-              <label class="form-checkbox"><input type="checkbox" value="users_manage" class="permission-check"> Users Manage</label>
+            <div id="permissionsContainer">
+              <!-- render จาก roles-permissions.js ตาม PERMISSION_GROUPS -->
             </div>
           </div>
         </div>
@@ -194,6 +233,7 @@
     <script>renderSidebarMenu("roles-permissions.html");</script>
     <script src="/assets/js/topbar.js"></script>
     <script>renderTopbar({ group: "Settings", page: "สิทธิ์การใช้งาน" });</script>
+    <script src="/modules/backend/assets/js/app-mode.js"></script>
     <script src="/modules/backend/assets/js/random-data.js"></script>
     <script src="roles-permissions.js"></script>
   </body>

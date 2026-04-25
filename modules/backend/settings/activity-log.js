@@ -16,12 +16,15 @@ function updateStats() {
 
 function actionBadge(action) {
   switch (action) {
-    case "create": return '<span class="badge badge-active">Create</span>';
-    case "update": return '<span class="badge" style="background-color:#eff6ff;color:#3b82f6;">Update</span>';
-    case "delete": return '<span class="badge badge-inactive">Delete</span>';
-    case "login":  return '<span class="badge" style="background-color:#ecfdf5;color:#10b981;">Login</span>';
-    case "logout": return '<span class="badge" style="background-color:#fef3c7;color:#f59e0b;">Logout</span>';
-    default:       return '<span class="badge">' + action + "</span>";
+    case "create":        return '<span class="badge badge-active">Create</span>';
+    case "update":        return '<span class="badge" style="background-color:#eff6ff;color:#3b82f6;">Update</span>';
+    case "delete":        return '<span class="badge badge-inactive">Delete</span>';
+    case "login":         return '<span class="badge" style="background-color:#ecfdf5;color:#10b981;">Login</span>';
+    case "logout":        return '<span class="badge" style="background-color:#fef3c7;color:#f59e0b;">Logout</span>';
+    case "cancel_po":     return '<span class="badge" style="background-color:#fff7ed;color:#ea580c;">Cancel PO</span>';
+    case "cancel_gr":     return '<span class="badge" style="background-color:#fff7ed;color:#ea580c;">Cancel GR</span>';
+    case "cancel_return": return '<span class="badge" style="background-color:#fff7ed;color:#ea580c;">Cancel Return</span>';
+    default:              return '<span class="badge">' + action + "</span>";
   }
 }
 
@@ -54,7 +57,12 @@ var currentSort = "default";
 function getFilteredData() {
   var keyword = document.querySelector(".filter-search-input").value.toLowerCase();
   var data = logs.slice();
-  if (currentFilter !== "all") data = data.filter(function (l) { return l.action === currentFilter; });
+  if (currentFilter !== "all") {
+    data = data.filter(function (l) {
+      if (currentFilter === "cancel") return (l.action || "").indexOf("cancel") === 0;
+      return l.action === currentFilter;
+    });
+  }
   if (keyword) {
     data = data.filter(function (l) {
       return (l.user_name || "").toLowerCase().includes(keyword) ||

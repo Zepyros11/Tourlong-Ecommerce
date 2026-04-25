@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pathara - Developer Tools</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../assets/backend.css" />
+    <style>
+      .tool-card { background:#fff; border-radius:14px; padding:18px 20px; box-shadow:0 2px 6px rgba(0,0,0,0.04); border:1px solid #e2e8f0; margin-bottom:14px; }
+      .tool-card h3 { margin:0 0 4px; font-size:13px; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:8px; }
+      .tool-card p.desc { margin:0 0 12px; font-size:11px; color:#64748b; line-height:1.6; }
+      .mode-switch-box { display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-radius:10px; border:2px solid #e2e8f0; }
+      .mode-switch-box.test { background:#fef2f2; border-color:#fecaca; }
+      .mode-switch-box.prod { background:#ecfdf5; border-color:#a7f3d0; }
+      .danger-btn { background:#ef4444; color:#fff; border:none; padding:8px 16px; border-radius:8px; font-size:11px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px; }
+      .danger-btn:hover { background:#dc2626; }
+      .danger-btn:disabled { opacity:0.5; cursor:not-allowed; }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="sidebar-logo">
+          <div class="sidebar-logo-icon"><i data-lucide="zap" class="sidebar-icon-sm"></i></div>
+          <h1 class="sidebar-logo-text">Pathara</h1>
+        </div>
+        <nav class="sidebar-nav"></nav>
+        <button class="sidebar-logout">
+          <i data-lucide="log-out" class="sidebar-icon-xs"></i>
+          <span>ออกจากระบบ</span>
+        </button>
+      </aside>
+
+      <div class="main-area">
+        <header class="topbar"></header>
+
+        <div class="content">
+          <div class="content-header">
+            <div>
+              <h2 class="content-title">🛠 Developer Tools</h2>
+              <p class="content-subtitle">เครื่องมือสำหรับผู้พัฒนา — ใช้ด้วยความระมัดระวัง</p>
+            </div>
+          </div>
+
+          <!-- Mode Toggle -->
+          <div class="tool-card">
+            <h3><i data-lucide="toggle-right" style="width:16px;height:16px;color:#47b8b4;"></i> App Mode (Test / Production)</h3>
+            <p class="desc">
+              <strong>Test Mode:</strong> สามารถลบข้อมูลได้ (DELETE from DB) — ใช้ช่วงพัฒนา<br/>
+              <strong>Production Mode:</strong> ลบไม่ได้ ทำได้แค่ "ยกเลิก" เพื่อรักษา audit trail
+            </p>
+            <div class="mode-switch-box" id="modeSwitchBox">
+              <div>
+                <div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">โหมดปัจจุบัน</div>
+                <div id="modeCurrentLabel" style="font-size:18px;font-weight:800;margin-top:2px;">—</div>
+              </div>
+              <button class="btn-primary" id="modeToggleBtn" style="padding:8px 16px;">
+                <i data-lucide="arrow-left-right" style="width:12px;height:12px;margin-right:4px;"></i>
+                สลับโหมด
+              </button>
+            </div>
+          </div>
+
+          <!-- Manager Password -->
+          <div class="tool-card">
+            <h3><i data-lucide="key" style="width:16px;height:16px;color:#f59e0b;"></i> Manager Password</h3>
+            <p class="desc">
+              รหัส break-glass สำหรับยืนยันการกระทำ destructive (reset, cancel ใน production) — แยกจาก login password<br/>
+              <span id="pwdStatusLabel" style="font-weight:700;"></span>
+            </p>
+            <button class="btn-primary" id="setPwdBtn" style="padding:8px 16px;">
+              <i data-lucide="key-round" style="width:12px;height:12px;margin-right:4px;"></i>
+              <span id="setPwdBtnLabel">ตั้งค่า Manager Password</span>
+            </button>
+          </div>
+
+          <!-- Seed Demo Data -->
+          <div class="tool-card" style="border-color:#a7f3d0;">
+            <h3><i data-lucide="sprout" style="width:16px;height:16px;color:#10b981;"></i> Seed Demo Data</h3>
+            <p class="desc">
+              สร้างข้อมูลตัวอย่าง generic (10 products, 3 suppliers, 3 customers, 2 warehouses, 2 bank accounts, etc.) — เหมาะสำหรับ test flow
+            </p>
+            <button class="btn-primary" id="seedDemoBtn" style="background:#10b981;padding:8px 16px;">
+              <i data-lucide="sparkles" style="width:12px;height:12px;margin-right:4px;"></i>
+              สร้างข้อมูลตัวอย่าง
+            </button>
+          </div>
+
+          <!-- DB Statistics -->
+          <div class="tool-card">
+            <h3>
+              <i data-lucide="bar-chart-3" style="width:16px;height:16px;color:#3b82f6;"></i>
+              DB Statistics
+              <button class="btn-outline" id="refreshStatsBtn" style="margin-left:auto;padding:4px 10px;font-size:9px;"><i data-lucide="refresh-cw" style="width:10px;height:10px;"></i> Refresh</button>
+            </h3>
+            <p class="desc">จำนวน rows ในแต่ละตาราง (เรียงมาก→น้อย) — รวมทั้งหมด <strong id="dbStatsTotal">—</strong> rows</p>
+            <div style="max-height:280px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px;">
+              <table style="width:100%;border-collapse:collapse;font-size:11px;">
+                <thead style="position:sticky;top:0;background:#f8fafc;">
+                  <tr style="color:#64748b;font-size:10px;text-transform:uppercase;">
+                    <th style="padding:8px 10px;text-align:left;font-weight:700;">Table</th>
+                    <th style="padding:8px 10px;text-align:right;font-weight:700;">Rows</th>
+                  </tr>
+                </thead>
+                <tbody id="dbStatsBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Clear Orphan Storage -->
+          <div class="tool-card">
+            <h3><i data-lucide="image-off" style="width:16px;height:16px;color:#f59e0b;"></i> Clear Orphan Storage</h3>
+            <p class="desc">
+              สแกนไฟล์ใน <code>product-images</code> bucket เทียบกับ URL ที่อ้างถึงใน DB (products.images, company_info.logo_url, po.payment_slip_url, po.receipt_url)<br/>
+              ไฟล์ที่ไม่มีใครอ้าง = orphan → ลบออกเพื่อประหยัดพื้นที่ (ต้อง Manager Password)
+            </p>
+            <button class="btn-primary" id="clearOrphansBtn" style="background:#f59e0b;padding:8px 16px;">
+              <i data-lucide="search" style="width:12px;height:12px;margin-right:4px;"></i>
+              สแกน + ลบ Orphan Files
+            </button>
+          </div>
+
+          <!-- Export / Import -->
+          <div class="tool-card">
+            <h3><i data-lucide="database" style="width:16px;height:16px;color:#8b5cf6;"></i> Backup / Restore (JSON)</h3>
+            <p class="desc">
+              <strong>Export:</strong> ดาวน์โหลด snapshot ของ DB ทั้งหมดเป็น JSON<br/>
+              <strong>Import:</strong> กู้คืนจากไฟล์ JSON ที่ export ไว้ (จะ<strong>ลบข้อมูลเดิมทั้งหมด</strong>ก่อน) — ต้อง Manager Password
+            </p>
+            <div style="display:flex;gap:8px;">
+              <button class="btn-primary" id="exportJsonBtn" style="background:#8b5cf6;padding:8px 16px;">
+                <i data-lucide="download" style="width:12px;height:12px;margin-right:4px;"></i>
+                Export JSON
+              </button>
+              <button class="btn-outline" id="importJsonBtn" style="padding:8px 16px;border-color:#8b5cf6;color:#8b5cf6;">
+                <i data-lucide="upload" style="width:12px;height:12px;margin-right:4px;"></i>
+                Import JSON
+              </button>
+              <input type="file" id="importFileInput" accept=".json,application/json" style="display:none;" />
+            </div>
+          </div>
+
+          <!-- Reset section header -->
+          <div style="margin-top:20px;padding-top:10px;border-top:2px solid #fee2e2;">
+            <h2 style="font-size:13px;font-weight:800;color:#ef4444;margin:0 0 4px;letter-spacing:0.3px;">⚠️ Danger Zone</h2>
+            <p style="font-size:10px;color:#64748b;margin:0 0 12px;">การกระทำในส่วนนี้ไม่สามารถกู้คืนได้ ทุกปุ่มต้องยืนยัน Manager Password</p>
+          </div>
+
+          <!-- Reset Transactional -->
+          <div class="tool-card" style="border-color:#fecaca;">
+            <h3><i data-lucide="trash-2" style="width:16px;height:16px;color:#ef4444;"></i> Reset Transactional Data <span style="font-size:10px;color:#94a3b8;font-weight:500;margin-left:6px;">Level 1</span></h3>
+            <p class="desc">
+              ลบข้อมูล <strong>transactional</strong> ทั้งหมด (PO, GR, Return, Movement, Payment, Expense, Sales Orders, etc.)<br/>
+              คงไว้: products, categories, suppliers, customers, warehouses, users, company_info
+            </p>
+            <button class="danger-btn" id="resetTransBtn">
+              <i data-lucide="trash-2" style="width:12px;height:12px;"></i>
+              รีเซ็ตข้อมูล Transactional
+            </button>
+          </div>
+
+          <!-- Reset All -->
+          <div class="tool-card" style="border-color:#fca5a5;background:#fef2f2;">
+            <h3><i data-lucide="alert-triangle" style="width:16px;height:16px;color:#dc2626;"></i> Reset All Data <span style="font-size:10px;color:#94a3b8;font-weight:500;margin-left:6px;">Level 2</span></h3>
+            <p class="desc">
+              ลบ <strong>Transactional + Master data</strong> (products, categories, suppliers, warehouses, pages, blocks, promotions, activity log)<br/>
+              คงไว้: users, company_info, app_settings, roles
+            </p>
+            <button class="danger-btn" id="resetAllBtn" style="background:#dc2626;">
+              <i data-lucide="alert-triangle" style="width:12px;height:12px;"></i>
+              รีเซ็ตข้อมูลทั้งหมด
+            </button>
+          </div>
+
+          <!-- Factory Reset -->
+          <div class="tool-card" style="border-color:#991b1b;background:#450a0a;color:#fff;">
+            <h3 style="color:#fca5a5;"><i data-lucide="bomb" style="width:16px;height:16px;color:#fca5a5;"></i> Factory Reset <span style="font-size:10px;color:#fca5a5;font-weight:500;margin-left:6px;">Level 3 — DANGER</span></h3>
+            <p class="desc" style="color:#fecaca;">
+              ลบ<strong>ทุกอย่างยกเว้น admin ปัจจุบัน + app_settings + roles</strong><br/>
+              รวมถึง Storage files + reset company info เป็นค่าว่าง<br/>
+              <strong style="color:#fff;">ใช้ในกรณีเริ่มต้นใหม่หมดเท่านั้น</strong>
+            </p>
+            <button class="danger-btn" id="factoryResetBtn" style="background:#7f1d1d;border:1px solid #fca5a5;">
+              <i data-lucide="bomb" style="width:12px;height:12px;"></i>
+              Factory Reset (เริ่มใหม่หมด)
+            </button>
+          </div>
+
+        </div>
+
+        <footer class="footer">
+          <p class="footer-text">&copy; 2026 Pathara. All rights reserved.</p>
+          <nav class="footer-nav">
+            <a href="#" class="footer-link">Privacy Policy</a>
+            <a href="#" class="footer-link">Terms of Service</a>
+            <a href="#" class="footer-link">Support</a>
+          </nav>
+        </footer>
+      </div>
+    </div>
+
+    <!-- Set Password Modal -->
+    <div class="modal-overlay" id="setPwdModal">
+      <div class="modal" style="max-width:440px;width:94vw;">
+        <div class="modal-header">
+          <h3 class="modal-title" id="setPwdModalTitle">ตั้ง Manager Password</h3>
+          <button class="modal-close"><i data-lucide="x"></i></button>
+        </div>
+        <div class="modal-body">
+          <!-- dummy fields กัน browser autofill -->
+          <input type="text" style="position:absolute;left:-9999px;top:-9999px;" tabindex="-1" autocomplete="username" />
+          <input type="password" style="position:absolute;left:-9999px;top:-9999px;" tabindex="-1" autocomplete="new-password" />
+          <div class="form-group" id="oldPwdGroup" style="display:none;">
+            <label class="form-label">รหัสเดิม</label>
+            <input type="password" class="form-input" id="oldPwdInput" autocomplete="new-password" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">รหัสใหม่ <span style="color:#94a3b8;font-weight:400;font-size:9px;">(อย่างน้อย 6 ตัว)</span></label>
+            <input type="password" class="form-input" id="newPwdInput" autocomplete="new-password" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">ยืนยันรหัสใหม่</label>
+            <input type="password" class="form-input" id="newPwdConfirmInput" autocomplete="new-password" />
+          </div>
+          <p id="pwdFormError" style="display:none;margin:6px 0 0;font-size:10px;color:#ef4444;font-weight:700;"></p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" onclick="closeModalById('setPwdModal')">ยกเลิก</button>
+          <button class="btn-primary" onclick="submitSetPassword()">บันทึก</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirm Modal (generic) -->
+    <div class="modal-overlay" id="confirmModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title" id="confirmTitle">Confirm</h3>
+          <button class="modal-close"><i data-lucide="x"></i></button>
+        </div>
+        <div class="modal-body">
+          <p id="confirmMessage" style="font-size:12px;color:#64748b;"></p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" id="confirmCancelBtn">Cancel</button>
+          <button class="btn-primary" id="confirmOkBtn">OK</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" style="position:fixed;top:60px;left:50%;transform:translateX(-50%) translateY(-120px);display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,#10b981,#059669);padding:18px 32px;border-radius:16px;box-shadow:0 20px 50px rgba(16,185,129,0.3);z-index:9999;transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1),opacity 0.3s;opacity:0;">
+      <div style="width:40px;height:40px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <i data-lucide="check" style="width:22px;height:22px;color:#fff;"></i>
+      </div>
+      <div>
+        <p id="toastTitle" style="font-size:15px;font-weight:800;color:#fff;margin:0;">สำเร็จ</p>
+        <p id="toastMsg" style="font-size:11px;color:rgba(255,255,255,0.8);margin:3px 0 0;"></p>
+      </div>
+    </div>
+
+    <script src="/assets/js/esc-close.js"></script>
+    <script src="../assets/js/modal.js"></script>
+    <script src="../assets/js/enter-save.js"></script>
+    <script src="../assets/js/confirm.js"></script>
+    <script src="/modules/backend/assets/js/supabase-client.js"></script>
+    <script src="/modules/backend/assets/js/auth-guard.js"></script>
+    <script>
+      requireAuth();
+      // Guard: admin only (case-insensitive)
+      (function () {
+        var u = getCurrentUser();
+        var role = (u && u.role ? String(u.role) : "").toLowerCase();
+        if (role !== "admin" && role !== "superuser") {
+          alert("หน้านี้สำหรับ admin เท่านั้น");
+          window.location.href = "/modules/backend/inventory/product-management/dashboard.html";
+        }
+      })();
+    </script>
+    <script src="/modules/backend/assets/js/app-mode.js"></script>
+    <script src="/modules/backend/assets/js/manager-password.js"></script>
+    <script src="../assets/js/sidebar-menu.js"></script>
+    <script>renderSidebarMenu("tools.html");</script>
+    <script src="/assets/js/topbar.js"></script>
+    <script>renderTopbar({ group: "Developer", page: "เครื่องมือ" });</script>
+    <script src="tools.js"></script>
+  </body>
+</html>

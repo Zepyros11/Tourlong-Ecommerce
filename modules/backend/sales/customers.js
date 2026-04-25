@@ -3,6 +3,7 @@
 // ============================================================
 
 var customers = [];
+var currentAppMode = "test";
 
 function updateStats() {
   document.getElementById("statAll").textContent = customers.length;
@@ -25,7 +26,17 @@ function renderTable(data) {
     lucide.createIcons();
     return;
   }
+  var showDelete = currentAppMode === "test";
   tbody.innerHTML = data.map(function (c, i) {
+    var isActive = c.status === "active";
+    var statusToggle =
+      '<label class="toggle" title="' + (isActive ? "Active" : "Inactive") + '">' +
+        '<input type="checkbox" ' + (isActive ? "checked" : "") + ' onchange="toggleCustomerStatus(' + c.id + ', this.checked)" />' +
+        '<span class="toggle-slider"></span>' +
+      '</label>';
+    var deleteBtn = showDelete
+      ? '<button class="btn-icon-sm btn-danger" onclick="deleteCustomer(' + c.id + ')"><i data-lucide="trash-2"></i></button>'
+      : '';
     return '<tr>' +
       '<td>' + (i + 1) + '</td>' +
       '<td>' + (c.name || "") + '</td>' +
@@ -33,10 +44,10 @@ function renderTable(data) {
       '<td>' + (c.phone || "—") + '</td>' +
       '<td>' + (c.email || "—") + '</td>' +
       '<td>' + getTypeBadge(c.type) + '</td>' +
-      '<td><span class="badge badge-' + (c.status === "active" ? "active" : "inactive") + '">' + (c.status === "active" ? "Active" : "Inactive") + '</span></td>' +
+      '<td>' + statusToggle + '</td>' +
       '<td><div class="table-actions">' +
         '<button class="btn-icon-sm" onclick="editCustomer(' + c.id + ')"><i data-lucide="pencil"></i></button>' +
-        '<button class="btn-icon-sm btn-danger" onclick="deleteCustomer(' + c.id + ')"><i data-lucide="trash-2"></i></button>' +
+        deleteBtn +
       '</div></td>' +
     '</tr>';
   }).join("");
@@ -44,9 +55,22 @@ function renderTable(data) {
   if (typeof refreshSortableHeaders === "function") refreshSortableHeaders();
 }
 
+function generateNextMemberCode() {
+  var max = 0;
+  customers.forEach(function (c) {
+    var m = /^MEM-(\d+)$/.exec(c.member_code || "");
+    if (m) {
+      var n = parseInt(m[1], 10);
+      if (n > max) max = n;
+    }
+  });
+  return "MEM-" + String(max + 1).padStart(4, "0");
+}
+
 function openCustomerModal(title, c) {
   document.getElementById("modalTitle").textContent = title;
   document.getElementById("editId").value = c ? c.id : "";
+  document.getElementById("inputMemberCode").value = c ? (c.member_code || "") : generateNextMemberCode();
   document.getElementById("inputName").value = c ? (c.name || "") : "";
   document.getElementById("inputContact").value = c ? (c.contact || "") : "";
   document.getElementById("inputPhone").value = c ? (c.phone || "") : "";
@@ -66,6 +90,7 @@ function saveCustomer() {
   if (!name) return document.getElementById("inputName").focus();
 
   var payload = {
+    member_code: document.getElementById("inputMemberCode").value.trim() || null,
     name: name,
     contact: document.getElementById("inputContact").value.trim() || null,
     phone: document.getElementById("inputPhone").value.trim() || null,
@@ -89,20 +114,41 @@ function editCustomer(id) {
   if (c) openCustomerModal("Edit Customer", c);
 }
 
+function toggleCustomerStatus(id, isActive) {
+  var newStatus = isActive ? "active" : "inactive";
+  updateCustomerDB(id, { status: newStatus })
+    .then(function () { return reloadCustomers(); })
+    .then(function () { applyFilters(); })
+    .catch(function (err) {
+      console.error(err);
+      if (typeof showToast === "function") showToast("ผิดพลาด", "เปลี่ยนสถานะไม่สำเร็จ", "error");
+    });
+}
+
 function deleteCustomer(id) {
   var c = customers.find(function (x) { return x.id === id; });
   if (!c) return;
-  showConfirm({
-    title: "Confirm Delete",
-    message: "ต้องการลบลูกค้า <strong>" + c.name + "</strong> ใช่ไหม?",
-    okText: "Delete",
-    okColor: "#ef4444",
-    onConfirm: function () {
-      deleteCustomerDB(id)
-        .then(function () { return reloadCustomers(); })
-        .then(function () { applyFilters(); })
-        .catch(function (err) { console.error(err); });
-    },
+  var modeFn = (typeof getAppModeFresh === "function") ? getAppModeFresh
+             : (typeof getAppMode === "function") ? getAppMode
+             : function () { return Promise.resolve("test"); };
+  modeFn().then(function (mode) {
+    var isProd = mode === "production";
+    showConfirm({
+      title: isProd ? "Confirm Soft Delete" : "Confirm Delete",
+      message: isProd
+        ? "Production mode: ลูกค้า <strong>" + c.name + "</strong> จะถูกตั้งสถานะเป็น <strong>Inactive</strong> (ไม่ลบจาก DB)"
+        : "Test mode: ลบลูกค้า <strong>" + c.name + "</strong> ออกจาก DB จริง ใช่ไหม?",
+      okText: isProd ? "Set Inactive" : "Delete",
+      okColor: "#ef4444",
+      onConfirm: function () {
+        var op = isProd
+          ? updateCustomerDB(id, { status: "inactive" })
+          : deleteCustomerDB(id);
+        op.then(function () { return reloadCustomers(); })
+          .then(function () { applyFilters(); })
+          .catch(function (err) { console.error(err); });
+      },
+    });
   });
 }
 
@@ -139,6 +185,7 @@ function reloadCustomers() {
       customers = (rows || []).map(function (r) {
         return {
           id: r.id,
+          member_code: r.member_code || "",
           name: r.name || "",
           contact: r.contact || "",
           phone: r.phone || "",
@@ -198,7 +245,11 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  reloadCustomers()
-    .then(function () { applyFilters(); })
+  var modeP = (typeof getAppMode === "function") ? getAppMode() : Promise.resolve("test");
+  Promise.all([modeP, reloadCustomers()])
+    .then(function (results) {
+      currentAppMode = results[0] || "test";
+      applyFilters();
+    })
     .catch(function (err) { console.error(err); applyFilters(); });
 });

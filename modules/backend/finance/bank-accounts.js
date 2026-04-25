@@ -3,6 +3,8 @@
 // ============================================================
 
 var accounts = [];
+var banks = [];
+var currentAppMode = "test";
 
 function fmtMoney(n) { return "฿" + Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
@@ -20,17 +22,27 @@ function renderTable(data) {
     lucide.createIcons();
     return;
   }
+  var showDelete = currentAppMode === "test";
   tbody.innerHTML = data.map(function (a, i) {
+    var isActive = a.status === "active";
+    var statusToggle =
+      '<label class="toggle" title="' + (isActive ? "Active" : "Inactive") + '">' +
+        '<input type="checkbox" ' + (isActive ? "checked" : "") + ' onchange="toggleAccountStatus(' + a.id + ', this.checked)" />' +
+        '<span class="toggle-slider"></span>' +
+      '</label>';
+    var deleteBtn = showDelete
+      ? '<button class="btn-icon-sm btn-danger" onclick="deleteAccount(' + a.id + ')"><i data-lucide="trash-2"></i></button>'
+      : '';
     return '<tr>' +
       '<td>' + (i + 1) + '</td>' +
       '<td>' + (a.bank || "") + '</td>' +
       '<td>' + (a.account_name || "") + '</td>' +
       '<td>' + (a.account_number || "—") + '</td>' +
       '<td>' + fmtMoney(a.balance) + '</td>' +
-      '<td><span class="badge badge-' + (a.status === "active" ? "active" : "inactive") + '">' + (a.status === "active" ? "Active" : "Inactive") + '</span></td>' +
+      '<td>' + statusToggle + '</td>' +
       '<td><div class="table-actions">' +
         '<button class="btn-icon-sm" onclick="editAccount(' + a.id + ')"><i data-lucide="pencil"></i></button>' +
-        '<button class="btn-icon-sm btn-danger" onclick="deleteAccount(' + a.id + ')"><i data-lucide="trash-2"></i></button>' +
+        deleteBtn +
       '</div></td>' +
     '</tr>';
   }).join("");
@@ -38,10 +50,29 @@ function renderTable(data) {
   if (typeof refreshSortableHeaders === "function") refreshSortableHeaders();
 }
 
+function populateBankSelect(selectedName) {
+  var sel = document.getElementById("inputBank");
+  if (!sel) return;
+  var opts = banks.map(function (b) {
+    return '<option value="' + escapeHtml(b.name) + '">' + escapeHtml(b.name) + '</option>';
+  }).join("");
+  if (selectedName && !banks.some(function (b) { return b.name === selectedName; })) {
+    opts = '<option value="' + escapeHtml(selectedName) + '">' + escapeHtml(selectedName) + ' (ลบแล้ว)</option>' + opts;
+  }
+  sel.innerHTML = opts || '<option value="">— ไม่มีรายชื่อธนาคาร —</option>';
+  if (selectedName) sel.value = selectedName;
+}
+
+function escapeHtml(s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+  });
+}
+
 function openAccountModal(title, a) {
   document.getElementById("modalTitle").textContent = title;
   document.getElementById("editId").value = a ? a.id : "";
-  document.getElementById("inputBank").value = a ? a.bank : "ธนาคารกสิกรไทย";
+  populateBankSelect(a ? a.bank : (banks[0] && banks[0].name) || "");
   document.getElementById("inputAccountName").value = a ? (a.account_name || "") : "";
   document.getElementById("inputAccountNumber").value = a ? (a.account_number || "") : "";
   document.getElementById("inputBalance").value = a ? a.balance : "";
@@ -77,6 +108,17 @@ function saveAccount() {
 function editAccount(id) {
   var a = accounts.find(function (x) { return x.id === id; });
   if (a) openAccountModal("Edit Account", a);
+}
+
+function toggleAccountStatus(id, isActive) {
+  var newStatus = isActive ? "active" : "inactive";
+  updateBankAccountDB(id, { status: newStatus })
+    .then(function () { return reloadAccounts(); })
+    .then(function () { applyFilters(); })
+    .catch(function (err) {
+      console.error(err);
+      if (typeof showToast === "function") showToast("ผิดพลาด", "เปลี่ยนสถานะไม่สำเร็จ", "error");
+    });
 }
 
 function deleteAccount(id) {
@@ -136,6 +178,135 @@ function reloadAccounts() {
     });
 }
 
+function reloadBanks() {
+  return (typeof fetchBanksDB === "function" ? fetchBanksDB() : Promise.resolve([]))
+    .then(function (rows) {
+      banks = (rows || []).map(function (r) {
+        return { id: r.id, name: r.name || "" };
+      });
+    });
+}
+
+// ===================== Manage Banks =====================
+
+function renderBanksTable() {
+  var tbody = document.getElementById("bankTableBody");
+  if (!tbody) return;
+  if (!banks.length) {
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:20px;color:#94a3b8;font-size:11px;">ยังไม่มีรายชื่อธนาคาร</td></tr>';
+    lucide.createIcons();
+    return;
+  }
+  tbody.innerHTML = banks.map(function (b, i) {
+    return '<tr>' +
+      '<td>' + (i + 1) + '</td>' +
+      '<td>' + escapeHtml(b.name) + '</td>' +
+      '<td><div class="table-actions">' +
+        '<button class="btn-icon-sm" onclick="editBank(' + b.id + ')" title="แก้ไข"><i data-lucide="pencil"></i></button>' +
+        '<button class="btn-icon-sm btn-danger" onclick="deleteBank(' + b.id + ')" title="ลบ"><i data-lucide="trash-2"></i></button>' +
+      '</div></td>' +
+    '</tr>';
+  }).join("");
+  lucide.createIcons();
+}
+
+function openManageBanksModal() {
+  resetBankForm();
+  renderBanksTable();
+  openModalById("manageBanksModal", function () {
+    document.getElementById("bankNameInput").focus();
+  });
+}
+
+function resetBankForm() {
+  document.getElementById("bankEditId").value = "";
+  document.getElementById("bankNameInput").value = "";
+  var btn = document.getElementById("bankAddBtn");
+  if (btn) btn.innerHTML = '<i data-lucide="plus" class="btn-icon"></i> เพิ่ม';
+  lucide.createIcons();
+}
+
+function saveBank() {
+  var nameInput = document.getElementById("bankNameInput");
+  var name = nameInput.value.trim();
+  if (!name) return nameInput.focus();
+
+  var editId = document.getElementById("bankEditId").value;
+  var dup = banks.some(function (b) {
+    return b.name === name && String(b.id) !== String(editId);
+  });
+  if (dup) {
+    if (typeof showToast === "function") showToast("ซ้ำ", "มีธนาคารชื่อนี้อยู่แล้ว", "warning");
+    return nameInput.focus();
+  }
+
+  var op = editId
+    ? updateBankDB(Number(editId), { name: name })
+    : createBankDB({ name: name });
+
+  op.then(function () { return reloadBanks(); })
+    .then(function () {
+      // ถ้า edit name แล้ว update bank_accounts ที่อ้างชื่อเดิมให้ตามด้วย (snapshot text — ต้อง sync เอง)
+      resetBankForm();
+      renderBanksTable();
+      // refresh dropdown ใน account modal ถ้าเปิดอยู่
+      var accModal = document.getElementById("accountModal");
+      if (accModal && accModal.classList.contains("active")) {
+        var current = document.getElementById("inputBank").value;
+        populateBankSelect(current);
+      }
+      if (typeof showToast === "function") showToast("สำเร็จ", editId ? "แก้ไขแล้ว" : "เพิ่มแล้ว", "success");
+    })
+    .catch(function (err) {
+      console.error(err);
+      if (typeof showToast === "function") showToast("ผิดพลาด", "บันทึกไม่สำเร็จ", "error");
+    });
+}
+
+function editBank(id) {
+  var b = banks.find(function (x) { return x.id === id; });
+  if (!b) return;
+  document.getElementById("bankEditId").value = b.id;
+  document.getElementById("bankNameInput").value = b.name;
+  document.getElementById("bankNameInput").focus();
+  var btn = document.getElementById("bankAddBtn");
+  if (btn) btn.innerHTML = '<i data-lucide="check" class="btn-icon"></i> บันทึก';
+  lucide.createIcons();
+}
+
+function deleteBank(id) {
+  var b = banks.find(function (x) { return x.id === id; });
+  if (!b) return;
+  var isProd = currentAppMode === "production";
+  var inUse = accounts.some(function (a) { return a.bank === b.name; });
+
+  showConfirm({
+    title: isProd ? "ยืนยันการลบ (Soft)" : "ยืนยันการลบ",
+    message: "ต้องการลบธนาคาร <strong>" + escapeHtml(b.name) + "</strong> ใช่ไหม?" +
+      (inUse ? '<br/><span style="color:#f59e0b;font-size:11px;">⚠️ ธนาคารนี้ถูกใช้ในบัญชีธนาคารอยู่ — ชื่อใน bank_accounts จะยังเหมือนเดิม</span>' : "") +
+      (isProd ? '<br/><span style="color:#64748b;font-size:11px;">Production mode: soft delete (set deleted_at)</span>' : '<br/><span style="color:#64748b;font-size:11px;">Test mode: hard delete</span>'),
+    okText: "Delete",
+    okColor: "#ef4444",
+    onConfirm: function () {
+      var op = isProd ? softDeleteBankDB(id) : deleteBankDB(id);
+      op.then(function () { return reloadBanks(); })
+        .then(function () {
+          renderBanksTable();
+          var accModal = document.getElementById("accountModal");
+          if (accModal && accModal.classList.contains("active")) {
+            var current = document.getElementById("inputBank").value;
+            populateBankSelect(current);
+          }
+          if (typeof showToast === "function") showToast("ลบสำเร็จ", b.name, "success");
+        })
+        .catch(function (err) {
+          console.error(err);
+          if (typeof showToast === "function") showToast("ผิดพลาด", "ลบไม่สำเร็จ", "error");
+        });
+    },
+  });
+}
+
 if (typeof registerRandomFill === "function") {
   registerRandomFill({
     target: "#accountModal",
@@ -162,6 +333,12 @@ document.addEventListener("DOMContentLoaded", function () {
     openAccountModal("Add Account", null);
   });
 
+  var manageBtn = document.getElementById("manageBanksBtn");
+  if (manageBtn) manageBtn.addEventListener("click", openManageBanksModal);
+
+  var bankAddBtn = document.getElementById("bankAddBtn");
+  if (bankAddBtn) bankAddBtn.addEventListener("click", saveBank);
+
   var statusToggle = document.getElementById("inputStatus");
   if (statusToggle) {
     statusToggle.addEventListener("change", function () {
@@ -170,7 +347,11 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  reloadAccounts()
-    .then(function () { applyFilters(); })
+  var modeP = (typeof getAppMode === "function") ? getAppMode() : Promise.resolve("test");
+  Promise.all([modeP, reloadAccounts(), reloadBanks()])
+    .then(function (results) {
+      currentAppMode = results[0] || "test";
+      applyFilters();
+    })
     .catch(function (err) { console.error(err); applyFilters(); });
 });

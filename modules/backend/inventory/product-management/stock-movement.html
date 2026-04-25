@@ -113,6 +113,7 @@
             <table class="table">
               <thead>
                 <tr>
+                  <th style="width:36px;text-align:center;"><input type="checkbox" id="selectAllCheckbox" onchange="onSelectAll(this)" style="cursor:pointer;" /></th>
                   <th>#</th>
                   <th data-sort="date" data-sort-type="date">วันที่</th>
                   <th data-sort="product">ชื่อสินค้า</th>
@@ -221,6 +222,9 @@
     <script src="/assets/js/topbar.js"></script>
     <script>renderTopbar({ group: "Inventory", page: "เคลื่อนไหวสินค้า" });</script>
     <script src="/modules/backend/assets/js/random-data.js"></script>
+    <script src="/modules/backend/assets/js/app-mode.js"></script>
+    <script src="/modules/backend/assets/js/manager-password.js"></script>
+    <script src="/modules/backend/assets/js/cancel-helpers.js"></script>
     <script src="stock-movement.js"></script>
   </body>
 </html>

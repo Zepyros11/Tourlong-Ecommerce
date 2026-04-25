@@ -75,15 +75,6 @@
               </div>
             </div>
             <div class="stat-card">
-              <div class="stat-card-icon" style="background-color:#ffedd5;color:#ea580c;">
-                <i data-lucide="package-minus" class="stat-icon"></i>
-              </div>
-              <div>
-                <p class="stat-card-label">รับบางส่วน</p>
-                <p class="stat-card-value" id="statPartial">0</p>
-              </div>
-            </div>
-            <div class="stat-card">
               <div class="stat-card-icon" style="background-color:#fef3c7;color:#f59e0b;">
                 <i data-lucide="clock" class="stat-icon"></i>
               </div>
@@ -99,7 +90,6 @@
             <div class="filter-group">
               <button class="filter-btn active" data-status="all">ทั้งหมด</button>
               <button class="filter-btn" data-status="completed">สำเร็จ</button>
-              <button class="filter-btn" data-status="partial">รับบางส่วน</button>
               <button class="filter-btn" data-status="pending">รอดำเนินการ</button>
               <div class="filter-search">
                 <i data-lucide="search" class="filter-search-icon"></i>
@@ -179,6 +169,9 @@
     <script src="/assets/js/topbar.js"></script>
     <script>renderTopbar({ group: "Purchasing", page: "รับสินค้า" });</script>
     <script src="/modules/backend/assets/js/random-data.js"></script>
+    <script src="/modules/backend/assets/js/app-mode.js"></script>
+    <script src="/modules/backend/assets/js/manager-password.js"></script>
+    <script src="/modules/backend/assets/js/cancel-helpers.js"></script>
     <script src="goods-receive.js"></script>
   </body>
 </html>
