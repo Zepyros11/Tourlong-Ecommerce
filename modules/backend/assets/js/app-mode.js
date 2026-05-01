@@ -120,9 +120,10 @@ function renderTestModeBanner() {
     '<span>TEST MODE — ข้อมูลทั้งหมดไม่ใช่ production, สามารถลบ/รีเซ็ตข้อมูลได้</span>' +
     '<span style="font-size:14px;">⚠️</span>';
   document.body.insertBefore(banner, document.body.firstChild);
-  // ดันเนื้อหาหลักลงมา
+  // ดันเนื้อหาหลักลงมา + บอก CSS ว่า banner สูง 28px (effective หลัง zoom)
   var layout = document.querySelector(".layout");
   if (layout) layout.style.paddingTop = "34px";
+  document.documentElement.style.setProperty("--banner-height", "28px");
 }
 
 function removeTestModeBanner() {
@@ -130,6 +131,7 @@ function removeTestModeBanner() {
   if (b) b.remove();
   var layout = document.querySelector(".layout");
   if (layout) layout.style.paddingTop = "";
+  document.documentElement.style.removeProperty("--banner-height");
 }
 
 function applyAppModeUI() {

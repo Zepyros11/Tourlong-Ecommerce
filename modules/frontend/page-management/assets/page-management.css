@@ -12,6 +12,14 @@
   display: none !important;
 }
 
+/* Override .content max-width จาก backend.css — page-management ต้องเต็มจอ */
+#editorView,
+#welcomeView {
+  max-width: none !important;
+  width: auto !important;
+  align-self: stretch !important;
+}
+
 /* ===================== Frontend Sidebar (สีม่วง-น้ำเงิน) ===================== */
 .sidebar {
   background: linear-gradient(to bottom, #6366f1, #4338ca) !important;
@@ -23,14 +31,13 @@
 /* Collapse button */
 .sidebar-collapse-btn {
   position: absolute;
-  top: 50%;
-  right: -1px;
-  transform: translateY(-50%);
-  width: 20px;
-  height: 40px;
+  top: 12px;
+  right: 10px;
+  width: 22px;
+  height: 22px;
   background: rgba(255, 255, 255, 0.2);
   border: none;
-  border-radius: 6px 0 0 6px;
+  border-radius: 6px;
   color: #fff;
   cursor: pointer;
   display: flex;
@@ -62,29 +69,33 @@
   pointer-events: none;
 }
 
+/* เผื่อพื้นที่ให้ปุ่ม expand button (fixed left:0, width 20) ไม่ทับ Blocks panel */
+.sidebar.collapsed + .main-area {
+  margin-left: 22px;
+}
+
 /* Expand button (shows when collapsed) */
 .sidebar-expand-btn {
   position: fixed;
-  top: 50%;
-  left: 0;
-  transform: translateY(-50%);
-  width: 20px;
-  height: 48px;
+  top: 12px;
+  left: 4px;
+  width: 22px;
+  height: 22px;
   background: linear-gradient(to bottom, #6366f1, #4338ca);
   border: none;
-  border-radius: 0 8px 8px 0;
+  border-radius: 6px;
   color: #fff;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 100;
-  box-shadow: 2px 0 8px rgba(99, 102, 241, 0.3);
-  transition: width 0.15s;
+  box-shadow: 2px 2px 8px rgba(99, 102, 241, 0.3);
+  transition: background 0.15s, transform 0.15s;
 }
 
 .sidebar-expand-btn:hover {
-  width: 26px;
+  transform: scale(1.1);
 }
 
 .sidebar-logo-icon {
@@ -205,7 +216,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: calc(100vh - 100px);
+  min-height: calc((100vh - 30px) / var(--ui-zoom, 1));
   text-align: center;
   padding: 40px;
 }
@@ -748,7 +759,8 @@
 .editor-layout {
   display: flex;
   flex: 1;
-  height: calc(100vh - 90px);
+  /* editor-topbar สูง ~50px CSS (~30px visible หลัง zoom) — หักออกจาก viewport ก่อนหารด้วย zoom */
+  height: calc((100vh - 30px) / var(--ui-zoom, 1));
   background: #f1f5f9;
   overflow: hidden;
 }
@@ -763,6 +775,7 @@
   flex-shrink: 0;
   height: 100%;
   overflow-y: auto;
+  position: relative;
 }
 
 .editor-sidebar-left::-webkit-scrollbar {
@@ -1345,6 +1358,40 @@
   flex-shrink: 0;
   height: 100%;
   overflow-y: auto;
+  position: relative;
+}
+
+/* ---- Resize handles for editor panels ---- */
+.editor-panel-resize-handle,
+.editor-panel-resize-handle::before,
+.editor-panel-resize-handle::after {
+  cursor: ew-resize !important;
+}
+.editor-panel-resize-handle {
+  position: absolute;
+  top: 0;
+  width: 6px;
+  height: 100%;
+  z-index: 20;
+  transition: background 0.15s;
+}
+.editor-panel-resize-handle-right {
+  right: -3px;
+}
+.editor-panel-resize-handle-left {
+  left: -3px;
+}
+.editor-panel-resize-handle:hover,
+.editor-panel-resize-handle.dragging {
+  background: rgba(99, 102, 241, 0.35);
+}
+
+/* บังคับ cursor ระหว่าง drag (override universal rule) */
+body.dragging-resize,
+body.dragging-resize *,
+body.dragging-resize *::before,
+body.dragging-resize *::after {
+  cursor: ew-resize !important;
 }
 
 .editor-sidebar-right .editor-sidebar-header {

@@ -4,6 +4,16 @@
   box-sizing: border-box;
 }
 
+/* ===== Global UI scale — ปรับ --ui-zoom เพื่อย่อ/ขยายทั้งระบบ (1 = ขนาดปกติ) ===== */
+/* --banner-height ถูก JS (app-mode.js) set เป็น 28px เมื่อ TEST MODE banner แสดง */
+:root {
+  --ui-zoom: 0.6;
+  --banner-height: 0px;
+}
+html {
+  zoom: var(--ui-zoom);
+}
+
 body {
   font-family: "Plus Jakarta Sans", sans-serif;
   background-color: #f7fbfb;
@@ -13,7 +23,7 @@ body {
 /* ===================== Layout ===================== */
 .layout {
   display: flex;
-  min-height: 100vh;
+  min-height: calc((100vh - var(--banner-height)) / var(--ui-zoom));
 }
 
 .main-area {
@@ -27,6 +37,9 @@ body {
 .content {
   flex: 1;
   padding: 0 18px 18px;
+  max-width: 1400px;
+  width: 100%;
+  align-self: center;
 }
 
 .content-title {
@@ -228,7 +241,7 @@ body {
 /* ===================== Sidebar ===================== */
 .sidebar {
   width: 210px;
-  height: 100vh;
+  height: calc((100vh - var(--banner-height)) / var(--ui-zoom));
   position: sticky;
   top: 0;
   background: linear-gradient(to bottom, #3fb8b0, #2d8fa0);
@@ -238,6 +251,104 @@ body {
   border-radius: 0 22px 22px 0;
   box-shadow: 4px 0 30px rgba(0, 0, 0, 0.1);
   z-index: 20;
+  flex-shrink: 0;
+}
+
+/* Resize handle — ลากปรับขนาด sidebar */
+.sidebar-resize-handle {
+  position: absolute;
+  top: 0;
+  right: -4px;
+  width: 8px;
+  height: 100%;
+  cursor: ew-resize;
+  z-index: 30;
+  transition: background 0.15s;
+}
+.sidebar-resize-handle:hover,
+.sidebar-resize-handle.dragging {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Toggle button — ย่อ/ขยาย sidebar */
+.sidebar-toggle-btn {
+  position: absolute;
+  top: 12px;
+  right: 10px;
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 25;
+  transition: background 0.15s;
+  padding: 0;
+}
+.sidebar-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.32);
+}
+.sidebar-toggle-btn svg,
+.sidebar-toggle-btn i {
+  width: 14px;
+  height: 14px;
+  transition: transform 0.2s;
+}
+/* Collapsed sidebar — เหลือเฉพาะ icon */
+.sidebar {
+  transition: width 0.2s ease;
+}
+.sidebar.collapsed {
+  width: 50px !important;
+  padding: 8px 6px 16px;
+}
+.sidebar.collapsed .sidebar-logo {
+  display: none;
+}
+.sidebar.collapsed .sidebar-logo-text,
+.sidebar.collapsed .sidebar-frontend-link span,
+.sidebar.collapsed .sidebar-nav-item span,
+.sidebar.collapsed .sidebar-group-label span,
+.sidebar.collapsed .sidebar-group-label .sidebar-chevron,
+.sidebar.collapsed .sidebar-nav-dot,
+.sidebar.collapsed .sidebar-logout span {
+  display: none;
+}
+.sidebar.collapsed .sidebar-group-items {
+  display: none !important;
+}
+.sidebar.collapsed .sidebar-resize-handle {
+  display: none;
+}
+.sidebar.collapsed .sidebar-frontend-link,
+.sidebar.collapsed .sidebar-nav-item,
+.sidebar.collapsed .sidebar-group-label,
+.sidebar.collapsed .sidebar-logout {
+  justify-content: center;
+  padding-left: 6px;
+  padding-right: 6px;
+}
+.sidebar.collapsed .sidebar-group .sidebar-nav-item {
+  padding-left: 6px;
+}
+.sidebar.collapsed .sidebar-nav {
+  margin-top: 32px; /* เผื่อให้ toggle button ที่ top-right ไม่ทับ */
+}
+.sidebar.collapsed .sidebar-toggle-btn {
+  top: 8px;
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+  width: 28px;
+  height: 28px;
+}
+.sidebar.collapsed .sidebar-toggle-btn svg,
+.sidebar.collapsed .sidebar-toggle-btn i {
+  transform: rotate(180deg);
 }
 
 .sidebar-logo {
@@ -1116,7 +1227,7 @@ body {
 /* ===================== Dashboard ===================== */
 .dashboard-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
   gap: 14px;
 }
 
