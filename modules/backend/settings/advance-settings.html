@@ -238,30 +238,53 @@
     <script src="/assets/js/topbar.js"></script>
     <script>renderTopbar({ group: "Settings", page: "Advance Settings" });</script>
     <script>
-      // ============ Load/Save Settings to localStorage ============
+      // ============ Load/Save Settings to Supabase app_settings ============
       var settingKeys = [
         "toggleBranch", "toggleMultiCurrency", "toggleVAT", "toggleWHT",
         "toggleLowStock", "toggleOverdueInv"
       ];
 
-      // Load
-      settingKeys.forEach(function(key) {
-        var el = document.getElementById(key);
-        if (!el) return;
-        var saved = localStorage.getItem("pathara_" + key);
-        if (saved !== null) el.checked = saved === "true";
-      });
+      function flashSaved() {
+        var msg = document.getElementById("saveMsg");
+        msg.classList.add("show");
+        setTimeout(function() { msg.classList.remove("show"); }, 1500);
+      }
 
-      // Save on change
+      // Load จาก Supabase + sync localStorage cache (สำหรับหน้าอื่นอ่านเร็ว)
+      if (typeof fetchAppSettingsDB === "function") {
+        fetchAppSettingsDB().then(function (rows) {
+          var map = {};
+          (rows || []).forEach(function (r) { map[r.key] = r.value; });
+          settingKeys.forEach(function (key) {
+            var el = document.getElementById(key);
+            if (!el) return;
+            var v = map["pathara_" + key];
+            if (v !== undefined && v !== null) {
+              el.checked = !!v;
+              try { localStorage.setItem("pathara_" + key, !!v); } catch (e) {}
+            } else {
+              // fallback: legacy localStorage
+              var legacy = localStorage.getItem("pathara_" + key);
+              if (legacy !== null) el.checked = legacy === "true";
+            }
+          });
+        }).catch(function (e) { console.warn("load app settings failed", e); });
+      }
+
+      // Save on change → Supabase + localStorage cache
       settingKeys.forEach(function(key) {
         var el = document.getElementById(key);
         if (!el) return;
         el.addEventListener("change", function() {
-          localStorage.setItem("pathara_" + key, this.checked);
-          // Show saved message
-          var msg = document.getElementById("saveMsg");
-          msg.classList.add("show");
-          setTimeout(function() { msg.classList.remove("show"); }, 1500);
+          var checked = !!this.checked;
+          try { localStorage.setItem("pathara_" + key, checked); } catch (e) {}
+          if (typeof upsertAppSettingDB === "function") {
+            upsertAppSettingDB("pathara_" + key, checked)
+              .then(flashSaved)
+              .catch(function (err) { console.warn("save setting failed", err); });
+          } else {
+            flashSaved();
+          }
         });
       });
 
@@ -272,12 +295,18 @@
         setTimeout(function() { msg.classList.remove("show"); }, 1500);
       }
 
-      var policy = getPasswordPolicy();
-      document.getElementById("policyMinLength").value = policy.minLength;
-      document.getElementById("policyUpper").checked = policy.requireUppercase;
-      document.getElementById("policyLower").checked = policy.requireLowercase;
-      document.getElementById("policyDigit").checked = policy.requireDigit;
-      document.getElementById("policySpecial").checked = policy.requireSpecial;
+      function applyPolicyToForm(policy) {
+        document.getElementById("policyMinLength").value = policy.minLength;
+        document.getElementById("policyUpper").checked = policy.requireUppercase;
+        document.getElementById("policyLower").checked = policy.requireLowercase;
+        document.getElementById("policyDigit").checked = policy.requireDigit;
+        document.getElementById("policySpecial").checked = policy.requireSpecial;
+      }
+      applyPolicyToForm(getPasswordPolicy());
+      // refresh จาก Supabase แล้ว update form ถ้า policy เปลี่ยน
+      if (typeof syncPasswordPolicyFromDB === "function") {
+        syncPasswordPolicyFromDB().then(function () { applyPolicyToForm(getPasswordPolicy()); });
+      }
 
       function persistPolicy() {
         var newPolicy = {

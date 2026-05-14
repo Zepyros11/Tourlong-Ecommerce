@@ -121,6 +121,7 @@ function openCancelSOModal(id) {
   if (so.status === "completed") {
     impactHtml += '• Reverse stock ' + (so.sales_order_items || []).length + ' รายการ (สินค้ากลับเข้าคลัง)<br/>';
   }
+  impactHtml += '• Invoice ที่อ้าง SO นี้ → cancelled อัตโนมัติ<br/>';
   impactHtml += '• Pending payment auto-cancel (ทำผ่าน DB trigger)<br/>';
   if (hasPaid) {
     impactHtml += '• <span style="color:#991b1b;">ลูกค้าจ่ายแล้ว <strong>' + fmtMoney(paidAmount) + '</strong></span> — เลือกวิธีคืนเงินด้านล่าง<br/>';
@@ -208,6 +209,21 @@ function doCancelSOCascade(so, reason, refundOption, refundAmount, penaltyAmount
   }
 
   return stockChain
+    .then(function () {
+      // Cascade cancel invoices linked to this SO (ทุกสถานะที่ไม่ใช่ cancelled อยู่แล้ว)
+      if (typeof fetchInvoicesDB !== "function") return null;
+      return fetchInvoicesDB().then(function (invs) {
+        var linked = (invs || []).filter(function (inv) {
+          return Number(inv.so_id) === Number(so.id) && inv.status !== "cancelled";
+        });
+        if (!linked.length) return null;
+        var stamp = new Date().toISOString().slice(0, 10);
+        return Promise.all(linked.map(function (inv) {
+          var newNote = (inv.note ? inv.note + "\n" : "") + "[AUTO-CANCELLED " + stamp + "] SO " + (so.so_number || "") + " ถูกยกเลิก";
+          return updateInvoiceDB(inv.id, { status: "cancelled", note: newNote });
+        }));
+      }).catch(function (e) { console.warn("cascade invoice cancel failed:", e); return null; });
+    })
     .then(function () {
       if (!refundOption || refundOption === "none" || refundAmount <= 0) return null;
       var payload = {

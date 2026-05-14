@@ -174,6 +174,21 @@ function getPasswordPolicy() {
 
 function savePasswordPolicy(policy) {
   localStorage.setItem(AUTH_KEYS.POLICY, JSON.stringify(policy));
+  // Sync ไป Supabase ด้วย (ถ้า supabase-client.js โหลดอยู่)
+  if (typeof upsertAppSettingDB === "function") {
+    try { upsertAppSettingDB("pathara_password_policy", policy); } catch (e) {}
+  }
+}
+
+// Sync password policy จาก Supabase → localStorage cache (เรียกใน admin pages)
+function syncPasswordPolicyFromDB() {
+  if (typeof fetchAppSettingsDB !== "function") return Promise.resolve();
+  return fetchAppSettingsDB().then(function (rows) {
+    var row = (rows || []).find(function (r) { return r.key === "pathara_password_policy"; });
+    if (row && row.value) {
+      localStorage.setItem(AUTH_KEYS.POLICY, JSON.stringify(row.value));
+    }
+  }).catch(function () {});
 }
 
 function validatePassword(pwd, policy) {

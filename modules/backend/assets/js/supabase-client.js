@@ -268,9 +268,11 @@ function fetchUsersDB() {
 }
 
 function findUserByLoginDB(identifier) {
-  var idLower = (identifier || "").toLowerCase();
-  var encoded = encodeURIComponent(idLower);
-  var query = "or=(username.eq." + encoded + ",email.eq." + encoded + ")";
+  // ใช้ ilike (case-insensitive) เพราะ username/email ใน DB เก็บตามที่พิมพ์ (มีตัวพิมพ์ใหญ่ได้)
+  // escape % และ _ กัน wildcard ของ ilike ทำงานผิด
+  var raw = (identifier || "").replace(/([%_])/g, "\\$1");
+  var encoded = encodeURIComponent(raw);
+  var query = "or=(username.ilike." + encoded + ",email.ilike." + encoded + ")";
   return fetch(SUPABASE_URL + "/rest/v1/users?" + query + "&select=*&limit=1", {
     headers: supabaseHeaders,
   }).then(function (res) { return res.json(); })
@@ -455,6 +457,22 @@ function updateCompanyInfoDB(data) {
     method: "PATCH", headers: supabaseHeaders, body: JSON.stringify(data),
   }).then(function (res) { return res.json(); })
     .then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; });
+}
+
+// ===================== App Settings (key-value) =====================
+
+function fetchAppSettingsDB() {
+  return fetch(SUPABASE_URL + "/rest/v1/app_settings?select=*", {
+    headers: supabaseHeaders,
+  }).then(function (res) { return res.json(); });
+}
+
+function upsertAppSettingDB(key, value) {
+  return fetch(SUPABASE_URL + "/rest/v1/app_settings?on_conflict=key", {
+    method: "POST",
+    headers: Object.assign({}, supabaseHeaders, { "Prefer": "resolution=merge-duplicates,return=representation" }),
+    body: JSON.stringify({ key: key, value: value }),
+  }).then(function (res) { return res.json(); });
 }
 
 function fetchRolesDB() {

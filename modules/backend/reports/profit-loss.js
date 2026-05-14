@@ -73,12 +73,14 @@ function applyFilters() {
 function reloadData() {
   return Promise.all([
     typeof fetchSalesOrdersDB === "function" ? fetchSalesOrdersDB() : Promise.resolve([]),
-    typeof fetchPurchaseOrdersDB === "function" ? fetchPurchaseOrdersDB() : Promise.resolve([]),
+    typeof fetchSalesReturnsDB === "function" ? fetchSalesReturnsDB() : Promise.resolve([]),
     typeof fetchExpensesDB === "function" ? fetchExpensesDB() : Promise.resolve([]),
+    typeof fetchLatestProductCosts === "function" ? fetchLatestProductCosts() : Promise.resolve({}),
   ]).then(function (res) {
     var sos = res[0] || [];
-    var pos = res[1] || [];
+    var srs = res[1] || [];
     var expenses = res[2] || [];
+    var costMap = res[3] || {};
 
     // group by month YYYY-MM
     var monthMap = {};
@@ -87,19 +89,28 @@ function reloadData() {
       return monthMap[month];
     }
 
-    // Revenue from completed SOs
+    // Revenue + COGS จาก SO completed (accrual basis: ขายเมื่อไหร่บันทึกต้นทุนเมื่อนั้น)
     sos.forEach(function (so) {
       if (so.status !== "completed" || !so.date) return;
       var m = so.date.slice(0, 7);
       ensure(m).revenue += Number(so.total) || 0;
-      // COGS estimate: sum of PO avg cost × qty ไม่ได้คำนวณตอนนี้ — ใช้ 0
+      (so.sales_order_items || []).forEach(function (it) {
+        var unitCost = Number(costMap[it.product_id] || 0);
+        ensure(m).cogs += unitCost * (Number(it.qty) || 0);
+      });
     });
 
-    // COGS proxy: total รับของเข้า (PO total ที่ received) ในเดือนนั้น
-    pos.forEach(function (po) {
-      if (po.status !== "received" || !po.date) return;
-      var m = po.date.slice(0, 7);
-      ensure(m).cogs += Number(po.total) || 0;
+    // หัก sales returns ออกจาก revenue และคืน cost (status approved = stock กลับเข้าคลัง)
+    srs.forEach(function (sr) {
+      if (sr.status !== "approved" || !sr.date) return;
+      var m = sr.date.slice(0, 7);
+      (sr.sales_return_items || []).forEach(function (it) {
+        var qty = Number(it.qty) || 0;
+        var price = Number(it.price) || 0;
+        ensure(m).revenue -= price * qty;
+        var unitCost = Number(costMap[it.product_id] || 0);
+        ensure(m).cogs -= unitCost * qty;
+      });
     });
 
     // Expenses (paid)

@@ -3,8 +3,36 @@
 // ============================================================
 
 var salesData = [];
+var returnsData = []; // { date, refund } per approved return — keep raw เพื่อ filter ตาม date
 
 function fmtMoney(n) { return "฿" + Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+
+function calcReturnsTotal() {
+  var dateFrom = document.getElementById("dateFrom").value;
+  var dateTo = document.getElementById("dateTo").value;
+  return returnsData.reduce(function (sum, r) {
+    if (dateFrom && (r.date || "") < dateFrom) return sum;
+    if (dateTo && (r.date || "") > dateTo) return sum;
+    return sum + (Number(r.refund) || 0);
+  }, 0);
+}
+
+function updateStatCards(filteredData) {
+  var totalSales = 0, orderCount = 0;
+  filteredData.forEach(function (row) {
+    if (row.status === "cancelled") return;
+    totalSales += Number(row.amount) || 0;
+    orderCount += 1;
+  });
+  var returnsTotal = calcReturnsTotal();
+  var netSales = totalSales - returnsTotal;
+  var avg = orderCount ? totalSales / orderCount : 0;
+  var cards = document.querySelectorAll(".stat-card .stat-card-value");
+  if (cards[0]) cards[0].textContent = fmtMoney(netSales);
+  if (cards[1]) cards[1].textContent = String(orderCount);
+  if (cards[2]) cards[2].textContent = fmtMoney(avg);
+  if (cards[3]) cards[3].textContent = fmtMoney(returnsTotal);
+}
 
 function getStatusBadge(status) {
   switch (status) {
@@ -63,22 +91,38 @@ function getFilteredData() {
   return data;
 }
 
-function applyFilters() { renderTable(getFilteredData()); }
+function applyFilters() {
+  var filtered = getFilteredData();
+  renderTable(filtered);
+  updateStatCards(filtered);
+}
 
 function reloadData() {
-  return (typeof fetchSalesOrdersDB === "function" ? fetchSalesOrdersDB() : Promise.resolve([]))
-    .then(function (rows) {
-      salesData = (rows || []).map(function (so) {
-        return {
-          date: so.date || "",
-          orderNo: so.so_number || "",
-          customer: so.customers ? so.customers.name : "",
-          items: so.sales_order_items ? so.sales_order_items.length : 0,
-          amount: Number(so.total) || 0,
-          status: so.status || "processing",
-        };
-      });
+  return Promise.all([
+    typeof fetchSalesOrdersDB === "function" ? fetchSalesOrdersDB() : Promise.resolve([]),
+    typeof fetchSalesReturnsDB === "function" ? fetchSalesReturnsDB() : Promise.resolve([]),
+  ]).then(function (res) {
+    var rows = res[0] || [];
+    var returnsRows = res[1] || [];
+    salesData = rows.map(function (so) {
+      return {
+        date: so.date || "",
+        orderNo: so.so_number || "",
+        customer: so.customers ? so.customers.name : "",
+        items: so.sales_order_items ? so.sales_order_items.length : 0,
+        amount: Number(so.total) || 0,
+        status: so.status || "processing",
+      };
     });
+    returnsData = returnsRows
+      .filter(function (r) { return r.status === "approved"; })
+      .map(function (r) {
+        var refund = (r.sales_return_items || []).reduce(function (s, it) {
+          return s + (Number(it.qty) || 0) * (Number(it.price) || 0);
+        }, 0);
+        return { date: r.date || "", refund: refund };
+      });
+  });
 }
 
 document.addEventListener("DOMContentLoaded", function () {
